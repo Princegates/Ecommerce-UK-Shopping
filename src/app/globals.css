@@ -77,7 +77,10 @@ html {
 }
 
 body {
+  /* last line of defence: a single over-wide element must never widen the whole page on a phone (clip, unlike hidden, keeps sticky working) */
+  overflow-x: clip;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   font-size: 14px;
@@ -92,6 +95,8 @@ body {
 }
 
 @layer base {
+  /* grid items may shrink below their content's natural width, so one long row of links or a long word cannot stretch a phone-width page */
+  :where(.grid) > * { min-width: 0; }
   a { color: inherit; }
   h1, h2, h3, .display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
 }
@@ -160,6 +165,13 @@ body {
   }
   .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 28%, transparent); }
   .textarea { min-height: 5.5rem; resize: vertical; }
+  /* Phones: 16px text stops iPhone Safari zooming the page in when a field is tapped, and 44px targets are easy to hit. */
+  @media (max-width: 767px), (pointer: coarse) {
+    .input, .select, .textarea { font-size: 16px; min-height: 2.75rem; }
+    .textarea { min-height: 6rem; }
+    .btn { min-height: 2.75rem; }
+    .btn-small { min-height: 2.5rem; }
+  }
   .input::placeholder, .textarea::placeholder { color: #8d9096; }
   .field { display: grid; gap: 0.3rem; }
   .field > .label { color: var(--ink); font-size: 0.85rem; }
@@ -346,7 +358,7 @@ body {
 
 
 @media (max-width: 767px) {
-  body { padding-bottom: 4.5rem; }
+  body { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
 }
 
 @media print {

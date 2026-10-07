@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/bricolage-grotesque/wdth.css";
 import "@fontsource-variable/figtree";
 import "./globals.css";
@@ -12,6 +12,11 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       "Browse UK shops, see the full price in Ghana cedis, pay once and track your order to your door in Ghana.",
   };
+}
+
+/** Fills the screen on notched phones, and tints the phone browser's own bar with the shop's header colour. */
+export function generateViewport(): Viewport {
+  return { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: themeVars(getSettings().theme)["--navy"] };
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
