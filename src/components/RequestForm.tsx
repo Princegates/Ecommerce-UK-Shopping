@@ -12,9 +12,9 @@ type Preview =
   | { kind: "found"; name: string; priceMinor: number; host: string }
   | { kind: "none"; reason: string };
 
-export default function RequestForm() {
+export default function RequestForm({ initial = {} }: { initial?: { url?: string; title?: string; priceSeen?: string } }) {
   const [state, action, pending] = useActionState<RequestState, FormData>(requestAction, {});
-  const v = state.values ?? {};
+  const v: Record<string, string | undefined> = { ...initial, ...(state.values ?? {}) };
   const [title, setTitle] = useState(v.title ?? "");
   const [price, setPrice] = useState(v.priceSeen ?? "");
   const [preview, setPreview] = useState<Preview>({ kind: "idle" });

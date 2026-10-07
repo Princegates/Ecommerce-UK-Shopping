@@ -36,7 +36,7 @@ export default function ProductCard({
     <article className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_22px_rgba(16,20,18,0.16)]">
       <div className="relative">
         <Link href={href} tabIndex={-1} aria-hidden="true" className="block">
-          <ProductArt name={product.name} accent={product.shopAccent} imageUrl={product.imageUrl} />
+          <ProductArt name={product.name} accent={product.shopAccent} imageUrl={product.imageUrl} category={product.category} />
         </Link>
         {deal && <span className="badge badge-deal left-0 top-3 !rounded-l-none !rounded-r-md !py-1 !pl-2 !pr-2.5">-{pct}% off</span>}
         {!deal && badge === "new" && <span className="badge badge-new left-0 top-3 !rounded-l-none !rounded-r-md !py-1 !pl-2 !pr-2.5">New in</span>}

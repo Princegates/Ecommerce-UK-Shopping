@@ -116,7 +116,7 @@ export default async function HomePage() {
             {deals.slice(0, 3).map((p) => (
               <li key={p.id}>
                 <Link href={`/products/${p.slug}`} className="lift block overflow-hidden rounded-2xl bg-white text-ink">
-                  <ProductArt name={p.name} accent={p.shopAccent} imageUrl={p.imageUrl} />
+                  <ProductArt name={p.name} accent={p.shopAccent} imageUrl={p.imageUrl} category={p.category} />
                   <p className="num bg-red p-1.5 text-center text-sm font-bold text-white">-{dealPercent(p)}%</p>
                   <span className="sr-only">{p.name}</span>
                 </Link>
@@ -152,7 +152,7 @@ export default async function HomePage() {
       {list.slice(0, 4).map((p) => (
         <li key={p.id}>
           <Link href={`/products/${p.slug}`} className="group block">
-            <span className="block overflow-hidden rounded"><ProductArt name={p.name} accent={p.shopAccent} imageUrl={p.imageUrl} /></span>
+            <span className="block overflow-hidden rounded"><ProductArt name={p.name} accent={p.shopAccent} imageUrl={p.imageUrl} category={p.category} /></span>
             <span className="mt-1 block truncate text-xs group-hover:text-link-hover">{p.name}</span>
             <span className="num block text-xs font-bold">{ghs(gbpToGhsMinor(p.priceMinor, shopper.fx))}</span>
           </Link>
@@ -229,7 +229,7 @@ export default async function HomePage() {
               {trending.map((p) => (
                 <li key={p.id} className="w-60 shrink-0">
                   <Link href={`/products/${p.slug}`} className="lift flex items-center gap-3 rounded-xl border border-line bg-white p-2">
-                    <span className="block w-16 shrink-0 overflow-hidden rounded"><ProductArt name={p.name} accent={p.shopAccent} imageUrl={p.imageUrl} /></span>
+                    <span className="block w-16 shrink-0 overflow-hidden rounded"><ProductArt name={p.name} accent={p.shopAccent} imageUrl={p.imageUrl} category={p.category} /></span>
                     <span className="min-w-0">
                       <span className="line-clamp-2 text-sm leading-snug">{p.name}</span>
                       <span className="num block text-sm font-bold">{ghs(gbpToGhsMinor(p.priceMinor, shopper.fx))}</span>

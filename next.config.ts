@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   // A self-contained server for Docker and similar hosts (see DEPLOY.md).
   output: "standalone",
   poweredByHeader: false,
+  // product photos are uploaded through a server action
+  experimental: { serverActions: { bodySizeLimit: "6mb" } },
   async headers() {
     return [
       {

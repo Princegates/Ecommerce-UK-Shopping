@@ -3,6 +3,9 @@ import RequestForm from "@/components/RequestForm";
 
 export const metadata: Metadata = { title: "Request an item by link" };
 
-export default function RequestPage() {
-  return <RequestForm />;
+export default async function RequestPage({ searchParams }: { searchParams: Promise<{ url?: string; title?: string; price?: string }> }) {
+  const sp = await searchParams;
+  const clean = (v: string | undefined, max: number) => (v ?? "").slice(0, max);
+  const url = /^https?:\/\//i.test(sp.url ?? "") ? clean(sp.url, 1000) : "";
+  return <RequestForm initial={{ url, title: clean(sp.title, 160), priceSeen: /^\d{1,6}(\.\d{1,2})?$/.test(sp.price ?? "") ? sp.price! : "" }} />;
 }

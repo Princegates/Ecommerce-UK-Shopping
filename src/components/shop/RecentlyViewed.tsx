@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import ProductArt from "@/components/ProductArt";
 import { gbp, ghs } from "@/lib/money";
 
 const KEY = "recently-viewed";
 
-type Item = { id: number; slug: string; name: string; shop: string; accent: string; imageUrl: string | null; priceMinor: number; gbpMinor: number; wasMinor: number | null };
+type Item = { id: number; slug: string; name: string; shop: string; accent: string; imageUrl: string | null; priceMinor: number; gbpMinor: number; category: string; wasMinor: number | null };
 
 function read(): number[] {
   try {
@@ -50,12 +51,7 @@ export default function RecentlyViewed({ excludeId, title = "Recently viewed" }:
           {items.map((p) => (
             <li key={p.id} className="w-36 sm:w-44">
               <Link href={`/products/${p.slug}`} className="lift block overflow-hidden rounded-lg border border-line">
-                <div className="art" style={{ "--art-accent": p.accent } as React.CSSProperties}>
-                  {p.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.imageUrl} alt="" className="absolute inset-0 h-full w-full object-contain p-3" />
-                  ) : <b aria-hidden="true">{p.name.slice(0, 2)}</b>}
-                </div>
+                <ProductArt name={p.name} accent={p.accent} imageUrl={p.imageUrl} category={p.category} />
                 <div className="grid gap-0.5 p-2.5">
                   <span className="line-clamp-2 text-sm">{p.name}</span>
                   <span className="num text-base font-medium">{ghs(p.priceMinor)}{p.wasMinor && <span className="was ml-1.5 text-xs">{ghs(p.wasMinor)}</span>}</span>

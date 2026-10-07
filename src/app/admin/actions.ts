@@ -7,6 +7,7 @@ import {
   clearLoginFailures, adminConfig, clientKey, endAdminSession, loginAllowed, passwordMatches, recordLoginFailure,
   requireAdmin, startAdminSession,
 } from "@/lib/auth";
+import { isUploadUrl, saveImage } from "@/lib/uploads";
 import { parseBrackets, parseOptionGroups, parseTiers, safeUrl, isHexColour } from "@/lib/admin-parse";
 import { updateLinkRequest, upsertMethod, upsertProduct, upsertShop, upsertZone } from "@/lib/admin";
 import { parseMinor } from "@/lib/money";
@@ -196,9 +197,17 @@ export async function saveProductAction(f: FormData): Promise<void> {
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(endsRaw) || Number.isNaN(Date.parse(`${endsRaw}:00Z`))) done(path, "Enter the end of the deal as a date and time.");
     dealEnds = `${endsRaw.replace("T", " ")}:00`;
   }
-  const image = safeUrl(str(f, "imageUrl"));
+  const rawImage = str(f, "imageUrl");
+  let image = isUploadUrl(rawImage) ? rawImage : safeUrl(rawImage);
   const source = safeUrl(str(f, "sourceUrl"));
   if (image === null || source === null) done(path, "Links must start with https://");
+  const file = f.get("imageFile");
+  if (file instanceof File && file.size > 0) {
+    const saved = saveImage(Buffer.from(await file.arrayBuffer()));
+    if (!saved.ok) done(path, saved.error);
+    image = saved.url;
+  }
+  if (checked(f, "removeImage")) image = "";
   const savedId = upsertProduct({
     id, shopId, name, brand: str(f, "brand").slice(0, 60), category: str(f, "category").slice(0, 40),
     description: str(f, "description").slice(0, 2000), priceMinor: price, weightGrams: weight,

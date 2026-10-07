@@ -216,18 +216,18 @@ body {
     background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--art-accent, #999) 18%, transparent) 1px, transparent 1.4px);
     background-size: 14px 14px;
   }
-  .art b {
+  .art-icon {
     position: relative;
     display: grid;
     place-items: center;
-    width: 42%;
+    width: 46%;
     aspect-ratio: 1 / 1;
-    border-radius: 30%;
-    font-size: clamp(1.4rem, 5vw, 2.2rem);
-    font-weight: 700;
+    border-radius: 28%;
     color: #fff;
     background: var(--art-accent, var(--navy-2));
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--art-accent, #000) 35%, transparent);
   }
+  .art-icon svg { width: 58%; height: 58%; }
 
   /* links */
   .mark { background-image: linear-gradient(transparent 62%, var(--spark) 62% 92%, transparent 92%); padding-inline: 0.1em; }

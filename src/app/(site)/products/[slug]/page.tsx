@@ -89,7 +89,7 @@ export default async function ProductPage({ params }: Props) {
         <div className="mt-3 grid gap-5 rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(15,17,17,0.12)] md:p-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)_21rem]">
           <div className="lg:sticky lg:top-36 lg:self-start">
             <div className="relative overflow-hidden rounded-lg border border-line">
-              <ProductArt name={product.name} accent={product.shopAccent} imageUrl={product.imageUrl} />
+              <ProductArt name={product.name} accent={product.shopAccent} imageUrl={product.imageUrl} category={product.category} />
               {deal && <span className="badge badge-deal left-3 top-3 !text-sm">-{dealPercent(product)}% deal</span>}
             </div>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">

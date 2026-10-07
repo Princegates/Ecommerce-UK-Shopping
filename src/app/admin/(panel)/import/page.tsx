@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { approveItemAction, approveManyAction, rejectItemAction } from "@/app/admin/ingest-actions";
 import { Flash, PageHead } from "@/components/admin/ui";
+import PhotoImg from "@/components/PhotoImg";
 import { requireAdmin } from "@/lib/auth";
 import { listImportItems, listSources, type ImportItem } from "@/lib/ingest/store";
 import { gbp } from "@/lib/money";
@@ -9,6 +10,8 @@ export const dynamic = "force-dynamic";
 
 const TABS: [string, string][] = [["Needs review", "REVIEW"], ["Live", "PUBLISHED"], ["Rejected", "REJECTED"]];
 const PAGE = 50;
+
+const noImage = <span className="grid h-20 w-20 place-items-center rounded-lg border border-dashed border-line text-xs text-ink-soft">No photo</span>;
 
 export default async function ImportReview({ searchParams }: { searchParams: Promise<{ status?: string; source?: string; page?: string; saved?: string; error?: string }> }) {
   await requireAdmin();
@@ -59,8 +62,7 @@ export default async function ImportReview({ searchParams }: { searchParams: Pro
             {items.map((it) => (
               <li key={it.id} className={`box grid gap-3 p-4 md:grid-cols-[auto_5rem_1fr_auto] md:items-center ${it.status === "HELD" ? "!bg-gold/25" : ""}`}>
                 <input type="checkbox" name="ids" value={it.id} aria-label={`Select ${it.name}`} className="h-5 w-5 accent-[var(--green)]" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                {it.imageUrl ? <img src={it.imageUrl} alt="" className="h-20 w-20 border border-line object-cover" loading="lazy" /> : <span className="grid h-20 w-20 place-items-center border-2 border-solid border-line text-xs text-ink-soft">No image</span>}
+                {it.imageUrl ? <PhotoImg src={it.imageUrl} alt="" className="h-20 w-20 rounded-lg border border-line object-contain" fallback={noImage} /> : noImage}
                 <div className="min-w-0">
                   <p className="label">{it.shopName} · {it.sourceName}</p>
                   <p className="font-bold">{it.name}</p>

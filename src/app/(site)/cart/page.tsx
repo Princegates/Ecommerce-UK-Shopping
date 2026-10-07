@@ -98,7 +98,7 @@ export default async function CartPage() {
               return (
                 <li key={l.itemId} className="grid grid-cols-[6rem_1fr] gap-4 border-b border-line py-4 last:border-0 sm:grid-cols-[9rem_1fr_auto]">
                   <Link href={`/products/${l.product.slug}`} className="block overflow-hidden rounded-lg border border-line">
-                    <ProductArt name={l.product.name} accent={l.product.shopAccent} imageUrl={l.product.imageUrl} />
+                    <ProductArt name={l.product.name} accent={l.product.shopAccent} imageUrl={l.product.imageUrl} category={l.product.category} />
                   </Link>
                   <div className="grid content-start gap-1.5">
                     <Link href={`/products/${l.product.slug}`} className="text-base font-medium leading-snug hover:text-link-hover">{l.product.name}</Link>

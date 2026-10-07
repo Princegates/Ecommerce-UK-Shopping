@@ -36,10 +36,27 @@ export default function ProductForm({ product, shops }: { product?: Product; sho
         defaultValue={product ? optionGroupsToText(product.options) : ""}
         hint="One per line, like “Size: UK 7, UK 8, UK 9” or “Colour: Black, White”. Leave empty if there are none."
       />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Text label="Link to the item on the shop's website" name="sourceUrl" defaultValue={product?.sourceUrl} placeholder="https://" />
-        <Text label="Image link (only if you are licensed to use it)" name="imageUrl" defaultValue={product?.imageUrl ?? ""} placeholder="https://" />
-      </div>
+      <fieldset className="box grid gap-4 p-4">
+        <legend className="label px-2 text-ink">Photo</legend>
+        <div className="grid gap-4 sm:grid-cols-[8rem_1fr]">
+          <div className="grid h-32 w-32 place-items-center overflow-hidden rounded-xl border border-line bg-paper-2 text-center text-xs text-ink-soft">
+            {product?.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={product.imageUrl} alt="Current photo" referrerPolicy="no-referrer" className="h-full w-full object-contain" />
+            ) : "No photo yet"}
+          </div>
+          <div className="grid content-start gap-3">
+            <div className="field">
+              <label className="label" htmlFor="imageFile">Upload a photo</label>
+              <input id="imageFile" name="imageFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="input !p-1.5" />
+              <p className="hint">JPEG, PNG, WebP or GIF, up to 4 MB. A square photo on a white background looks best. Only upload photos you have the right to use.</p>
+            </div>
+            <Text label="Or paste a photo link (only if you are licensed to use it)" name="imageUrl" defaultValue={product?.imageUrl ?? ""} placeholder="https://" />
+            {product?.imageUrl && <Check label="Remove the current photo" name="removeImage" />}
+          </div>
+        </div>
+      </fieldset>
+      <Text label="Link to the item on the shop's website" name="sourceUrl" defaultValue={product?.sourceUrl} placeholder="https://" />
       <Check label="Show this item to customers" name="active" defaultChecked={product?.active ?? true} />
       <div><button className="btn btn-primary">{product ? "Save item" : "Add item"}</button></div>
     </form>
