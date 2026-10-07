@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 const NAV: { heading: string; items: [string, string][] }[] = [
   { heading: "Overview", items: [["/admin", "Dashboard"]] },
   { heading: "Sales", items: [["/admin/orders", "Orders"], ["/admin/customers", "Customers"], ["/admin/requests", "Link requests"]] },
-  { heading: "Catalogue", items: [["/admin/shops", "Shops"], ["/admin/items", "Items"]] },
+  { heading: "Catalogue", items: [["/admin/shops", "Shops"], ["/admin/items", "Items"], ["/admin/reviews", "Reviews"]] },
   { heading: "Pricing and delivery", items: [["/admin/pricing", "Pricing"], ["/admin/shipping", "Shipping"], ["/admin/zones", "Delivery areas"]] },
   { heading: "System", items: [["/admin/integrations", "Integrations"], ["/admin/messages", "Messages"], ["/admin/audit", "Activity log"]] },
 ];

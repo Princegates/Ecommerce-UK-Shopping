@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { GatewayError, type FetchLike, type PaymentGateway } from "./types";
+import type { Json } from "@/lib/json";
 
 const BASE = "https://api.paystack.co";
 
@@ -14,9 +15,9 @@ export function paystackSignatureValid(rawBody: string, signature: string | null
 export function makePaystack(cfg: { secretKey: string }, fetchImpl: FetchLike = fetch): PaymentGateway {
   const headers = { Authorization: `Bearer ${cfg.secretKey}`, "Content-Type": "application/json" };
 
-  async function call(path: string, init?: RequestInit): Promise<{ ok: boolean; status: number; json: Record<string, any> }> {
+  async function call(path: string, init?: RequestInit): Promise<{ ok: boolean; status: number; json: Json }> {
     const res = await fetchImpl(`${BASE}${path}`, { ...init, headers: { ...headers, ...(init?.headers ?? {}) }, signal: AbortSignal.timeout(15_000) });
-    const json = (await res.json().catch(() => ({}))) as Record<string, any>;
+    const json = (await res.json().catch(() => ({}))) as Json;
     return { ok: res.ok, status: res.status, json };
   }
 
@@ -55,7 +56,7 @@ export function makePaystack(cfg: { secretKey: string }, fetchImpl: FetchLike = 
 
     async parseWebhook(rawBody, h) {
       if (!paystackSignatureValid(rawBody, h.get("x-paystack-signature"), cfg.secretKey)) return null;
-      let evt: Record<string, any>;
+      let evt: Json;
       try {
         evt = JSON.parse(rawBody);
       } catch {

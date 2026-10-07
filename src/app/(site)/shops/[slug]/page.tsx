@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import { getShop, listProducts, productCategoriesForShop, type ProductSort } from "@/lib/catalog";
-import { getSettings } from "@/lib/settings";
+import { getShopper } from "@/lib/shopper";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
   const category = sp.category && categories.includes(sp.category) ? sp.category : undefined;
   const sort = (SORTS.find(([k]) => k === sp.sort)?.[0] ?? "popular") as ProductSort;
   const products = listProducts({ shopId: shop.id, category, sort });
-  const settings = getSettings();
+  const shopper = await getShopper();
 
   const href = (next: { category?: string; sort?: string }) => {
     const q = new URLSearchParams();
@@ -95,7 +95,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
           <ul className="mt-8 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
             {products.map((p) => (
               <li key={p.id}>
-                <ProductCard product={p} fx={settings.fx} />
+                <ProductCard product={p} fx={shopper.fx} ctx={shopper.ctx} saved={shopper.saved.has(p.id)} />
               </li>
             ))}
           </ul>

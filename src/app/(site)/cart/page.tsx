@@ -3,8 +3,11 @@ import Link from "next/link";
 import { removeItemAction, updateQuantityAction } from "@/app/actions/cart";
 import CartSummary from "@/components/CartSummary";
 import ProductArt from "@/components/ProductArt";
+import ProductShelf from "@/components/shop/ProductShelf";
 import { getCart } from "@/lib/cart";
-import { ghs } from "@/lib/money";
+import { relatedProducts, featuredProducts, type Product } from "@/lib/catalog";
+import { gbp, ghs } from "@/lib/money";
+import { getShopper } from "@/lib/shopper";
 import { gbpToGhsMinor } from "@/lib/pricing";
 import { getSettings, getShippingMethods, getZones } from "@/lib/settings";
 
@@ -14,10 +17,12 @@ export const metadata: Metadata = { title: "Your cart" };
 export default async function CartPage() {
   const lines = await getCart();
   const settings = getSettings();
+  const shopper = await getShopper();
 
   if (lines.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+      <>
+      <div className="mx-auto max-w-3xl px-4 pt-20 text-center">
         <p className="label">Your cart</p>
         <h1 className="mt-2 text-5xl">It&rsquo;s empty</h1>
         <p className="mx-auto mt-4 max-w-md text-ink-soft">
@@ -25,9 +30,12 @@ export default async function CartPage() {
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
           <Link href="/shops" className="btn btn-primary">Browse the shops</Link>
+          <Link href="/search?deals=1&sort=discount" className="btn btn-gold">See today&rsquo;s deals</Link>
           <Link href="/request" className="btn">Request an item by link</Link>
         </div>
       </div>
+      <ProductShelf title="Popular right now" products={featuredProducts(10)} shopper={shopper} href="/search" />
+      </>
     );
   }
 
@@ -44,10 +52,40 @@ export default async function CartPage() {
     weightGrams: l.product.weightGrams,
   }));
 
+  const itemsGbp = lines.reduce((n, l) => n + l.product.priceMinor * l.quantity, 0);
+  const minGbp = settings.minOrderGbpMinor;
+  const reached = itemsGbp >= minGbp;
+  const pct = minGbp > 0 ? Math.min(100, Math.round((itemsGbp / minGbp) * 100)) : 100;
+
+  const inCart = new Set(lines.map((l) => l.product.id));
+  const picks: Product[] = [];
+  for (const l of lines) {
+    for (const r of relatedProducts(l.product, 6)) {
+      if (!inCart.has(r.id) && !picks.some((x) => x.id === r.id)) picks.push(r);
+    }
+  }
+  for (const f of featuredProducts(10)) {
+    if (picks.length >= 10) break;
+    if (!inCart.has(f.id) && !picks.some((x) => x.id === f.id)) picks.push(f);
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       <p className="label">Step 1 of 3</p>
       <h1 className="text-5xl">Your cart</h1>
+
+      {minGbp > 0 && (
+        <div className="box mt-6 p-4" role="status">
+          <p className="font-bold">
+            {reached
+              ? "You have reached the minimum order. You can check out."
+              : `Add ${gbp(minGbp - itemsGbp)} more of items to check out.`}
+          </p>
+          <div className="mt-2 h-3 border-2 border-ink bg-paper-3" aria-hidden>
+            <div className={`h-full ${reached ? "bg-green" : "bg-gold"}`} style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
         <ul className="grid gap-4">
@@ -100,6 +138,10 @@ export default async function CartPage() {
         </ul>
 
         <CartSummary items={items} cfg={cfg} minOrderGbpMinor={settings.minOrderGbpMinor} />
+      </div>
+
+      <div className="-mx-4">
+        <ProductShelf id="cart-picks" title="You might also like" products={picks} shopper={shopper} />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import { requireCustomer } from "@/lib/customer-session";
-import { getSettings } from "@/lib/settings";
+import { getShopper } from "@/lib/shopper";
 import { listWishlist } from "@/lib/wishlist";
 
 export const metadata: Metadata = { title: "Saved items" };
@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Saved items" };
 export default async function WishlistPage() {
   const c = await requireCustomer("/account/wishlist");
   const items = listWishlist(c.id);
-  const fx = getSettings().fx;
+  const shopper = await getShopper();
   return (
     <>
       <p className="label">Your account</p>
@@ -24,7 +24,7 @@ export default async function WishlistPage() {
       ) : (
         <ul className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((p) => (
-            <li key={p.id}><ProductCard product={p} fx={fx} /></li>
+            <li key={p.id}><ProductCard product={p} fx={shopper.fx} ctx={shopper.ctx} saved /></li>
           ))}
         </ul>
       )}

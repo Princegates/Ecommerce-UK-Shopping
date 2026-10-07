@@ -12,6 +12,7 @@ import {
   type TemplateVars,
 } from "./senders";
 import { renderOrderMessage, renderTestMessage, type Rendered } from "./templates";
+import type { Json } from "@/lib/json";
 
 type Db = Database.Database;
 export type MessageChannel = Exclude<Channel, "payments" | "rates">;
@@ -253,7 +254,7 @@ export type MessageRow = {
 export function recentMessages(limit = 100, d: Db = db()): MessageRow[] {
   const rows = d
     .prepare("SELECT m.*, o.number AS order_number FROM messages m LEFT JOIN orders o ON o.id = m.order_id ORDER BY m.id DESC LIMIT ?")
-    .all(limit) as Record<string, any>[];
+    .all(limit) as Json[];
   return rows.map((r) => ({
     id: r.id, orderNumber: r.order_number ?? null, channel: r.channel, provider: r.provider, recipient: maskRecipient(r.recipient),
     event: r.event, status: r.status, attempts: r.attempts, error: r.error, createdAt: r.created_at, sentAt: r.sent_at,

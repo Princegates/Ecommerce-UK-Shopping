@@ -181,6 +181,21 @@ export async function saveProductAction(f: FormData): Promise<void> {
   if (!Number.isFinite(weight) || weight < 0 || weight > 100000) done(path, "Weight must be in grams, between 0 and 100000.");
   const options = parseOptionGroups(str(f, "options"));
   if (!options.ok) done(path, options.error);
+  const wasRaw = str(f, "compareAt");
+  let compareAt: number | null = null;
+  if (wasRaw) {
+    const v = parseMinor(wasRaw);
+    if (v === null) done(path, "The was price must be an amount like 79.99.");
+    if (v <= price) done(path, "The was price must be higher than the price, or leave it empty for no deal.");
+    compareAt = v;
+  }
+  const endsRaw = str(f, "dealEnds");
+  let dealEnds: string | null = null;
+  if (endsRaw) {
+    if (!compareAt) done(path, "Add a was price to run a deal with an end time.");
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(endsRaw) || Number.isNaN(Date.parse(`${endsRaw}:00Z`))) done(path, "Enter the end of the deal as a date and time.");
+    dealEnds = `${endsRaw.replace("T", " ")}:00`;
+  }
   const image = safeUrl(str(f, "imageUrl"));
   const source = safeUrl(str(f, "sourceUrl"));
   if (image === null || source === null) done(path, "Links must start with https://");
@@ -188,6 +203,7 @@ export async function saveProductAction(f: FormData): Promise<void> {
     id, shopId, name, brand: str(f, "brand").slice(0, 60), category: str(f, "category").slice(0, 40),
     description: str(f, "description").slice(0, 2000), priceMinor: price, weightGrams: weight,
     options: options.value, imageUrl: image, sourceUrl: source, active: checked(f, "active"),
+    compareAtMinor: compareAt, dealEndsAt: dealEnds,
   });
   audit("item.save", name, `price ${price}${checked(f, "active") ? "" : ", hidden"}`);
   revalidatePath("/", "layout");

@@ -1,4 +1,5 @@
 import { digitsOnly } from "./phone";
+import type { Json } from "@/lib/json";
 
 export type SendResult = { ok: true; id?: string } | { ok: false; error: string };
 export type FetchLike = typeof fetch;
@@ -7,8 +8,8 @@ export type TemplateVars = { name: string; orderNumber: string; update: string }
 
 const TIMEOUT = 15_000;
 
-async function readJson(res: Response): Promise<Record<string, any>> {
-  return (await res.json().catch(() => ({}))) as Record<string, any>;
+async function readJson(res: Response): Promise<Json> {
+  return (await res.json().catch(() => ({}))) as Json;
 }
 
 const fail = (provider: string, status: number, detail?: unknown): SendResult => ({

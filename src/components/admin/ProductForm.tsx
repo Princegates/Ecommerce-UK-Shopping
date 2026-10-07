@@ -20,6 +20,13 @@ export default function ProductForm({ product, shops }: { product?: Product; sho
         <Text label="UK shop price (£)" name="price" inputMode="decimal" defaultValue={product ? minorToInput(product.priceMinor) : ""} required hint="The price on the UK shop, with no markup." />
         <Text label="Weight (grams)" name="weightGrams" inputMode="numeric" defaultValue={product?.weightGrams ?? 500} required hint="Packed weight. Drives shipping." />
       </div>
+      <fieldset className="box grid gap-4 p-4">
+        <legend className="label px-2 text-ink">Deal (optional)</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Text label="Was price (£)" name="compareAt" inputMode="decimal" defaultValue={product?.compareAtMinor ? minorToInput(product.compareAtMinor) : ""} hint="A higher, genuine earlier price. Shoppers see it struck through with the saving." />
+          <Text label="Deal ends (Ghana time)" name="dealEnds" type="datetime-local" defaultValue={product?.dealEndsAt ? product.dealEndsAt.slice(0, 16).replace(" ", "T") : ""} hint="Leave empty for no end. A countdown shows while the deal runs." />
+        </div>
+      </fieldset>
       <Area label="Description" name="description" defaultValue={product?.description} rows={4} />
       <Area
         label="Options customers choose"

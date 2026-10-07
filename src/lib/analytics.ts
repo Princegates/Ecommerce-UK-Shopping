@@ -10,7 +10,6 @@ export type RangeDays = 7 | 30 | 90;
 export const RANGES: RangeDays[] = [7, 30, 90];
 export const parseRange = (v: string | undefined): RangeDays => (RANGES.find((r) => String(r) === v) ?? 30) as RangeDays;
 
-const paid = "o.payment_status IN ('PAID', 'REFUNDED')";
 
 type Totals = { orders: number; revenue: number; items: number; service: number; shipping: number; delivery: number };
 

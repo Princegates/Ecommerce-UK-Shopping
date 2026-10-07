@@ -18,6 +18,7 @@ import {
   MESSAGE_CHANNELS, getRules, processOutbox, retryMessage, saveRules, sendTest, type MessageChannel,
 } from "@/lib/notify/outbox";
 import { addTracking, deleteTracking } from "@/lib/orders";
+import { setReviewStatus } from "@/lib/reviews";
 import { ORDER_STATUSES } from "@/lib/order-status";
 import { buildGateway } from "@/lib/payments";
 import { getSettings } from "@/lib/settings";
@@ -257,4 +258,14 @@ export async function saveFxPolicyAction(f: FormData): Promise<void> {
   const p = getFxPolicy();
   audit("rate.policy", "exchange rate feed", `${p.mode}, limit ${p.maxChangePct}%, alert ${p.alertPct}%`);
   back("/admin/integrations", { saved: "fx-policy" }, "#rates-feed");
+}
+
+// ------------------------------------------------------------------- reviews
+
+export async function setReviewStatusAction(f: FormData): Promise<void> {
+  await requireAdmin();
+  const id = num(f, "id");
+  const status = str(f, "status") === "HIDDEN" ? "HIDDEN" : "PUBLISHED";
+  if (Number.isInteger(id) && setReviewStatus(id, status)) audit(`review.${status.toLowerCase()}`, `review #${id}`);
+  back("/admin/reviews", { saved: "1" });
 }

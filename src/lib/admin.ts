@@ -59,6 +59,10 @@ export type ProductInput = {
   imageUrl: string;
   sourceUrl: string;
   active: boolean;
+  /** The higher "was" price shown struck through, in pence. Null for no deal. */
+  compareAtMinor: number | null;
+  /** UTC "YYYY-MM-DD HH:MM:SS" when the deal ends, or null for no end. */
+  dealEndsAt: string | null;
 };
 
 export function upsertProduct(p: ProductInput, d: Db = db()): number {
@@ -74,15 +78,15 @@ export function upsertProduct(p: ProductInput, d: Db = db()): number {
     d.prepare(
       `UPDATE products SET shop_id=@shopId, name=@name, brand=@brand, category=@category, description=@description,
          price_minor=@priceMinor, weight_grams=@weightGrams, options=@options, image_url=@imageUrl,
-         source_url=@sourceUrl, active=@active WHERE id=@id`,
+         source_url=@sourceUrl, active=@active, compare_at_minor=@compareAtMinor, deal_ends_at=@dealEndsAt WHERE id=@id`,
     ).run(row);
     return p.id;
   }
   const slug = uniqueSlug("products", `${shop.slug}-${p.name}`, 0, d);
   const info = d
     .prepare(
-      `INSERT INTO products (shop_id, slug, name, brand, category, description, price_minor, weight_grams, options, image_url, source_url, active)
-       VALUES (@shopId, @slug, @name, @brand, @category, @description, @priceMinor, @weightGrams, @options, @imageUrl, @sourceUrl, @active)`,
+      `INSERT INTO products (shop_id, slug, name, brand, category, description, price_minor, weight_grams, options, image_url, source_url, active, compare_at_minor, deal_ends_at)
+       VALUES (@shopId, @slug, @name, @brand, @category, @description, @priceMinor, @weightGrams, @options, @imageUrl, @sourceUrl, @active, @compareAtMinor, @dealEndsAt)`,
     )
     .run({ ...row, slug });
   return Number(info.lastInsertRowid);

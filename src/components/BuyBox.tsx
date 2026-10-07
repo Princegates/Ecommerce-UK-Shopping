@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { addToCartAction, type AddState } from "@/app/actions/cart";
 import Breakdown from "@/components/Breakdown";
 import { computeQuote, DeliverySelectors, type QuoteConfig } from "@/components/quote-client";
+import Countdown from "@/components/shop/Countdown";
 import { gbp, ghs } from "@/lib/money";
 import { gbpToGhsMinor } from "@/lib/pricing";
 
@@ -18,9 +19,12 @@ type Props = {
   };
   cfg: QuoteConfig;
   maxQty: number;
+  /** Struck-through earlier price in pence, when a deal is live. */
+  compareAtMinor?: number | null;
+  dealEndsAt?: string | null;
 };
 
-export default function BuyBox({ product, cfg, maxQty }: Props) {
+export default function BuyBox({ product, cfg, maxQty, compareAtMinor = null, dealEndsAt = null }: Props) {
   const [state, action, pending] = useActionState<AddState, FormData>(addToCartAction, {});
   const [qty, setQty] = useState(1);
   const [zoneId, setZoneId] = useState(cfg.zones[0]?.id ?? 0);
@@ -37,6 +41,20 @@ export default function BuyBox({ product, cfg, maxQty }: Props) {
     [product, cfg, qty, zoneId, code],
   );
   const unitGhs = gbpToGhsMinor(product.priceMinor, cfg.fx);
+  const wasGhs = compareAtMinor ? gbpToGhsMinor(compareAtMinor, cfg.fx) : null;
+  const saving = wasGhs && wasGhs > unitGhs ? Math.round((1 - unitGhs / wasGhs) * 100) : 0;
+  const mainButton = useRef<HTMLButtonElement>(null);
+  const [mainVisible, setMainVisible] = useState(true);
+  useEffect(() => {
+    const el = mainButton.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setMainVisible(e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (state.added) window.dispatchEvent(new Event("cart:added"));
+  }, [state.added, state.nonce]);
 
   return (
     <form action={action} className="grid gap-6">
@@ -44,7 +62,12 @@ export default function BuyBox({ product, cfg, maxQty }: Props) {
       <input type="hidden" name="quantity" value={qty} />
 
       <div>
-        <p className="num display text-5xl">{ghs(unitGhs)}</p>
+        <p className="flex flex-wrap items-baseline gap-x-3">
+          {saving > 0 && <span className="display num text-2xl text-red">-{saving}%</span>}
+          <span className="num display text-5xl">{ghs(unitGhs)}</span>
+          {wasGhs && saving > 0 && <span className="was num text-lg">{ghs(wasGhs)}</span>}
+        </p>
+        {saving > 0 && <p className="save mt-1 text-sm">You save {ghs((wasGhs ?? 0) - unitGhs)}{dealEndsAt && <> · ends in <Countdown endsAt={dealEndsAt} /></>}</p>}
         <p className="label mt-1 num">{gbp(product.priceMinor)} in the UK shop · item price only</p>
       </div>
 
@@ -88,7 +111,7 @@ export default function BuyBox({ product, cfg, maxQty }: Props) {
       </section>
 
       <div className="grid gap-3">
-        <button className="btn btn-primary w-full !text-lg" disabled={pending}>
+        <button ref={mainButton} className="btn btn-gold w-full !text-lg" disabled={pending}>
           {pending ? "Adding…" : "Add to cart"}
         </button>
         <div aria-live="polite">
@@ -101,6 +124,15 @@ export default function BuyBox({ product, cfg, maxQty }: Props) {
           )}
         </div>
       </div>
+      {!mainVisible && (
+        <div className="fixed inset-x-0 bottom-[3.6rem] z-40 flex items-center justify-between gap-3 border-t-2 border-ink bg-paper-3 p-3 md:hidden">
+          <div>
+            <p className="num display text-2xl">{ghs(unitGhs)}</p>
+            {quote && <p className="label">{ghs(quote.totalMinor)} to your door</p>}
+          </div>
+          <button className="btn btn-gold" disabled={pending}>{pending ? "Adding…" : "Add to cart"}</button>
+        </div>
+      )}
     </form>
   );
 }

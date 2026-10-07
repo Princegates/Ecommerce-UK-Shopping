@@ -86,6 +86,12 @@ const PRODUCTS: SeedProduct[] = [
   ["Torque Tools", "Laser Measure, 40m", "Torque", "Hand tools", 19.0, 220, [], "Compact laser distance meter."],
 ];
 
+const DEALS: [name: string, wasPounds: number][] = [
+  ["Cloud Runner Trainers", 79.99], ["Padded Winter Jacket", 119], ["Pulse Wireless Earbuds", 69.99], ["Orbit 6 Smartphone, 128GB", 259],
+  ["Digital Air Fryer, 5L", 89], ["Pro Match Football, size 5", 32], ["18V Cordless Drill Driver Kit", 99], ["Baby Starter Bundle, 0-3 months", 34],
+  ["Trail Running Shoes", 75],
+];
+
 const SERVICE_FEE: ServiceFeeRule = { mode: "percent", percent: 10, minMinor: 3000 };
 
 const AIR_STANDARD: RateCard = {
@@ -153,6 +159,10 @@ export function seedIfEmpty(db: Database.Database): void {
         options: JSON.stringify(options),
       });
     }
+
+    // Sample "was" prices so the deals shelf has something to show. Replace them in the admin area.
+    const setDeal = db.prepare("UPDATE products SET compare_at_minor = ?, deal_ends_at = datetime('now', '+3 days') WHERE name = ?");
+    for (const [name, was] of DEALS) setDeal.run(Math.round(was * 100), name);
 
     const insertMethod = db.prepare(
       "INSERT INTO shipping_methods (code, name, eta, rate_card, sort) VALUES (?, ?, ?, ?, ?)",

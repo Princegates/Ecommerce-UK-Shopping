@@ -372,3 +372,7 @@ export function unseenUpdateCount(customerId: number, d: Db = db()): number {
 export function markUpdatesSeen(customerId: number, d: Db = db()): void {
   d.prepare("UPDATE customers SET updates_seen_at = datetime('now') WHERE id = ?").run(customerId);
 }
+
+export function setDefaultZone(customerId: number, zoneId: number | null, d: Db = db()): void {
+  d.prepare("UPDATE customers SET default_zone_id = ? WHERE id = ?").run(zoneId, customerId);
+}

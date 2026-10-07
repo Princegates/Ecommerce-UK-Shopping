@@ -12,8 +12,8 @@ describe("admin writes", () => {
     const d = openForTest();
     const shopId = upsertShop({ id: 0, name: "Northgate Fashion", tagline: "", category: "Fashion", websiteUrl: "", description: "", accent: "#123456", active: true, sort: 9 }, d);
     expect(listShops({}, d).filter((s) => s.name === "Northgate Fashion")).toHaveLength(2);
-    const p1 = upsertProduct({ id: 0, shopId, name: "Hat", brand: "", category: "", description: "", priceMinor: 1000, weightGrams: 100, options: [], imageUrl: "", sourceUrl: "", active: true }, d);
-    const p2 = upsertProduct({ id: 0, shopId, name: "Hat", brand: "", category: "", description: "", priceMinor: 1200, weightGrams: 100, options: [], imageUrl: "", sourceUrl: "", active: true }, d);
+    const p1 = upsertProduct({ id: 0, shopId, name: "Hat", brand: "", category: "", description: "", priceMinor: 1000, weightGrams: 100, options: [], imageUrl: "", sourceUrl: "", active: true, compareAtMinor: null, dealEndsAt: null }, d);
+    const p2 = upsertProduct({ id: 0, shopId, name: "Hat", brand: "", category: "", description: "", priceMinor: 1200, weightGrams: 100, options: [], imageUrl: "", sourceUrl: "", active: true, compareAtMinor: null, dealEndsAt: null }, d);
     expect(p1).not.toBe(p2);
     const hats = listProducts({ shopId }, d);
     expect(new Set(hats.map((h) => h.slug)).size).toBe(2);
