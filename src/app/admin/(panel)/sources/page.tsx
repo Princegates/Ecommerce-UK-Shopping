@@ -54,6 +54,14 @@ export default async function SourcesAdmin({ searchParams }: { searchParams: Pro
             </ol>
             <p className="mt-1 text-ink-soft">You get real UK listings with eBay&rsquo;s own photos, prices and links, refreshed automatically. Read eBay&rsquo;s API licence for how listing data and photos may be shown.</p>
           </div>
+          <div className="md:col-span-2">
+            <p className="font-bold">Small UK brands on Shopify (with the owner&rsquo;s agreement)</p>
+            <ol className="mt-1 grid list-decimal gap-1 pl-5">
+              <li>Ask the brand if they are happy for you to list their products, or join their affiliate programme if they have one.</li>
+              <li>Here: <strong>Add a source → Shopify shop</strong>, paste the shop address (for example <em>https://brand.co.uk</em>), tick the permission box, click <strong>Check this setup first</strong>, then <strong>Create source</strong>.</li>
+            </ol>
+            <p className="mt-1 text-ink-soft">It reads the shop&rsquo;s public product list (photos, prices, stock, sizes and colours) only when the shop&rsquo;s robots.txt allows it and the shop prices in pounds, and it stops at the first refusal. Products whose sizes cost different amounts are skipped.</p>
+          </div>
           <div>
             <p className="font-bold">What you get, and what you don&rsquo;t</p>
             <ul className="mt-1 grid list-disc gap-1 pl-5">

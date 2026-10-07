@@ -26,6 +26,7 @@ function open(): Db {
 /** Columns added after the first release, applied to databases created before them. */
 export function migrate(d: Db): void {
   widenSourceKinds(d);
+  if (!(d.prepare("PRAGMA table_info(import_items)").all() as { name: string }[]).some((c) => c.name === "options")) d.exec("ALTER TABLE import_items ADD COLUMN options TEXT NOT NULL DEFAULT '[]'");
   const has = (table: string) => (d.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
   const orderCols = has("orders");
   const add = (name: string, ddl: string) => {
@@ -53,13 +54,13 @@ export function migrate(d: Db): void {
 }
 
 /**
- * Databases made before eBay support only allow four kinds of catalogue source. SQLite cannot change a CHECK
+ * Databases made before eBay or Shopify support only allow the older kinds of catalogue source. SQLite cannot change a CHECK
  * constraint in place, so the table is rebuilt once with the wider rule (rows, and the items that point at them, are kept).
  */
 function widenSourceKinds(d: Db): void {
   const t = d.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'catalog_sources'").get() as { sql: string } | undefined;
-  if (!t || t.sql.includes("'ebay'")) return;
-  const widened = t.sql.replace("'links')", "'links', 'ebay')").replace(/CREATE TABLE (IF NOT EXISTS )?"?catalog_sources"?/i, "CREATE TABLE catalog_sources_new");
+  if (!t || t.sql.includes("'shopify'")) return;
+  const widened = t.sql.replace(/'links'(, 'ebay')?\)/, "'links', 'ebay', 'shopify')").replace(/CREATE TABLE (IF NOT EXISTS )?"?catalog_sources"?/i, "CREATE TABLE catalog_sources_new");
   d.pragma("foreign_keys = OFF");
   try {
     d.transaction(() => {

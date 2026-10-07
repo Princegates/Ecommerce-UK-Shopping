@@ -63,6 +63,7 @@ A source is one place we are allowed to read a shop's products from. Add them in
 | Product feed (CSV or JSON) | Official and affiliate feeds | Most reliable. Columns are recognised automatically; override them with lines like `price=cost.gbp`. |
 | Shop website (sitemap + product pages) | Shops whose terms and robots.txt allow it | Reads the sitemap, then product pages one at a time using the product data (JSON-LD or Open Graph) each page publishes. |
 | eBay (official API) | Real UK listings with photos | Free developer keys (Admin > Integrations > Catalogue APIs), then list your searches. Only new, fixed-price, UK-located listings priced in pounds. |
+| Shopify shop | Small UK brands on Shopify | Paste the shop address. Reads its public product list (photos, prices, stock, sizes and colours) only if its robots.txt allows it and it prices in pounds; stops at the first refusal. Get the owner's agreement first. Products whose sizes cost different amounts are skipped. |
 | Pasted links | One-off items | Paste up to 20 product links. Prices are re-checked automatically. |
 
 **What runs by itself:** new items go live, price, was-price and stock changes update live items, items that disappear from a

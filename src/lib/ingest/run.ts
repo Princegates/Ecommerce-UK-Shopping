@@ -10,6 +10,8 @@ import {
 import {
   canonicalUrl, csvToRecords, extractPageProduct, jsonToRecords, mapRecord, parseSitemap, type FieldMap, type NormalizedItem,
 } from "./parse";
+import { parseOptions } from "../catalog";
+import { gatherShopify } from "./shopify";
 import { ebayConfig, ebayToken, mapEbayItem, parseQueries, searchEbay } from "./ebay";
 import { getSource, getSourceUrl, linksSourceFor, type ImportItem, type Source, type SourceKind } from "./store";
 
@@ -46,7 +48,7 @@ function fingerprint(it: NormalizedItem): string {
 
 type ItemRow = {
   id: number; source_id: number; external_id: string; product_url: string; name: string; brand: string; category: string; description: string;
-  price_minor: number; compare_at_minor: number | null; image_url: string; in_stock: number; weight_grams: number | null; fingerprint: string;
+  price_minor: number; compare_at_minor: number | null; image_url: string; in_stock: number; weight_grams: number | null; options: string; fingerprint: string;
   status: ImportItem["status"]; hold_reason: string; product_id: number | null;
 };
 
@@ -80,7 +82,7 @@ export function publishItem(itemId: number, d: Db = db(), now = Date.now()): { o
     productId = upsertProduct(
       {
         id: 0, shopId: src.shop_id, name: it.name, brand: it.brand, category: it.category || src.default_category || src.shop_category, description: it.description,
-        priceMinor: it.price_minor, weightGrams: it.weight_grams ?? src.default_weight_grams, options: [], imageUrl: it.image_url, sourceUrl: it.product_url,
+        priceMinor: it.price_minor, weightGrams: it.weight_grams ?? src.default_weight_grams, options: parseOptions(it.options), imageUrl: it.image_url, sourceUrl: it.product_url,
         active: it.in_stock === 1, compareAtMinor: it.compare_at_minor && it.compare_at_minor > it.price_minor ? it.compare_at_minor : null, dealEndsAt: null,
       },
       d,
@@ -105,14 +107,14 @@ export function stageItem(d: Db, source: Source, it: NormalizedItem, runStart: s
   const existing = d.prepare("SELECT * FROM import_items WHERE source_id = ? AND external_id = ?").get(source.id, it.externalId) as ItemRow | undefined;
   const fields = {
     url: it.productUrl, name: it.name, brand: it.brand, category: it.category, description: it.description, price: it.priceMinor,
-    compare: it.compareAtMinor, image: it.imageUrl, stock: it.inStock ? 1 : 0, weight: it.weightGrams, fp, seen: runStart,
+    compare: it.compareAtMinor, image: it.imageUrl, stock: it.inStock ? 1 : 0, weight: it.weightGrams, options: JSON.stringify(it.options ?? []), fp, seen: runStart,
   };
 
   if (!existing) {
     const info = d
       .prepare(
-        `INSERT INTO import_items (source_id, external_id, product_url, name, brand, category, description, price_minor, compare_at_minor, image_url, in_stock, weight_grams, fingerprint, first_seen_at, last_seen_at)
-         VALUES (@source, @ext, @url, @name, @brand, @category, @description, @price, @compare, @image, @stock, @weight, @fp, @seen, @seen)`,
+        `INSERT INTO import_items (source_id, external_id, product_url, name, brand, category, description, price_minor, compare_at_minor, image_url, in_stock, weight_grams, options, fingerprint, first_seen_at, last_seen_at)
+         VALUES (@source, @ext, @url, @name, @brand, @category, @description, @price, @compare, @image, @stock, @weight, @options, @fp, @seen, @seen)`,
       )
       .run({ ...fields, source: source.id, ext: it.externalId });
     const id = Number(info.lastInsertRowid);
@@ -131,7 +133,7 @@ export function stageItem(d: Db, source: Source, it: NormalizedItem, runStart: s
   if (existing.status !== "PUBLISHED" && existing.status !== "HELD") {
     d.prepare(
       `UPDATE import_items SET product_url=@url, name=@name, brand=@brand, category=@category, description=@description, price_minor=@price, compare_at_minor=@compare,
-         image_url=@image, in_stock=@stock, weight_grams=@weight, fingerprint=@fp, last_seen_at=@seen WHERE id=@id`,
+         image_url=@image, in_stock=@stock, weight_grams=@weight, options=@options, fingerprint=@fp, last_seen_at=@seen WHERE id=@id`,
     ).run({ ...fields, id: existing.id });
     return existing.id;
   }
@@ -139,7 +141,7 @@ export function stageItem(d: Db, source: Source, it: NormalizedItem, runStart: s
   // published item whose product was deleted: treat it as new
   if (existing.status === "PUBLISHED" && !savedProductId) {
     d.prepare("UPDATE import_items SET status = 'PENDING', product_id = NULL WHERE id = ?").run(existing.id);
-    d.prepare("UPDATE import_items SET price_minor=?, compare_at_minor=?, in_stock=?, image_url=?, fingerprint=?, last_seen_at=? WHERE id=?").run(it.priceMinor, it.compareAtMinor, fields.stock, it.imageUrl, fp, runStart, existing.id);
+    d.prepare("UPDATE import_items SET price_minor=?, compare_at_minor=?, in_stock=?, image_url=?, options=?, fingerprint=?, last_seen_at=? WHERE id=?").run(it.priceMinor, it.compareAtMinor, fields.stock, it.imageUrl, fields.options, fp, runStart, existing.id);
     if (source.autoPublishNew && !sanityProblem(it)) publishItem(existing.id, d, now);
     return existing.id;
   }
@@ -162,7 +164,7 @@ export function stageItem(d: Db, source: Source, it: NormalizedItem, runStart: s
   const prevInStock = existing.in_stock === 1;
   d.prepare(
     `UPDATE import_items SET product_url=@url, name=@name, brand=@brand, category=@category, description=@description, price_minor=@price, compare_at_minor=@compare,
-       image_url=@image, in_stock=@stock, weight_grams=@weight, fingerprint=@fp, last_seen_at=@seen WHERE id=@id`,
+       image_url=@image, in_stock=@stock, weight_grams=@weight, options=@options, fingerprint=@fp, last_seen_at=@seen WHERE id=@id`,
   ).run({ ...fields, id: existing.id });
 
   if (hold) {
@@ -342,6 +344,9 @@ export async function runSource(id: number, o: IngestDeps = {}, d: Db = db(), op
       gathered = await gatherFeed(source.kind, url, source.fieldMap, dp);
     } else if (source.kind === "ebay") {
       gathered = await gatherEbay(source.fieldMap.queries ?? "", source.maxItems, d, o.ebayFetch);
+    } else if (source.kind === "shopify") {
+      if (!url) throw new Error("This source has no shop address.");
+      gathered = await gatherShopify(url, source.maxItems, dp);
     } else {
       const robots = new RobotsCache(dp);
       let urls: string[];
@@ -540,6 +545,10 @@ export async function previewSource(
       return { ok: g.items.length > 0, message: g.items.length ? `eBay returned ${g.items.length} usable listing${g.items.length === 1 ? "" : "s"} for your searches.` : "eBay returned no usable listings for those searches. Try different words.", sample: g.items.slice(0, 5), skipNote: summarise(g.skips), totalRows: g.items.length };
     }
     assertFetchableUrl(i.url);
+    if (i.kind === "shopify") {
+      const g = await gatherShopify(i.url, 60, dp);
+      return { ok: g.items.length > 0, message: g.items.length ? `The shop's public product list is readable. ${g.items.length} usable product${g.items.length === 1 ? "" : "s"} in the first part of it.` : "The shop's product list had nothing we could use.", sample: g.items.slice(0, 5), skipNote: summarise(g.skips), totalRows: g.items.length };
+    }
     if (i.kind === "feed_csv" || i.kind === "feed_json") {
       const g = await gatherFeed(i.kind, i.url, i.fieldMap, dp);
       return { ok: true, message: `Read ${g.items.length} usable item${g.items.length === 1 ? "" : "s"}.`, sample: g.items.slice(0, 5), skipNote: summarise(g.skips), totalRows: g.items.length };

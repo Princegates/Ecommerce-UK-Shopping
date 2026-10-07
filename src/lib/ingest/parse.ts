@@ -12,6 +12,8 @@ export type NormalizedItem = {
   imageUrl: string;
   inStock: boolean;
   weightGrams: number | null;
+  /** choices the shopper picks (size, colour); only set by sources that know them */
+  options?: { name: string; values: string[] }[];
 };
 
 export type ParseResult = { item: NormalizedItem } | { skip: string };

@@ -38,6 +38,7 @@ export default function SourceForm({
   const editing = v.id > 0;
   const [kind, setKind] = useState(v.kind);
   const isEbay = kind === "ebay";
+  const isShopify = kind === "shopify";
 
   return (
     <form action={saveSourceAction} className="grid gap-8">
@@ -72,21 +73,26 @@ export default function SourceForm({
           </>
         ) : (
           <>
+            {isShopify && <input type="hidden" name="fieldMap" value="" />}
             <Text
-              label={editing ? "Feed or sitemap address (leave empty to keep the saved one)" : "Feed or sitemap address"}
+              label={isShopify ? (editing ? "Shop address (leave empty to keep the saved one)" : "Shop address, for example https://shop.example.co.uk") : editing ? "Feed or sitemap address (leave empty to keep the saved one)" : "Feed or sitemap address"}
               name="url"
               type="url"
               placeholder="https://"
               hint={editing && v.urlDisplay ? `Saved address: ${v.urlDisplay}. Addresses are stored encrypted because feed links often contain a key.` : "Stored encrypted because feed links often contain a key. Not needed for pasted links."}
             />
-            <Area
-              label="Column names (optional)"
-              name="fieldMap"
-              defaultValue={v.fieldMapText}
-              mono
-              rows={4}
-              hint="One per line, like name=product_title. Most feeds are recognised automatically. For JSON use paths like price=offer.gbp. For website sources, include=/product/ limits which pages are read."
-            />
+            {isShopify ? (
+              <p className="hint">Nothing else to set up. Products whose sizes or colours cost different amounts are skipped, because the site holds one price per product. Click &ldquo;Check this setup first&rdquo; to see what would be read.</p>
+            ) : (
+              <Area
+                label="Column names (optional)"
+                name="fieldMap"
+                defaultValue={v.fieldMapText}
+                mono
+                rows={4}
+                hint="One per line, like name=product_title. Most feeds are recognised automatically. For JSON use paths like price=offer.gbp. For website sources, include=/product/ limits which pages are read."
+              />
+            )}
           </>
         )}
       </section>
@@ -122,7 +128,7 @@ export default function SourceForm({
         <details>
           <summary className="cursor-pointer font-semibold">More settings</summary>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <Text label={isEbay ? "Items per search" : "Pages read per run (website and link sources)"} name="maxItems" inputMode="numeric" defaultValue={v.maxItems} hint={isEbay ? "Up to 200. eBay returns its best matches for each search." : "Pages are read slowly, so a big shop is covered over several runs."} />
+            <Text label={isEbay ? "Items per search" : isShopify ? "Products read per run (up to 500)" : "Pages read per run (website and link sources)"} name="maxItems" inputMode="numeric" defaultValue={v.maxItems} hint={isEbay ? "Up to 200. eBay returns its best matches for each search." : isShopify ? "The product list is read 250 at a time, slowly." : "Pages are read slowly, so a big shop is covered over several runs."} />
             <Text label="Seconds between page requests (at least 2)" name="delaySeconds" inputMode="decimal" defaultValue={v.delaySeconds} hint="A longer Crawl-delay in the shop's robots.txt always wins." />
             <Text label="Category for items that have none" name="defaultCategory" defaultValue={v.defaultCategory} />
             <Text label="Weight when the shop gives none (grams)" name="defaultWeightGrams" inputMode="numeric" defaultValue={v.defaultWeightGrams} hint="Used for shipping. Check heavy categories." />

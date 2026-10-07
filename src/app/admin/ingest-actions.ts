@@ -97,7 +97,7 @@ export type PreviewState = { preview?: Preview; error?: string };
 export async function previewSourceAction(_prev: PreviewState, f: FormData): Promise<PreviewState> {
   await requireAdmin();
   const kind = str(f, "kind") as SourceKind;
-  if (!SOURCE_KINDS.some((k) => k.kind === kind) || kind === "links") return { error: "Choose a feed, sitemap or eBay type to preview." };
+  if (!SOURCE_KINDS.some((k) => k.kind === kind) || kind === "links") return { error: "Choose a feed, sitemap, Shopify or eBay type to preview." };
   if (kind === "ebay") return { preview: await previewSource({ kind, url: "", fieldMap: { queries: String(f.get("fieldMap") ?? "") } }) };
   const id = num(f, "id");
   const url = str(f, "url") || (id > 0 ? getSourceUrl(id) : "");
