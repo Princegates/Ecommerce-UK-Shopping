@@ -12,6 +12,7 @@ This folder holds everything written about the system. Start with the guide for 
 | **Staff** (support, operations, catalogue, finance) | The [Admin guide](02-admin-guide.md) sections for your role, and the [permissions table](02-admin-guide.md#7-staff-accounts-and-access) |
 | **Customer support** (answering customers) | The [Customer guide](03-customer-guide.md) and the [FAQ and troubleshooting](11-faq-and-troubleshooting.md) |
 | **The developer** (runs the server, owns the super admin password) | [Deployment and operations](05-deployment-and-operations.md), [Architecture](06-architecture.md), [Security](08-security.md) |
+| **Product owner, auditor or anyone checking what the system must do** | The [Software Requirements Specification](13-srs.md) |
 | **A new developer joining** | [Architecture](06-architecture.md), [Data model](07-data-model.md), [Testing](10-testing.md) |
 
 ## All documents
@@ -28,6 +29,7 @@ This folder holds everything written about the system. Start with the guide for 
 10. [Testing](10-testing.md): the automated checks and how to run them.
 11. [FAQ and troubleshooting](11-faq-and-troubleshooting.md): common questions and fixes.
 12. [Change history](12-change-history.md): what was built, in order.
+13. [Software Requirements Specification (SRS)](13-srs.md): the formal, numbered requirements (functional, interface, quality, data, business rules, use cases, risks) with the status of each and how it is verified.
 
 ## Facts worth knowing before you read anything
 

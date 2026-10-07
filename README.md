@@ -11,7 +11,7 @@ Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind 4 and SQLite 
 
 ## Documentation
 
-Full documentation is in [`docs/`](docs/README.md): an overview, the **admin guide** (every page, daily routine, link orders, staff accounts), a **customer guide**, catalogue sources, deployment and operations, architecture, the data model, security and privacy, integrations, testing, an FAQ and the change history.
+Full documentation is in [`docs/`](docs/README.md): an overview, the **admin guide** (every page, daily routine, link orders, staff accounts), a **customer guide**, catalogue sources, deployment and operations, architecture, the data model, security and privacy, integrations, testing, an FAQ, the change history and the formal [Software Requirements Specification](docs/13-srs.md).
 
 ## Run it
 
