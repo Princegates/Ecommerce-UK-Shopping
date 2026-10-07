@@ -136,7 +136,8 @@ export const EBAY_SHOP = {
 };
 
 export function seedIfEmpty(db: Database.Database, opts: { sample?: boolean } = { sample: true }): void {
-  const hasShops = db.prepare("SELECT COUNT(*) AS n FROM shops").get() as { n: number };
+  // A database that already has settings was set up before; deleting every shop must not bring the starter data back.
+  const hasShops = db.prepare("SELECT (SELECT COUNT(*) FROM shops) + (SELECT COUNT(*) FROM settings) AS n").get() as { n: number };
   if (hasShops.n > 0) return;
 
   const insertShop = db.prepare(

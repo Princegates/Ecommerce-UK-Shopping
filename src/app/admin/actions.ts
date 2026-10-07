@@ -9,7 +9,7 @@ import {
 } from "@/lib/auth";
 import { isUploadUrl, saveImage } from "@/lib/uploads";
 import { parseBrackets, parseOptionGroups, parseTiers, safeUrl, isHexColour } from "@/lib/admin-parse";
-import { updateLinkRequest, upsertMethod, upsertProduct, upsertShop, upsertZone } from "@/lib/admin";
+import { deleteShop, updateLinkRequest, upsertMethod, upsertProduct, upsertShop, upsertZone } from "@/lib/admin";
 import { parseMinor } from "@/lib/money";
 import { setExchangeRate } from "@/lib/fx";
 import { staffSetStatus } from "@/lib/orders";
@@ -165,6 +165,18 @@ export async function saveShopAction(f: FormData): Promise<void> {
     sort: Math.trunc(num(f, "sort")) || 0,
   });
   audit("shop.save", name, checked(f, "active") ? "shown" : "hidden");
+  done(path);
+}
+
+export async function deleteShopAction(f: FormData): Promise<void> {
+  await requireAdmin();
+  const path = "/admin/shops";
+  const id = num(f, "id");
+  const name = (db().prepare("SELECT name FROM shops WHERE id = ?").get(id) as { name: string } | undefined)?.name ?? `#${id}`;
+  if (!checked(f, "confirm")) done(path, "Tick the box to confirm you want to delete the shop and its items.");
+  const r = deleteShop(id);
+  if (!r.ok) done(path, r.error);
+  audit("shop.delete", name, `with ${r.products} item(s) and ${r.sources} source(s)`);
   done(path);
 }
 

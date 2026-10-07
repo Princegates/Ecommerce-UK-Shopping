@@ -28,6 +28,31 @@ export type ShopInput = {
   sort: number;
 };
 
+/**
+ * Deletes a shop with everything that belongs to it: its items (carts, wishlists and reviews for them go too) and its
+ * catalogue sources. Orders already placed keep their own record of what was bought, so order history is unaffected.
+ */
+export function deleteShop(id: number, d: Db = db(), now = Date.now()): { ok: true; products: number; sources: number } | { ok: false; error: string } {
+  const shop = d.prepare("SELECT name FROM shops WHERE id = ?").get(id) as { name: string } | undefined;
+  if (!shop) return { ok: false, error: "That shop no longer exists." };
+  const since = new Date(now - 30 * 60_000).toISOString().replace("T", " ").slice(0, 19);
+  if (d.prepare("SELECT 1 FROM catalog_sources WHERE shop_id = ? AND running_since IS NOT NULL AND running_since > ?").get(id, since)) {
+    return { ok: false, error: "A catalogue run for this shop is in progress. Wait for it to finish, then delete the shop." };
+  }
+  let products = 0;
+  let sources = 0;
+  d.transaction(() => {
+    for (const p of d.prepare("SELECT id FROM products WHERE shop_id = ?").all(id) as { id: number }[]) {
+      d.prepare("DELETE FROM cart_items WHERE product_id = ?").run(p.id);
+      d.prepare("DELETE FROM products WHERE id = ?").run(p.id);
+      products++;
+    }
+    sources = (d.prepare("SELECT COUNT(*) AS n FROM catalog_sources WHERE shop_id = ?").get(id) as { n: number }).n;
+    d.prepare("DELETE FROM shops WHERE id = ?").run(id); // its sources, with their items and runs, go with it
+  })();
+  return { ok: true, products, sources };
+}
+
 export function upsertShop(s: ShopInput, d: Db = db()): number {
   if (s.id > 0) {
     d.prepare(

@@ -7,27 +7,29 @@ export function Flash({ saved, error }: { saved?: string; error?: string }) {
 }
 
 export function Text({
-  label, name, defaultValue, hint, type = "text", required, inputMode, placeholder, className = "",
+  label, name, defaultValue, hint, type = "text", required, inputMode, placeholder, className = "", id,
 }: {
+  /** set when the same form appears more than once on a page, so each label points at its own field */
+  id?: string;
   label: string; name: string; defaultValue?: string | number; hint?: string; type?: string; required?: boolean;
   inputMode?: "decimal" | "numeric" | "text"; placeholder?: string; className?: string;
 }) {
   return (
     <div className={`field ${className}`}>
-      <label className="label" htmlFor={name}>{label}</label>
-      <input id={name} name={name} type={type} className="input" defaultValue={defaultValue} required={required} inputMode={inputMode} placeholder={placeholder} />
+      <label className="label" htmlFor={id ?? name}>{label}</label>
+      <input id={id ?? name} name={name} type={type} className="input" defaultValue={defaultValue} required={required} inputMode={inputMode} placeholder={placeholder} />
       {hint && <p className="hint">{hint}</p>}
     </div>
   );
 }
 
 export function Area({
-  label, name, defaultValue, hint, rows = 4, mono,
-}: { label: string; name: string; defaultValue?: string; hint?: string; rows?: number; mono?: boolean }) {
+  label, name, defaultValue, hint, rows = 4, mono, id,
+}: { id?: string; label: string; name: string; defaultValue?: string; hint?: string; rows?: number; mono?: boolean }) {
   return (
     <div className="field">
-      <label className="label" htmlFor={name}>{label}</label>
-      <textarea id={name} name={name} rows={rows} className={`textarea ${mono ? "mono text-sm" : ""}`} defaultValue={defaultValue} />
+      <label className="label" htmlFor={id ?? name}>{label}</label>
+      <textarea id={id ?? name} name={name} rows={rows} className={`textarea ${mono ? "mono text-sm" : ""}`} defaultValue={defaultValue} />
       {hint && <p className="hint">{hint}</p>}
     </div>
   );
