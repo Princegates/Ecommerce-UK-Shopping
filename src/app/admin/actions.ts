@@ -9,7 +9,7 @@ import {
 } from "@/lib/auth";
 import { isUploadUrl, saveImage } from "@/lib/uploads";
 import { parseBrackets, parseOptionGroups, parseTiers, safeUrl, isHexColour } from "@/lib/admin-parse";
-import { deleteShop, updateLinkRequest, upsertMethod, upsertProduct, upsertShop, upsertZone } from "@/lib/admin";
+import { deleteShop, deleteZone, updateLinkRequest, upsertMethod, upsertProduct, upsertShop, upsertZone } from "@/lib/admin";
 import { parseMinor } from "@/lib/money";
 import { setExchangeRate } from "@/lib/fx";
 import { staffSetStatus } from "@/lib/orders";
@@ -143,6 +143,16 @@ export async function saveZoneAction(f: FormData): Promise<void> {
     eta: str(f, "eta").slice(0, 60), active: checked(f, "active"), sort: Math.trunc(num(f, "sort")) || 0,
   });
   audit("zone.save", name, `fee ${fee}`);
+  done(path);
+}
+
+export async function deleteZoneAction(f: FormData): Promise<void> {
+  await requireAdmin();
+  const path = "/admin/zones";
+  if (!checked(f, "confirm")) done(path, "Tick the box to confirm you want to delete this area.");
+  const r = deleteZone(num(f, "id"));
+  if (!r.ok) done(path, r.error);
+  audit("zone.delete", r.name);
   done(path);
 }
 

@@ -121,6 +121,20 @@ export function upsertProduct(p: ProductInput, d: Db = db()): number {
 
 export type ZoneInput = { id: number; name: string; areas: string; feeMinor: number; eta: string; active: boolean; sort: number };
 
+/**
+ * Deletes a delivery area. Orders already placed keep the area name and fee they were charged. The last active area cannot
+ * be deleted, because checkout needs somewhere to deliver to.
+ */
+export function deleteZone(id: number, d: Db = db()): { ok: true; name: string } | { ok: false; error: string } {
+  const z = d.prepare("SELECT name, active FROM delivery_zones WHERE id = ?").get(id) as { name: string; active: number } | undefined;
+  if (!z) return { ok: false, error: "That delivery area no longer exists." };
+  if (z.active === 1 && (d.prepare("SELECT COUNT(*) AS n FROM delivery_zones WHERE active = 1 AND id <> ?").get(id) as { n: number }).n === 0) {
+    return { ok: false, error: "This is the only area customers can choose. Add or switch on another area first, then delete this one." };
+  }
+  d.prepare("DELETE FROM delivery_zones WHERE id = ?").run(id);
+  return { ok: true, name: z.name };
+}
+
 export function upsertZone(z: ZoneInput, d: Db = db()): void {
   const row = { ...z, active: z.active ? 1 : 0 };
   if (z.id > 0) {

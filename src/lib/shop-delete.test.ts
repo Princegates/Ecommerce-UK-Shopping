@@ -59,3 +59,29 @@ describe("deleting a shop", () => {
     expect(d.prepare("SELECT value FROM settings WHERE key = 'fx_rate'").get()).toEqual({ value: "20.5" });
   });
 });
+
+describe("deleting a delivery area", () => {
+  it("removes it, keeps placed orders' area name and fee, and keeps at least one area available", async () => {
+    const { deleteZone, upsertZone } = await import("./admin");
+    const d = openForTest();
+    const zones = getZones(true, d);
+    const first = zones[0];
+    const product = listProducts({}, d)[0];
+    const p = getProductById(product.id, d)!;
+    const order = createOrder([{ itemId: p.id, product: p, quantity: 1, options: {} }], {
+      customerName: "Ama Mensah", phone: "0241234567", email: "", zoneId: first.id, address: "12 Example Street", landmark: "", notes: "", shippingCode: getShippingMethods(true, d)[0].code,
+    }, d);
+    expect(order.ok).toBe(true);
+    expect(deleteZone(first.id, d)).toEqual({ ok: true, name: first.name });
+    expect(getZones(true, d).map((z) => z.id)).not.toContain(first.id);
+    expect(d.prepare("SELECT zone_name FROM orders").get()).toEqual({ zone_name: first.name });
+    expect(deleteZone(first.id, d)).toMatchObject({ ok: false });
+    // delete down to the last active area: refused
+    const rest = getZones(true, d);
+    for (const z of rest.slice(0, -1)) expect(deleteZone(z.id, d)).toMatchObject({ ok: true });
+    const last = getZones(true, d)[0];
+    expect(deleteZone(last.id, d)).toMatchObject({ ok: false });
+    upsertZone({ id: 0, name: "New area", areas: "", feeMinor: 5000, eta: "", active: true, sort: 1 }, d);
+    expect(deleteZone(last.id, d)).toMatchObject({ ok: true });
+  });
+});
