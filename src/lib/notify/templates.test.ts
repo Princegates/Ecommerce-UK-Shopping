@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderOrderMessage, renderResetMessage } from "./templates";
 
-const base = { siteName: "Akwaaba UK", customerName: "Ama Mensah", orderNumber: "UKG-2026-000001", totalMinor: 241847, link: "https://shop.example/order/pay_abc", status: "SHIPPED_TO_GHANA" as const };
+const base = { siteName: "SHOP UK FROM GH", customerName: "Ama Mensah", orderNumber: "UKG-2026-000001", totalMinor: 241847, link: "https://shop.example/order/pay_abc", status: "SHIPPED_TO_GHANA" as const };
 
 describe("order messages", () => {
   it("keeps the SMS short and includes the tracking link", () => {
@@ -25,7 +25,7 @@ describe("order messages", () => {
     expect(m.vars.update).not.toMatch(/[\r\n]/);
   });
   it("renders a reset message with the link", () => {
-    const m = renderResetMessage("Akwaaba UK", "https://shop.example/reset-password/tok", 60);
+    const m = renderResetMessage("SHOP UK FROM GH", "https://shop.example/reset-password/tok", 60);
     expect(m.sms).toContain("https://shop.example/reset-password/tok");
     expect(m.email.text).toContain("valid for 60 minutes");
   });

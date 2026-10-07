@@ -96,7 +96,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
     channels: ["sms"],
     fields: [
       { key: "apiKey", label: "API key", env: "ARKESEL_API_KEY", secret: true, required: ["sms"], help: "Arkesel dashboard → SMS API." },
-      { key: "senderId", label: "Sender name", env: "ARKESEL_SENDER_ID", required: ["sms"], placeholder: "AkwaabaUK", help: "Up to 11 letters or numbers, registered and approved in Arkesel." },
+      { key: "senderId", label: "Sender name", env: "ARKESEL_SENDER_ID", required: ["sms"], placeholder: "SHOPUKGH", help: "Up to 11 letters or numbers, registered and approved in Arkesel." },
     ],
     steps: ["Register a sender name in Arkesel and wait for approval.", "Paste the API key and sender name, save.", "Send a test message to your own number."],
   },
@@ -138,7 +138,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
     channels: ["email"],
     fields: [
       { key: "apiKey", label: "API key", env: "RESEND_API_KEY", secret: true, required: ["email"], placeholder: "re_…" },
-      { key: "from", label: "From address", env: "RESEND_FROM", required: ["email"], placeholder: "Akwaaba UK <orders@yourdomain.com>", help: "The domain must be verified in Resend." },
+      { key: "from", label: "From address", env: "RESEND_FROM", required: ["email"], placeholder: "SHOP UK FROM GH <orders@yourdomain.com>", help: "The domain must be verified in Resend." },
     ],
     steps: ["Verify your sending domain in Resend.", "Create an API key and paste it with your From address.", "Save, choose Resend under Email above, then send a test."],
   },

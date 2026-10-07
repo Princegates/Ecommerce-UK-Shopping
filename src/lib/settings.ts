@@ -37,7 +37,7 @@ export type Settings = {
 };
 
 const DEFAULTS = {
-  site_name: "Akwaaba UK",
+  site_name: "SHOP UK FROM GH",
   fx_rate: 15,
   fx_markup_pct: 0,
   service_fee: { mode: "percent", percent: 10, minMinor: 0 } as ServiceFeeRule,

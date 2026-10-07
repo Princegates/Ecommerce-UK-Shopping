@@ -1,4 +1,4 @@
-# Akwaaba UK: UK shops to Ghana
+# SHOP UK FROM GH: UK shops to Ghana
 
 A storefront where Ghanaian shoppers browse listed UK shops, add items to a cart here and pay once in
 cedis. You buy from the UK retailer, ship to Ghana, and a courier delivers. The customer's total is:
@@ -101,6 +101,11 @@ can be set as environment variables or in **Admin > Integrations**.
 
 Send `Authorization: Bearer $CRON_SECRET` to the cron endpoints. Each integration card in the admin
 shows the exact webhook URL and the events to enable.
+
+## Deploying
+
+See [DEPLOY.md](DEPLOY.md): a Dockerfile, a Docker Compose setup with automatic HTTPS, and ready configs for Fly.io and Render.
+The shop needs one always-on server with a persistent disk (it uses a SQLite file), so serverless hosts will not work.
 
 ## Before you go live
 

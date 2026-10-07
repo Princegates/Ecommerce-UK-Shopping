@@ -1,0 +1,24 @@
+# Render: New > Blueprint, point it at this repository. A persistent disk needs a paid instance.
+services:
+  - type: web
+    name: ukgh-shop
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    disk:
+      name: shopdata
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_PATH
+        value: /data/shop.db
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_SECRET
+        generateValue: true
+      - key: SETTINGS_ENCRYPTION_KEY
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
+      - key: APP_URL
+        sync: false

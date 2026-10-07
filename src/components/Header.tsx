@@ -37,7 +37,7 @@ export default async function Header() {
             <Link href="/" className="rounded-lg px-2 py-1 hover:bg-white/10" aria-label={`${settings.siteName} home`}>
               <span className="flex items-center gap-2">
                 <span className="grid h-7 w-7 shrink-0 rotate-45 place-items-center rounded-md bg-cta" aria-hidden="true"><span className="h-2 w-2 rounded-full bg-navy" /></span>
-                <span className="font-display text-xl font-bold leading-none tracking-tight md:text-2xl">{settings.siteName}</span>
+                <span className="font-display text-base font-bold leading-none tracking-tight sm:text-lg md:text-xl">{settings.siteName}</span>
               </span>
             </Link>
 

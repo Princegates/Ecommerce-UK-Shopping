@@ -42,6 +42,8 @@ function migrate(d: Db): void {
   if (!productCols.includes("last_synced_at")) d.exec("ALTER TABLE products ADD COLUMN last_synced_at TEXT");
   if (!has("link_requests").includes("customer_id")) d.exec("ALTER TABLE link_requests ADD COLUMN customer_id INTEGER");
 
+  d.prepare("UPDATE settings SET value = ? WHERE key = 'site_name' AND value = ?").run(JSON.stringify("SHOP UK FROM GH"), JSON.stringify("Akwaaba UK"));
+
   const msgCols = has("messages");
   if (!msgCols.includes("payload")) d.exec("ALTER TABLE messages ADD COLUMN payload TEXT NOT NULL DEFAULT ''");
   if (!msgCols.includes("locked_at")) d.exec("ALTER TABLE messages ADD COLUMN locked_at TEXT");

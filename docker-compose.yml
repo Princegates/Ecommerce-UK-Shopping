@@ -1,0 +1,30 @@
+# One server with automatic HTTPS (Caddy). Needs a domain pointing at this machine.
+#   cp .env.example .env.production   # fill it in (ADMIN_PASSWORD, ADMIN_SECRET, APP_URL, CRON_SECRET, ...)
+#   DOMAIN=shop.example.com docker compose up -d --build
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env.production
+    volumes:
+      - shopdata:/data
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN to your site's domain}
+    command: caddy reverse-proxy --from ${DOMAIN} --to app:3000
+    volumes:
+      - caddydata:/data
+
+volumes:
+  shopdata:
+  caddydata:
