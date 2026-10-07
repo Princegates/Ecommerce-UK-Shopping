@@ -162,3 +162,21 @@ describe("product pages", () => {
     expect("item" in r && r.item).toMatchObject({ name: "Rug & Mat", priceMinor: 4500, imageUrl: "https://s.example/r.jpg" });
   });
 });
+
+import { tidyTitle } from "./parse";
+
+describe("tidyTitle", () => {
+  it("drops the shop's own tail from a page title", () => {
+    expect(tidyTitle("Echo Dot (Newest gen) | Bluetooth smart speaker | Charcoal : Amazon.co.uk: Amazon Devices & Accessori")).toBe("Echo Dot (Newest gen) | Bluetooth smart speaker | Charcoal");
+    expect(tidyTitle("Amazon.co.uk: Tefal Kettle 1.7L")).toBe("Tefal Kettle 1.7L");
+    expect(tidyTitle("Tefal Kettle - Amazon.co.uk")).toBe("Tefal Kettle");
+    expect(tidyTitle("Cloud Runner Trainers")).toBe("Cloud Runner Trainers");
+  });
+
+  it("shortens a long title at a word boundary", () => {
+    const long = "word ".repeat(60).trim();
+    const t = tidyTitle(long, 40);
+    expect(t.length).toBeLessThanOrEqual(41);
+    expect(t.endsWith("word…")).toBe(true);
+  });
+});

@@ -75,6 +75,19 @@ export function cleanText(s: unknown, max: number): string {
   return decodeEntities(s.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim().slice(0, max);
 }
 
+/**
+ * Page titles often end with the shop's own name and department ("Echo Dot : Amazon.co.uk: Amazon Devices"). Drops that
+ * tail, and shortens a long title at a word boundary instead of in the middle of a word.
+ */
+export function tidyTitle(raw: string, max = 160): string {
+  let t = raw.replace(/\s*[:|\-–—]\s*Amazon\.[a-z.]+\b.*$/i, "").replace(/^Amazon\.[a-z.]+\s*[:|\-–—]\s*/i, "").trim();
+  if (t.length > max) {
+    const cut = t.slice(0, max);
+    t = (cut.includes(" ") ? cut.slice(0, cut.lastIndexOf(" ")) : cut).replace(/[\s,;:|\-–—]+$/, "") + "…";
+  }
+  return t;
+}
+
 /** Only absolute http(s) addresses survive; anything else becomes empty. */
 export function cleanUrl(s: unknown, base?: string): string {
   if (typeof s !== "string" || !s.trim()) return "";
@@ -377,7 +390,7 @@ export function extractPageProduct(html: string, pageUrl: string): ParseResult {
       const unit = String(weight.unitCode ?? weight.unitText ?? "").toUpperCase();
       if (Number.isFinite(v) && v > 0) weightGrams = Math.round(/KGM|KG/.test(unit) ? v * 1000 : v);
     } else weightGrams = parseWeightGrams(weight);
-    const name = cleanText(product.name, 160);
+    const name = tidyTitle(cleanText(product.name, 400));
     if (!name) return { skip: "no product name" };
     return {
       item: {
@@ -400,7 +413,7 @@ export function extractPageProduct(html: string, pageUrl: string): ParseResult {
   if (amount) {
     const currency = (metaContent(html, "product:price:currency") || metaContent(html, "og:price:currency") || "GBP").toUpperCase();
     const price = parsePrice(amount);
-    const name = cleanText(metaContent(html, "og:title"), 160);
+    const name = tidyTitle(cleanText(metaContent(html, "og:title"), 400));
     if (!price || price.minor <= 0 || !name) return { skip: "no usable product data" };
     if (currency !== "GBP") return { skip: `price is in ${currency}, not GBP` };
     return {
