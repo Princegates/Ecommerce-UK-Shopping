@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""Build docs/pdf/SRS-Anknovate.docx (+ .pdf) from docs/13-srs.md in the Anknovate house format.
+
+The format comes from docs/template/anknovate-srs-template.docx: its styles, header (logo +
+title), footer (page x of y), cover page, table of contents and closing "About Anknovate" pages
+are reused; only the body text and the cover details change.
+
+    python3 scripts/build-srs-docx.py [--client "Client name"] [--version 1.0]
+
+Needs pandoc and LibreOffice (soffice) on the PATH; pdftotext is used to fill in the contents page.
+"""
+import argparse, html, os, re, shutil, subprocess, sys, tempfile, zipfile
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE = os.path.join(ROOT, "docs/template/anknovate-srs-template.docx")
+SOURCE = os.path.join(ROOT, "docs/13-srs.md")
+OUT = os.path.join(ROOT, "docs/pdf")
+
+ap = argparse.ArgumentParser()
+ap.add_argument("--client", default="The owner of SHOP UK FROM GH")
+ap.add_argument("--version", default="1.0")
+ap.add_argument("--date", default=None)
+args = ap.parse_args()
+
+def run(*cmd, **kw):
+    subprocess.run(cmd, check=True, **kw)
+
+def text_of(x):
+    return html.unescape(re.sub(r"<[^>]+>", "", x))
+
+def cover_row(xml, label, value):
+    """Replace the value cell of the cover-table row whose first cell reads `label`."""
+    pat = re.compile(r"(<w:t(?: [^>]*)?>" + re.escape(label) + r"</w:t>.*?</w:tc><w:tc>.*?<w:t(?: [^>]*)?>)(.*?)(</w:t>)", re.S)
+    new, n = pat.subn(lambda m: m.group(1) + html.escape(value) + m.group(3), xml, count=1)
+    if n != 1:
+        sys.exit("cover row not found: " + label)
+    return new
+
+# ---- 1. markdown -> body docx, using the template's styles -------------------------------
+md = open(SOURCE, encoding="utf-8").read().split("\n")
+date = args.date
+if not date:
+    for l in md[:12]:
+        m = re.match(r"\*\*Date:\*\*\s*(.+)", l)
+        if m: date = m.group(1).strip()
+date = date or "7 October 2026"
+# drop title block, meta lines, reading note's blockquote stays; drop the doc's own Contents list
+start = next(i for i, l in enumerate(md) if l.startswith("> **How to read"))
+body = md[start:]
+out, skip = [], False
+for l in body:
+    if l.startswith("## Contents"):
+        skip = True; continue
+    if skip:
+        if l.strip() == "---": skip = False
+        continue
+    if l.strip() == "---": continue          # headings already carry a rule
+    out.append(re.sub(r"^## (.*)$", lambda m: "## " + m.group(1).upper(), l))
+text = "\n".join(out)
+text = text.replace("APPENDIX D: REVISION HISTORY", "APPENDIX D: REVISION HISTORY")
+
+tmp = tempfile.mkdtemp()
+body_md = os.path.join(tmp, "body.md"); open(body_md, "w", encoding="utf-8").write(text)
+body_docx = os.path.join(tmp, "body.docx")
+run("pandoc", body_md, "-f", "gfm+pipe_tables", "-o", body_docx, "--reference-doc", TEMPLATE,
+    "--shift-heading-level-by=-1", "--highlight-style=tango")
+
+def read(z, name): return zipfile.ZipFile(z).read(name).decode("utf-8")
+tpl = read(TEMPLATE, "word/document.xml")
+bod = read(body_docx, "word/document.xml")
+
+# ---- 2. pieces of the template -----------------------------------------------------------
+b0 = tpl.index("<w:body>") + len("<w:body>")
+toc_head = tpl.index("TABLE OF CONTENTS")
+toc_head_p = tpl.rfind("<w:p>", 0, toc_head)
+cover = tpl[b0:toc_head_p]                       # logo, title, details table, notice, page break
+toc_head_end = tpl.index("</w:p>", toc_head) + 6
+toc_heading = tpl[toc_head_p:toc_head_end]
+about_t = tpl.rindex("APPENDIX A: ABOUT ANKNOVATE")
+about_p = tpl.rfind("<w:p>", 0, about_t)
+about_p = max(about_p, tpl.rfind("<w:p ", 0, about_t))
+about = tpl[about_p:tpl.index("<w:sectPr", about_p)]
+about = about.replace("APPENDIX A: ABOUT ANKNOVATE", "APPENDIX E: ABOUT ANKNOVATE")
+sect = tpl[tpl.index("<w:sectPr", about_p):tpl.index("</w:body>")]
+head_xml = tpl[:b0]
+
+cover = cover_row(cover, "Document Version", args.version)
+cover = cover_row(cover, "Status", "As-built system specification")
+cover = cover_row(cover, "Business Model", "Online shop and purchasing agent: UK goods paid for once in cedis, shipped to Ghana and delivered to the door")
+cover = cover_row(cover, "Prepared for", args.client)
+cover = cover_row(cover, "Date", date)
+cover = cover.replace("UK-to-Ghana Unified Shopping, Shipping &amp; Door-to-Door Delivery Platform", "SHOP UK FROM GH: UK shopping, shipping and delivery for Ghana")
+
+# body: strip pandoc's sectPr, page break before the closing About pages
+bb = bod[bod.index("<w:body>") + 8:bod.index("</w:body>")]
+bb = re.sub(r"<w:sectPr.*?</w:sectPr>", "", bb, flags=re.S)
+heads = [text_of(m.group(0)) for m in re.finditer(r'<w:p>(?:(?!</w:p>).)*?<w:pStyle w:val="Heading1"\s*/>.*?</w:p>', bb, re.S)]
+heads = [re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", h)) for h in heads]
+
+def fit_tables(x):
+    """Give every table the full text width, with columns sized to their content."""
+    TW = 9360
+    def one(m):
+        t = m.group(0)
+        rows = re.findall(r"<w:tr[ >].*?</w:tr>", t, re.S)
+        cells = [re.findall(r"<w:tc>.*?</w:tc>", r, re.S) for r in rows]
+        n = max(len(r) for r in cells)
+        mean, mn = [], []
+        for j in range(n):
+            txt = [text_of(" ".join(re.findall(r"<w:t[^>]*>([^<]*)</w:t>", r[j]))) for r in cells if j < len(r)]
+            mean.append(max(6, min(60, sum(len(a) for a in txt) / max(1, len(txt)))))
+            words = [len(w) for a in txt for w in a.split()]
+            mn.append(min(1900, (max(words) if words else 4) * 115 + 260))
+        tot = sum(mean)
+        w = [TW * v / tot for v in mean]
+        pinned = set()
+        for _ in range(n):                       # lift narrow columns to their minimum, shrink the rest
+            low = [j for j in range(n) if j not in pinned and w[j] < mn[j]]
+            if not low: break
+            pinned.update(low)
+            rest = [j for j in range(n) if j not in pinned]
+            rt = sum(mean[j] for j in rest) or 1
+            for j in pinned: w[j] = mn[j]
+            for j in rest: w[j] = (TW - sum(mn[k] for k in pinned)) * mean[j] / rt
+        w = [int(v) for v in w]; w[-1] += TW - sum(w)
+        t = re.sub(r'<w:tblW [^>]*/>', '<w:tblW w:type="dxa" w:w="%d"/><w:tblLayout w:type="fixed"/>' % TW, t, count=1)
+        t = re.sub(r"<w:tblGrid>.*?</w:tblGrid>", "<w:tblGrid>" + "".join('<w:gridCol w:w="%d"/>' % v for v in w) + "</w:tblGrid>", t, count=1, flags=re.S)
+        def rowfix(rm):
+            k = [0]
+            def cellfix(cm):
+                j = k[0]; k[0] += 1
+                return cm.group(0).replace("<w:tcPr />", '<w:tcPr><w:tcW w:w="%d" w:type="dxa"/></w:tcPr>' % w[min(j, n - 1)], 1)
+            r = re.sub(r"<w:tc>.*?</w:tc>", cellfix, rm.group(0), flags=re.S)
+            return r.replace("<w:tr>", "<w:tr><w:trPr><w:cantSplit/></w:trPr>", 1) if r.startswith("<w:tr>") else r
+        t = re.sub(r"<w:tr[ >].*?</w:tr>", rowfix, t, flags=re.S)
+        return re.sub(r'(<w:rStyle w:val="VerbatimChar"\s*/>)', r'\1<w:sz w:val="16"/><w:szCs w:val="16"/>', t)
+    return re.sub(r"<w:tbl>.*?</w:tbl>", one, x, flags=re.S)
+
+def fit_code(x):
+    """Shrink code blocks whose longest line would not fit the text width."""
+    def one(m):
+        p = m.group(0)
+        lines = re.sub(r"<w:br\s*/>", "\n", p)
+        lines = text_of(re.sub(r"</w:p>", "", lines)).split("\n")
+        longest = max(len(l) for l in lines)
+        if longest <= 84: return p
+        sz = max(11, int(2 * 468 / (0.6 * longest)))
+        return re.sub(r'(<w:rStyle w:val="VerbatimChar"\s*/>)', r'\1<w:sz w:val="%d"/><w:szCs w:val="%d"/>' % (sz, sz), p)
+    return re.sub(r'<w:p>(?:(?!</w:p>).)*?<w:pStyle w:val="SourceCode"\s*/>.*?</w:p>', one, x, flags=re.S)
+
+bb = fit_code(fit_tables(bb))
+heads.append("APPENDIX E: ABOUT ANKNOVATE IT CONSULTANCY SERVICES")
+PB = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>'
+
+def toc(pages):
+    rows = []
+    for i, h in enumerate(heads):
+        pg = str(pages.get(h, "")) 
+        pre = ('<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> TOC \\o "1-1" \\h \\z \\u </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r>' if i == 0 else "")
+        post = '<w:r><w:fldChar w:fldCharType="end"/></w:r>' if i == len(heads) - 1 else ""
+        rows.append('<w:p><w:pPr><w:pStyle w:val="TOC1"/><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="9360"/></w:tabs></w:pPr>' + pre +
+                    '<w:r><w:t xml:space="preserve">' + html.escape(h) + '</w:t></w:r><w:r><w:tab/></w:r><w:r><w:t>' + pg + '</w:t></w:r>' + post + '</w:p>')
+    return "".join(rows)
+
+def assemble(pages, path):
+    doc = head_xml + cover + toc_heading + toc(pages) + PB + bb + PB + about + sect + "</w:body></w:document>"
+    zin = zipfile.ZipFile(TEMPLATE)
+    # numbering/styles come from the template; the body's list definitions come from pandoc's output
+    zb = zipfile.ZipFile(body_docx)
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+        for it in zin.infolist():
+            data = zin.read(it.filename)
+            if it.filename == "word/document.xml": data = doc.encode("utf-8")
+            elif it.filename == "word/numbering.xml": data = zb.read("word/numbering.xml")
+            elif it.filename == "word/styles.xml": data = zb.read("word/styles.xml") if False else data
+            z.writestr(it, data)
+
+def pdf_pages(docx_path):
+    run("soffice", "--headless", "--convert-to", "pdf", "--outdir", tmp, docx_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    pdf = os.path.join(tmp, os.path.splitext(os.path.basename(docx_path))[0] + ".pdf")
+    n = int(re.search(r"Pages:\s+(\d+)", subprocess.run(["pdfinfo", pdf], capture_output=True, text=True).stdout).group(1))
+    return pdf, n
+
+draft = os.path.join(tmp, "draft.docx")
+assemble({}, draft)
+pdf, n = pdf_pages(draft)
+pages = {}
+for p in range(1, n + 1):
+    t = subprocess.run(["pdftotext", "-f", str(p), "-l", str(p), "-layout", pdf, "-"], capture_output=True, text=True).stdout
+    lines = [re.sub(r"\s+", " ", l).strip() for l in t.splitlines()]
+    if p <= 3 and any(".." in l for l in lines):  # contents pages
+        continue
+    for h in heads:
+        if h not in pages and h in lines:
+            pages[h] = p
+missing = [h for h in heads if h not in pages]
+if missing: print("warning: headings not located:", missing[:5], file=sys.stderr)
+
+os.makedirs(OUT, exist_ok=True)
+final = os.path.join(OUT, "SRS-Anknovate.docx")
+assemble(pages, final)
+pdf2, n2 = pdf_pages(final)
+shutil.copy(pdf2, os.path.join(OUT, "SRS-Anknovate.pdf"))
+if not os.environ.get("KEEP"): shutil.rmtree(tmp, ignore_errors=True)
+print(f"wrote {final} and SRS-Anknovate.pdf ({n2} pages)")
