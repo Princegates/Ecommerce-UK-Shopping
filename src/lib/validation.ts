@@ -26,6 +26,7 @@ export const linkRequestSchema = z.object({
   details: text(300),
   quantity: z.coerce.number().int().min(1).max(20),
   priceSeen: text(40),
+  itemType: text(40),
   name: text(80).min(2, "Enter your name."),
   phone: text(25).refine((v) => v.replace(/\D/g, "").length >= 9, "Enter a phone number we can reach you on."),
   email: text(120).refine((v) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email address or leave it blank."),

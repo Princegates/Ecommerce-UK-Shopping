@@ -12,7 +12,7 @@ type Preview =
   | { kind: "found"; name: string; priceMinor: number; host: string }
   | { kind: "none"; reason: string };
 
-export default function RequestForm({ initial = {}, signedIn = false }: { initial?: { url?: string; title?: string; priceSeen?: string; name?: string; phone?: string; email?: string }; signedIn?: boolean }) {
+export default function RequestForm({ initial = {}, signedIn = false, itemTypes = [] }: { initial?: { url?: string; title?: string; priceSeen?: string; name?: string; phone?: string; email?: string }; signedIn?: boolean; itemTypes?: string[] }) {
   const [state, action, pending] = useActionState<RequestState, FormData>(requestAction, {});
   const v: Record<string, string | undefined> = { ...initial, ...(state.values ?? {}) };
   const [title, setTitle] = useState(v.title ?? "");
@@ -37,6 +37,23 @@ export default function RequestForm({ initial = {}, signedIn = false }: { initia
     } catch {
       setPreview({ kind: "none", reason: "error" });
     }
+  }
+
+  if (state.done && state.quote) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16">
+        <p className="tag tag-green">Your price is ready</p>
+        <h1 className="mt-3 text-3xl">We priced it for you</h1>
+        <p className="mt-3 text-ink-soft">
+          {state.quote.source === "page" ? "We read the price on the shop's website." : "We used the price you gave, with a small safety margin."} Open your price to see the
+          full cost in cedis, choose delivery and pay. The price is held for a few days. We check the shop&rsquo;s price again before buying.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-4">
+          <Link href={`/quote/${state.quote.token}`} className="btn btn-gold !px-6 !text-base">See my price and pay</Link>
+          <Link href="/shops" className="btn">Keep browsing</Link>
+        </div>
+      </div>
+    );
   }
 
   if (state.done) {
@@ -102,6 +119,15 @@ export default function RequestForm({ initial = {}, signedIn = false }: { initia
           <label className="label" htmlFor="details">Size, colour or other details</label>
           <input id="details" name="details" className="input" placeholder="e.g. UK 9, black" defaultValue={v.details} />
         </div>
+        {itemTypes.length > 0 && (
+          <div className="field">
+            <label className="label" htmlFor="itemType">What kind of item is it?</label>
+            <select id="itemType" name="itemType" className="select" defaultValue={v.itemType ?? itemTypes[itemTypes.length - 1]}>
+              {itemTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <p className="hint">This helps us work out shipping.</p>
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="field">
             <label className="label" htmlFor="quantity">Quantity</label>

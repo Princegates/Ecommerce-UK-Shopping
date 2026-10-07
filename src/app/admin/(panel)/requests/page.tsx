@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { quoteRequestAction, updateRequestAction } from "@/app/admin/actions";
-import { PageHead } from "@/components/admin/ui";
+import { quoteRequestAction, saveLinkAutoAction, updateRequestAction } from "@/app/admin/actions";
+import { Check, Flash, PageHead, Text, Area } from "@/components/admin/ui";
 import { REQUEST_STATUSES } from "@/lib/admin";
 import { appUrl } from "@/lib/app-url";
 import { requireAdmin } from "@/lib/auth";
+import { getItemTypes, getLinkAuto, itemTypesToText } from "@/lib/link-auto";
 import { hostOf, listAllLinkRequests, quoteState } from "@/lib/link-orders";
 import { minorToInput } from "@/lib/money";
 
@@ -14,6 +15,8 @@ export default async function RequestsAdmin({ searchParams }: { searchParams: Pr
   const sp = await searchParams;
   const requests = listAllLinkRequests();
   const base = appUrl() ?? "";
+  const auto = getLinkAuto();
+  const types = getItemTypes();
   return (
     <>
       <PageHead title="Link requests" />
@@ -22,7 +25,38 @@ export default async function RequestsAdmin({ searchParams }: { searchParams: Pr
         The customer gets a private link, sees the full cost in cedis, chooses delivery and pays. The paid order then appears under Orders and moves through the
         usual stages. Nothing is bought until the customer has paid.
       </p>
-      {sp.error && <p role="alert" className="box mb-6 border-red bg-red/10 p-3 font-semibold text-red">{sp.error}</p>}
+      <Flash saved={sp.saved} error={sp.error} />
+
+      <details className="box box-shadow mb-6">
+        <summary className="cursor-pointer p-4 text-xl font-bold">
+          Automatic quotes: {auto.pageEnabled || auto.customerEnabled ? "on" : "off"}
+          <span className="ml-2 text-sm font-normal text-ink-soft">
+            {auto.pageEnabled ? "price read from the shop page" : ""}{auto.pageEnabled && auto.customerEnabled ? " + " : ""}{auto.customerEnabled ? `customer-typed price (+${auto.marginPct}%)` : ""}
+          </span>
+        </summary>
+        <form action={saveLinkAutoAction} className="grid gap-5 border-t border-line p-5">
+          <p className="text-sm text-ink-soft">
+            The cost to the customer is always worked out from your own values: exchange rate, service charge, shipping rates and delivery fee. These settings decide
+            whether the system may also fill in the UK price and the weight by itself, so the customer can pay at once. Anything outside the rules waits here for you to quote by hand.
+          </p>
+          <Check label="Quote by itself when the price is read from the shop's own web page (recommended)" name="pageEnabled" defaultChecked={auto.pageEnabled} />
+          <Check label="Also quote by itself from the price the customer typed (it cannot be checked)" name="customerEnabled" defaultChecked={auto.customerEnabled} />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Text label="Safety margin on customer-typed prices (%)" name="marginPct" inputMode="decimal" defaultValue={auto.marginPct} hint="Added on top of the price they typed." />
+            <Text label="Automatic limit, UK price of one item (£)" name="ceiling" inputMode="decimal" defaultValue={minorToInput(auto.ceilingMinor)} hint="Dearer items wait for you." />
+            <Text label="Hold each price for (days)" name="validDays" inputMode="numeric" defaultValue={auto.validDays} />
+          </div>
+          <Area
+            label="Item types and their default weights (grams)"
+            name="itemTypes"
+            mono
+            rows={Math.min(12, types.length + 2)}
+            defaultValue={itemTypesToText(types)}
+            hint="One per line, like “Shoes and boots: 1200”. Customers pick one on the request form and shipping is worked out from its weight. Keep a catch-all such as “Other or not sure” as the last line."
+          />
+          <div><button className="btn btn-primary">Save automatic-quote settings</button></div>
+        </form>
+      </details>
       {sp.quoted && (
         <p role="status" className="box mb-6 bg-gold/40 p-3 font-semibold">
           Quote saved for request #{sp.quoted}.{" "}
@@ -45,13 +79,14 @@ export default async function RequestsAdmin({ searchParams }: { searchParams: Pr
                   <p className="break-all"><a href={r.url} target="_blank" rel="noopener noreferrer" className="link">{hostOf(r.url)} ↗</a> <span className="text-xs text-ink-soft">{r.url}</span></p>
                   {r.details && <p>Details: {r.details}</p>}
                   {r.priceSeen && <p>Price they saw: £{r.priceSeen}</p>}
+                  {r.itemType && <p className="text-sm text-ink-soft">Item type: {r.itemType}</p>}
                   <p className="mt-2">
                     <span className="font-semibold">{r.name}</span> · <a className="link" href={`tel:${r.phone}`}>{r.phone}</a>
                     {r.email && <> · {r.email}</>}
                   </p>
                   {r.quotePriceMinor !== null && (
                     <p className="mt-2 rounded-lg bg-paper-2 p-3 text-sm">
-                      <span className="font-bold">Quoted £{minorToInput(r.quotePriceMinor)} each</span> · {r.quoteWeightGrams} g · {s === "expired" ? "expired" : s === "ordered" ? "ordered" : `held until ${r.quoteExpiresAt?.slice(0, 16)} UTC`}
+                      <span className="font-bold">Quoted £{minorToInput(r.quotePriceMinor)} each</span>{r.quoteSource === "page" && <span className="tag tag-green ml-2">auto: read from shop page</span>}{r.quoteSource === "customer" && <span className="tag ml-2">auto: customer price +margin</span>} · {r.quoteWeightGrams} g · {s === "expired" ? "expired" : s === "ordered" ? "ordered" : `held until ${r.quoteExpiresAt?.slice(0, 16)} UTC`}
                       {link && s !== "ordered" && (<><br /><span className="text-ink-soft">Customer&rsquo;s pay link (send it if they did not get the message):</span><br /><input readOnly value={link} className="input mt-1 !min-h-9 text-xs" aria-label="Customer pay link" /></>)}
                     </p>
                   )}

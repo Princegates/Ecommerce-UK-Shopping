@@ -118,10 +118,10 @@ describe("customer view and messages", () => {
 
   it("adds the quote columns to an existing database", () => {
     const d = new Database(":memory:");
-    d.exec(SCHEMA.replace(/,\n  -- Filled in when[\s\S]*?order_id          INTEGER\n\)/, "\n)"));
+    d.exec(SCHEMA.replace(/,\n  -- Filled in when[\s\S]*?quote_basis_minor INTEGER[^\n]*\n\)/, "\n)"));
     const cols = () => (d.prepare("PRAGMA table_info(link_requests)").all() as { name: string }[]).map((c) => c.name);
     expect(cols()).not.toContain("token");
     migrate(d);
-    expect(cols()).toEqual(expect.arrayContaining(["token", "quote_price_minor", "order_id"]));
+    expect(cols()).toEqual(expect.arrayContaining(["token", "quote_price_minor", "order_id", "item_type", "quote_source", "quote_basis_minor"]));
   });
 });

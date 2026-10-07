@@ -96,6 +96,12 @@ Items from shops you do not list (Amazon, Argos and so on) are handled as **link
 3. The shopper opens the link, sees the full cost in cedis, chooses delivery and pays through the normal checkout.
 4. It is now an ordinary order (statuses, tracking, messages, refunds), linked back to the request. Expired or repeated quotes cannot be ordered twice.
 
+**Automatic quotes** (Admin > Link requests > Automatic quotes) let the system fill in the UK price and weight so the shopper can pay at once. The cost
+to the customer always comes from your own exchange rate, service charge, shipping rates and delivery fee. By default the system only quotes by itself when
+it read the price from the shop's own web page. You can also let it use the price the shopper typed (with a safety margin you set), set a limit above which
+a person must quote, and edit the item types and default weights shoppers choose from. Link orders show a banner on the order page, saying how the price was
+found, as a reminder to check the shop's price before buying.
+
 ## Configuration
 
 Copy `.env.example` to `.env.local`. In production set at least `ADMIN_PASSWORD`, `ADMIN_SECRET`

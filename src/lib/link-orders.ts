@@ -19,18 +19,21 @@ export type LinkRequestRow = {
   id: number; token: string | null; url: string; title: string; details: string; quantity: number; priceSeen: string;
   name: string; phone: string; email: string; status: string; adminNote: string; createdAt: string; customerId: number | null;
   quotePriceMinor: number | null; quoteWeightGrams: number | null; quoteNote: string; quotedAt: string | null; quoteExpiresAt: string | null; orderId: number | null;
+  itemType: string; quoteSource: "" | "page" | "customer"; quoteBasisMinor: number | null;
 };
 
 type Raw = {
   id: number; token: string | null; url: string; title: string; details: string; quantity: number; price_seen: string; name: string; phone: string;
   email: string; status: string; admin_note: string; created_at: string; customer_id: number | null; quote_price_minor: number | null;
   quote_weight_grams: number | null; quote_note: string; quoted_at: string | null; quote_expires_at: string | null; order_id: number | null;
+  item_type: string; quote_source: string; quote_basis_minor: number | null;
 };
 
 const toRow = (r: Raw): LinkRequestRow => ({
   id: r.id, token: r.token, url: r.url, title: r.title, details: r.details, quantity: r.quantity, priceSeen: r.price_seen, name: r.name, phone: r.phone,
   email: r.email, status: r.status, adminNote: r.admin_note, createdAt: r.created_at, customerId: r.customer_id, quotePriceMinor: r.quote_price_minor,
   quoteWeightGrams: r.quote_weight_grams, quoteNote: r.quote_note, quotedAt: r.quoted_at, quoteExpiresAt: r.quote_expires_at, orderId: r.order_id,
+  itemType: r.item_type, quoteSource: r.quote_source === "page" || r.quote_source === "customer" ? r.quote_source : "", quoteBasisMinor: r.quote_basis_minor,
 });
 
 const sqlTime = (ms: number) => new Date(ms).toISOString().replace("T", " ").slice(0, 19);
@@ -42,6 +45,12 @@ export function getLinkRequest(id: number, d: Db = db()): LinkRequestRow | null 
 
 export function listAllLinkRequests(d: Db = db()): LinkRequestRow[] {
   return (d.prepare("SELECT * FROM link_requests ORDER BY (status = 'NEW') DESC, id DESC LIMIT 300").all() as Raw[]).map(toRow);
+}
+
+/** The request an order came from, if it was a link order. */
+export function getRequestForOrder(orderId: number, d: Db = db()): LinkRequestRow | null {
+  const r = d.prepare("SELECT * FROM link_requests WHERE order_id = ?").get(orderId) as Raw | undefined;
+  return r ? toRow(r) : null;
 }
 
 export function getLinkRequestByToken(token: string, d: Db = db()): LinkRequestRow | null {
@@ -68,7 +77,11 @@ export function quoteState(r: LinkRequestRow, now = Date.now()): QuoteState {
   return "open";
 }
 
-export type QuoteInput = { unitPriceMinor: number; weightGrams: number; validDays: number; note: string };
+export type QuoteInput = {
+  unitPriceMinor: number; weightGrams: number; validDays: number; note: string;
+  /** how the price was found when the system quoted by itself; left out for a quote the team typed */
+  source?: "page" | "customer"; basisMinor?: number;
+};
 
 /** Records the UK price the team has checked and opens the customer's pay link. Can be repeated until the customer orders. */
 export function quoteRequest(id: number, q: QuoteInput, d: Db = db(), now = Date.now()): { ok: true; token: string } | { ok: false; error: string } {
@@ -83,8 +96,8 @@ export function quoteRequest(id: number, q: QuoteInput, d: Db = db(), now = Date
   const token = r.token ?? randomBytes(24).toString("base64url");
   d.prepare(
     `UPDATE link_requests SET token = ?, quote_price_minor = ?, quote_weight_grams = ?, quote_note = ?, quoted_at = ?, quote_expires_at = ?,
-       status = 'QUOTED' WHERE id = ?`,
-  ).run(token, q.unitPriceMinor, q.weightGrams, q.note.trim().slice(0, 300), sqlTime(now), sqlTime(now + days * 86_400_000), id);
+       quote_source = ?, quote_basis_minor = ?, status = 'QUOTED' WHERE id = ?`,
+  ).run(token, q.unitPriceMinor, q.weightGrams, q.note.trim().slice(0, 300), sqlTime(now), sqlTime(now + days * 86_400_000), q.source ?? "", q.basisMinor ?? null, id);
   return { ok: true, token };
 }
 

@@ -142,7 +142,10 @@ CREATE TABLE IF NOT EXISTS link_requests (
   quote_note        TEXT NOT NULL DEFAULT '',
   quoted_at         TEXT,
   quote_expires_at  TEXT,
-  order_id          INTEGER
+  order_id          INTEGER,
+  item_type         TEXT NOT NULL DEFAULT '',
+  quote_source      TEXT NOT NULL DEFAULT '',   -- '' = quoted by hand, 'page' = price read from the shop page, 'customer' = price the customer typed
+  quote_basis_minor INTEGER                      -- the price before any safety margin
 );
 
 -- Keys and switches for every wired API. Secret values are stored encrypted.

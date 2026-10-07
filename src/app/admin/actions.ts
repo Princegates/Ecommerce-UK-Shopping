@@ -10,6 +10,7 @@ import {
 import { isUploadUrl, saveImage } from "@/lib/uploads";
 import { parseBrackets, parseOptionGroups, parseTiers, safeUrl, isHexColour } from "@/lib/admin-parse";
 import { quoteRequest, getLinkRequest } from "@/lib/link-orders";
+import { parseItemTypes, saveItemTypes, saveLinkAuto } from "@/lib/link-auto";
 import { appUrl } from "@/lib/app-url";
 import { enqueueDirect } from "@/lib/notify/outbox";
 import { renderQuoteMessage } from "@/lib/notify/templates";
@@ -272,6 +273,25 @@ export async function setOrderStatusAction(f: FormData): Promise<void> {
     kickOutbox();
   }
   done(path, res.ok ? undefined : res.error);
+}
+
+/** Saves how link requests are priced automatically, and the item types with their default weights. */
+export async function saveLinkAutoAction(f: FormData): Promise<void> {
+  await requireAdmin();
+  const path = "/admin/requests";
+  const margin = num(f, "marginPct");
+  if (!Number.isFinite(margin) || margin < 0 || margin > 50) done(path, "The safety margin must be between 0 and 50 percent.");
+  const ceiling = money(f, "ceiling", "The automatic limit");
+  if (typeof ceiling === "string") done(path, ceiling);
+  if (ceiling < 1000) done(path, "The automatic limit must be at least £10.");
+  const days = num(f, "validDays");
+  if (!Number.isFinite(days) || days < 1 || days > 30) done(path, "Hold quotes for between 1 and 30 days.");
+  const types = parseItemTypes(String(f.get("itemTypes") ?? ""));
+  if (!types.ok) done(path, types.error);
+  const saved = saveLinkAuto({ pageEnabled: checked(f, "pageEnabled"), customerEnabled: checked(f, "customerEnabled"), marginPct: margin, ceilingMinor: ceiling, validDays: days });
+  saveItemTypes(types.value);
+  audit("request.auto_settings", "automatic quotes", `page ${saved.pageEnabled ? "on" : "off"}, customer price ${saved.customerEnabled ? "on" : "off"}, margin ${saved.marginPct}%, limit £${(saved.ceilingMinor / 100).toFixed(0)}`);
+  done(path);
 }
 
 /** Records the UK price the team checked, opens the customer's pay link and tells the customer. */

@@ -49,6 +49,7 @@ export function migrate(d: Db): void {
   for (const [col, ddl] of [
     ["token", "token TEXT"], ["quote_price_minor", "quote_price_minor INTEGER"], ["quote_weight_grams", "quote_weight_grams INTEGER"],
     ["quote_note", "quote_note TEXT NOT NULL DEFAULT ''"], ["quoted_at", "quoted_at TEXT"], ["quote_expires_at", "quote_expires_at TEXT"], ["order_id", "order_id INTEGER"],
+    ["item_type", "item_type TEXT NOT NULL DEFAULT ''"], ["quote_source", "quote_source TEXT NOT NULL DEFAULT ''"], ["quote_basis_minor", "quote_basis_minor INTEGER"],
   ] as const) {
     if (!has("link_requests").includes(col)) d.exec(`ALTER TABLE link_requests ADD COLUMN ${ddl}`);
   }

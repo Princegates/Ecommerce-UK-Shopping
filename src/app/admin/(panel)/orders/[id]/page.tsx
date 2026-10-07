@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getRequestForOrder } from "@/lib/link-orders";
 import { notFound } from "next/navigation";
 import { setOrderStatusAction } from "@/app/admin/actions";
 import { addTrackingAction, deleteTrackingAction, saveCostsAction } from "@/app/admin/ops-actions";
@@ -49,6 +50,7 @@ export default async function AdminOrder({
   const c = costs ?? EMPTY_COSTS;
   const owner = (db().prepare("SELECT customer_id AS id FROM orders WHERE id = ?").get(order.id) as { id: number | null }).id;
   const customer = owner ? getCustomerById(owner) : null;
+  const fromLink = getRequestForOrder(order.id);
 
   return (
     <>
@@ -56,6 +58,24 @@ export default async function AdminOrder({
         <Link href="/admin/orders" className="link">← All orders</Link>
       </PageHead>
       <Flash saved={sp.saved} error={sp.error} />
+
+      {fromLink && (
+        <section className="box mb-6 grid gap-1 !border-gold bg-gold/25 p-4 text-sm">
+          <p className="font-bold">Link order: check the price on the shop before buying</p>
+          <p>
+            <a href={fromLink.url} target="_blank" rel="noopener noreferrer" className="link break-all">{fromLink.url} ↗</a>
+            {fromLink.details ? ` · ${fromLink.details}` : ""}
+          </p>
+          <p>
+            Quoted £{((fromLink.quotePriceMinor ?? 0) / 100).toFixed(2)} each
+            {fromLink.quoteSource === "page" && " · price was read from the shop's page by the system"}
+            {fromLink.quoteSource === "customer" && ` · price was typed by the customer (£${((fromLink.quoteBasisMinor ?? 0) / 100).toFixed(2)}) plus a safety margin, so it is not verified`}
+            {fromLink.quoteSource === "" && " · quoted by the team"}
+            {" "}· <Link href="/admin/requests" className="link">request #{fromLink.id}</Link>
+          </p>
+          <p className="text-ink-soft">If the shop&rsquo;s price is higher now, contact the customer before buying. You can cancel and refund the order from this page.</p>
+        </section>
+      )}
 
       <div className="grid gap-8 xl:grid-cols-[1.5fr_1fr]">
         <div className="grid content-start gap-8">
