@@ -49,7 +49,10 @@ export default function Footer() {
           </ul>
         </div>
         <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-3 px-4 pb-6 text-xs text-white/60">
-          <p>© {new Date().getFullYear()} {siteName}. Product names, photos and prices come from the sellers listed.</p>
+          <div className="grid gap-1">
+            <p>© {new Date().getFullYear()} {siteName}. Product names, photos and prices come from the sellers listed.</p>
+            <p className="font-medium text-white/80">Powered by Anknovate IT Services</p>
+          </div>
           <Link href="/admin" rel="nofollow" className="rounded-lg border border-white/30 px-3 py-1.5 font-medium text-white/85 hover:bg-white/10 hover:text-white">Admin</Link>
         </div>
       </div>
