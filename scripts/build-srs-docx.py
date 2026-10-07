@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Build docs/pdf/SRS-Anknovate.docx (+ .pdf) from docs/13-srs.md in the Anknovate house format.
+(--source/--name build other documents the same way, e.g. the business-friendly SRS.)
 
 The format comes from docs/template/anknovate-srs-template.docx: its styles, header (logo +
 title), footer (page x of y), cover page, table of contents and closing "About Anknovate" pages
@@ -13,13 +14,18 @@ import argparse, html, os, re, shutil, subprocess, sys, tempfile, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE = os.path.join(ROOT, "docs/template/anknovate-srs-template.docx")
-SOURCE = os.path.join(ROOT, "docs/13-srs.md")
 OUT = os.path.join(ROOT, "docs/pdf")
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--client", default="The owner of SHOP UK FROM GH")
 ap.add_argument("--version", default="1.0")
 ap.add_argument("--date", default=None)
+ap.add_argument("--source", default="docs/13-srs.md", help="Markdown file with '## ' section headings")
+ap.add_argument("--name", default="SRS-Anknovate", help="output file name, without extension")
+ap.add_argument("--subtitle", default="SHOP UK FROM GH: UK shopping, shipping and delivery for Ghana")
+ap.add_argument("--business-model", default="Online shop and purchasing agent: UK goods paid for once in cedis, shipped to Ghana and delivered to the door")
+ap.add_argument("--doctype", default=None, help="show a 'Document Type' row on the cover instead of dropping the Status row")
+ap.add_argument("--about-letter", default=None, help="appendix letter for the About Anknovate pages")
 ap.add_argument("--keep-status", action="store_true", help="keep the implementation-status columns and appendix (internal edition)")
 args = ap.parse_args()
 
@@ -38,6 +44,7 @@ def cover_row(xml, label, value):
     return new
 
 # ---- 1. markdown -> body docx, using the template's styles -------------------------------
+SOURCE = os.path.join(ROOT, args.source)
 md = open(SOURCE, encoding="utf-8").read().split("\n")
 date = args.date
 if not date:
@@ -90,11 +97,11 @@ def client_edition(lines):
     t = re.sub(r"\nTo keep this document true, update the status.*\n?", "\nTo keep this document current, add new requirements with the next free number in their area.\n", t)
     return t.split("\n")
 
-if not args.keep_status:
+if not args.keep_status and args.source.endswith("13-srs.md"):
     md = client_edition(md)
 
 # drop title block, meta lines, reading note's blockquote stays; drop the doc's own Contents list
-start = next(i for i, l in enumerate(md) if l.startswith("> **How to read"))
+start = next(i for i, l in enumerate(md) if l.startswith("> **How to read") or l.startswith("## "))
 body = md[start:]
 out, skip = [], False
 for l in body:
@@ -106,7 +113,7 @@ for l in body:
     if l.strip() == "---": continue          # headings already carry a rule
     out.append(re.sub(r"^## (.*)$", lambda m: "## " + m.group(1).upper(), l))
 text = "\n".join(out)
-ABOUT = "E" if args.keep_status else "D"
+ABOUT = args.about_letter or ("E" if args.keep_status else "D")
 
 tmp = tempfile.mkdtemp()
 body_md = os.path.join(tmp, "body.md"); open(body_md, "w", encoding="utf-8").write(text)
@@ -134,15 +141,18 @@ sect = tpl[tpl.index("<w:sectPr", about_p):tpl.index("</w:body>")]
 head_xml = tpl[:b0]
 
 cover = cover_row(cover, "Document Version", args.version)
-if args.keep_status:
+if args.doctype:
+    cover = cover.replace(">Status</w:t>", ">Document Type</w:t>", 1)
+    cover = cover_row(cover, "Document Type", args.doctype)
+elif args.keep_status:
     cover = cover_row(cover, "Status", "As-built system specification")
 else:
     cover, n = re.subn(r"<w:tr>(?:(?!</w:tr>).)*?<w:t(?: [^>]*)?>Status</w:t>.*?</w:tr>", "", cover, count=1, flags=re.S)
     if n != 1: sys.exit("cover Status row not found")
-cover = cover_row(cover, "Business Model", "Online shop and purchasing agent: UK goods paid for once in cedis, shipped to Ghana and delivered to the door")
+cover = cover_row(cover, "Business Model", args.business_model)
 cover = cover_row(cover, "Prepared for", args.client)
 cover = cover_row(cover, "Date", date)
-cover = cover.replace("UK-to-Ghana Unified Shopping, Shipping &amp; Door-to-Door Delivery Platform", "SHOP UK FROM GH: UK shopping, shipping and delivery for Ghana")
+cover = cover.replace("UK-to-Ghana Unified Shopping, Shipping &amp; Door-to-Door Delivery Platform", html.escape(args.subtitle))
 
 # body: strip pandoc's sectPr, page break before the closing About pages
 bb = bod[bod.index("<w:body>") + 8:bod.index("</w:body>")]
@@ -251,9 +261,9 @@ missing = [h for h in heads if h not in pages]
 if missing: print("warning: headings not located:", missing[:5], file=sys.stderr)
 
 os.makedirs(OUT, exist_ok=True)
-final = os.path.join(OUT, "SRS-Anknovate.docx")
+final = os.path.join(OUT, args.name + ".docx")
 assemble(pages, final)
 pdf2, n2 = pdf_pages(final)
-shutil.copy(pdf2, os.path.join(OUT, "SRS-Anknovate.pdf"))
+shutil.copy(pdf2, os.path.join(OUT, args.name + ".pdf"))
 if not os.environ.get("KEEP"): shutil.rmtree(tmp, ignore_errors=True)
-print(f"wrote {final} and SRS-Anknovate.pdf ({n2} pages)")
+print(f"wrote {final} and {args.name}.pdf ({n2} pages)")
