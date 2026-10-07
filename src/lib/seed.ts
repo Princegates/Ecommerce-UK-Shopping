@@ -1,6 +1,7 @@
 import type Database from "better-sqlite3";
 import { slugify } from "./slug";
 import type { RateCard, ServiceFeeRule } from "./pricing";
+import { SAMPLE_IMAGES } from "./sample-images";
 
 /**
  * Sample data so the site is usable on first run. Every shop and product here
@@ -181,6 +182,24 @@ export function seedIfEmpty(db: Database.Database): void {
     setSetting.run("service_fee", JSON.stringify(SERVICE_FEE));
     setSetting.run("min_order_gbp_minor", JSON.stringify(1000));
     setSetting.run("support_whatsapp", JSON.stringify(""));
+  });
+  run();
+}
+
+/**
+ * Gives the fictional sample products their illustrated pictures. It runs once per database (so an admin who later removes or
+ * replaces a picture is not overruled) and only touches products of the sample shops that have no picture yet.
+ */
+export function applySampleImages(db: Database.Database): void {
+  const done = db.prepare("SELECT value FROM settings WHERE key = 'sample_images_applied'").get();
+  if (done) return;
+  const set = db.prepare(
+    `UPDATE products SET image_url = ? WHERE name = ? AND image_url IS NULL AND source_url = ''
+       AND shop_id IN (SELECT id FROM shops WHERE description LIKE '%(sample shop)%')`,
+  );
+  const run = db.transaction(() => {
+    for (const [name, url] of Object.entries(SAMPLE_IMAGES)) set.run(url, name);
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('sample_images_applied', '1')").run();
   });
   run();
 }

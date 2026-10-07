@@ -3,7 +3,7 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { SCHEMA } from "./schema";
-import { seedIfEmpty } from "./seed";
+import { applySampleImages, seedIfEmpty } from "./seed";
 
 type Db = Database.Database;
 
@@ -18,6 +18,7 @@ function open(): Db {
   db.exec(SCHEMA);
   migrate(db);
   seedIfEmpty(db);
+  applySampleImages(db);
   return db;
 }
 
@@ -61,5 +62,6 @@ export function openForTest(): Db {
   d.exec(SCHEMA);
   migrate(d);
   seedIfEmpty(d);
+  applySampleImages(d);
   return d;
 }

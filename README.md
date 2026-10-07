@@ -78,6 +78,9 @@ review** instead.
   items by hand for shops that refuse automated reading.
 - Only prices in pounds are accepted. Images are linked from the source, so confirm your licence covers that.
 
+**Try it safely first:** your site hosts a pretend UK shop at `/demo-shop` (a feed, a sitemap and product pages), with a step-by-step guide on that page.
+Point a source at it to watch the importer work on your own server. Switch it off with `DISABLE_DEMO_SHOP=true`.
+
 The scheduler runs inside the server every ten minutes. To run it from your own scheduler instead, set `INGEST_AUTORUN=false` and call
 `/api/cron/ingest`. On the **Request an item by link** page, a shopper's pasted link is looked up the same way (obeying robots.txt)
 to fill in the name and price, or to point them at the item if it is already listed.
