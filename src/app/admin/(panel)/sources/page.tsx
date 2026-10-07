@@ -33,6 +33,30 @@ export default async function SourcesAdmin({ searchParams }: { searchParams: Pro
         current, and hides items that go stale. Add a product feed (best), a shop sitemap, or just paste links.
       </p>
 
+      <details className="mb-6 rounded-2xl border border-blue bg-blue-soft p-4" open={sources.length === 0}>
+        <summary className="cursor-pointer text-base font-bold">Start here: get real products with real photos from real UK shops</summary>
+        <div className="mt-3 grid gap-3 text-sm md:grid-cols-2">
+          <div>
+            <p className="font-bold">The dependable way: an affiliate product feed</p>
+            <ol className="mt-1 grid list-decimal gap-1 pl-5">
+              <li>Join an affiliate network as a publisher (free to apply): <strong>Awin</strong>, <strong>CJ</strong>, <strong>Rakuten Advertising</strong> or <strong>Impact</strong>. Add this website when asked.</li>
+              <li>Search the network&rsquo;s advertiser list for UK shops you want and click <strong>Join</strong>. Each shop approves you. Read each programme&rsquo;s terms, since some limit how their products may be resold.</li>
+              <li>On Awin, open <strong>Toolbox → Create-a-Feed</strong>. Pick the shops, choose <strong>CSV</strong> and <strong>gzip</strong>, and include the columns for name, price, was-price, stock, link and <strong>merchant image URL</strong> (the full-size photo). Copy the feed address it gives you.</li>
+              <li>Come back here: <strong>Add a source → Product feed (CSV)</strong>, paste the address, tick the permission box, click <strong>Check this setup first</strong>, then <strong>Create source</strong>.</li>
+            </ol>
+          </div>
+          <div>
+            <p className="font-bold">What you get, and what you don&rsquo;t</p>
+            <ul className="mt-1 grid list-disc gap-1 pl-5">
+              <li>Real product names, prices, was-prices, stock and <strong>the shop&rsquo;s own photos</strong>, refreshed automatically.</li>
+              <li>Only shops that offer a feed (or allow reading their site). Big retailers that forbid scraping are reached through their affiliate programme, not by reading their website.</li>
+              <li>Photos are linked from the shop&rsquo;s servers, not copied, so they update when the shop changes them.</li>
+              <li>Want to see it work first? Open <a className="link" href="/demo-shop">/demo-shop</a> on this site for a safe practice run.</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
       {sources.length === 0 ? (
         <p className="box mb-8 p-5">No sources yet. Add a feed or sitemap above, or paste a few product links below to start.</p>
       ) : (

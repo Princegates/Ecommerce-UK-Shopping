@@ -103,6 +103,15 @@ describe("mapRecord", () => {
   });
 });
 
+describe("photo columns", () => {
+  it("prefers the merchant's full-size picture over the network's small one", () => {
+    const r = mapRecord({ aw_product_id: "1", product_name: "Mug", search_price: "5.00", aw_deep_link: "https://t.example/c", aw_image_url: "https://aw.example/200x200.jpg", merchant_image_url: "https://shop.example/full.jpg" });
+    expect("item" in r && r.item.imageUrl).toBe("https://shop.example/full.jpg");
+    const small = mapRecord({ aw_product_id: "1", product_name: "Mug", search_price: "5.00", aw_deep_link: "https://t.example/c", aw_image_url: "https://aw.example/200x200.jpg" });
+    expect("item" in small && small.item.imageUrl).toBe("https://aw.example/200x200.jpg");
+  });
+});
+
 describe("sitemaps", () => {
   it("separates page lists from indexes and decodes entities", () => {
     expect(parseSitemap('<urlset><url><loc>https://a.com/p?a=1&amp;b=2</loc></url><url><loc> https://a.com/q </loc></url></urlset>')).toEqual({

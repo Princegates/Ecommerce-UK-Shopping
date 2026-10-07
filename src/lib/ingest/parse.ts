@@ -192,7 +192,7 @@ const ALIASES: Record<keyof Omit<FieldMap, "include" | "exclude">, string[]> = {
   compareAt: ["rrpprice", "rrp_price", "rrp", "wasprice", "was_price", "baseprice", "base_price", "listprice", "list_price", "comparisonprice", "compare_at_price", "regularprice", "regular_price", "originalprice"],
   currency: ["currency", "pricecurrency", "price_currency", "currencycode"],
   url: ["producturl", "product_url", "link", "url", "awdeeplink", "aw_deep_link", "merchantdeeplink", "merchant_deep_link", "deeplink", "productlink"],
-  image: ["imageurl", "image_url", "imagelink", "image_link", "awimageurl", "aw_image_url", "merchantimageurl", "merchant_image_url", "image", "images", "picture", "thumbnail"],
+  image: ["merchantimageurl", "merchant_image_url", "largeimage", "large_image", "imageurl", "image_url", "imagelink", "image_link", "image", "images", "picture", "awimageurl", "aw_image_url", "thumbnail"],
   brand: ["brand", "brandname", "brand_name", "manufacturer", "vendor"],
   category: ["category", "categoryname", "category_name", "producttype", "product_type", "merchantcategory", "merchant_category", "googleproductcategory", "google_product_category"],
   description: ["description", "productshortdescription", "product_short_description", "shortdescription", "summary", "body"],

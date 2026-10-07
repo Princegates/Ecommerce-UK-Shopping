@@ -222,6 +222,14 @@ describe("feed runs", () => {
     expect(r.message).toContain("does not work around blocks");
   });
 
+  it("reads a gzip-compressed feed, which is how big affiliate feeds are delivered", async () => {
+    const { d, id, shop } = setup();
+    const { gzipSync } = await import("node:zlib");
+    const f = fake({ [FEED]: { status: 200, headers: {}, body: gzipSync(Buffer.from(csv([row("1", "Gzip Hat", "12.00"), row("2", "Gzip Scarf", "9.00")]))), truncated: false } });
+    expect(await runSource(id, f.deps, d)).toMatchObject({ status: "OK", created: 2 });
+    expect(products(d, shop.id, "Gzip Hat")).toHaveLength(1);
+  });
+
   it("applies an explicit field map", async () => {
     const { d, id, shop } = setup({ fieldMap: { id: "ref", name: "label", price: "cost", url: "page" } });
     const f = fake({ [FEED]: "ref,label,cost,page\nK1,Kettle,25.00,https://north.example/kettle\n" });
