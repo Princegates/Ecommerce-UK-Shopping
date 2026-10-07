@@ -1,5 +1,7 @@
 # Deploying the shop
 
+This is the quick-start. The full guide (settings reference, backups and restore, monitoring, runbooks, costs) is [docs/05-deployment-and-operations.md](docs/05-deployment-and-operations.md).
+
 The shop is one Node server with a **SQLite file** for its data and a **scheduler inside the server** (catalogue imports, message
 retries). That means it needs a host with:
 

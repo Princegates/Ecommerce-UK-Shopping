@@ -9,6 +9,10 @@ You set the exchange rate, markup, service charge, shipping rate cards and deliv
 
 Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind 4 and SQLite (better-sqlite3).
 
+## Documentation
+
+Full documentation is in [`docs/`](docs/README.md): an overview, the **admin guide** (every page, daily routine, link orders, staff accounts), a **customer guide**, catalogue sources, deployment and operations, architecture, the data model, security and privacy, integrations, testing, an FAQ and the change history.
+
 ## Run it
 
 ```bash
@@ -22,6 +26,7 @@ development only, `SEED_SAMPLE_DATA=true` adds made-up sample shops and products
 
 ```bash
 npm run lint && npm run typecheck && npm test   # checks
+npm run e2e                                     # browser checks of the whole shop (see e2e/README.md)
 npm run build && npm start                      # production
 ```
 
