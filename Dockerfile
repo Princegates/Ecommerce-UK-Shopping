@@ -13,6 +13,8 @@ FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# the repository has no public/ files of its own, and Git does not keep empty folders
+RUN mkdir -p public
 ENV NEXT_TELEMETRY_DISABLED=1
 # The build never needs your real data; it uses a throwaway database file
 ENV DATABASE_PATH=/tmp/build.db
@@ -22,12 +24,15 @@ FROM node:22-bookworm-slim AS run
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 DATABASE_PATH=/data/shop.db
 RUN useradd --system --uid 10001 --home /app app && mkdir -p /data && chown app:app /data
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public
-USER app
+# starts as root only to fix the data folder's owner (hosts mount disks as root), then runs the server as the unprivileged user
 VOLUME ["/data"]
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "server.js"]
