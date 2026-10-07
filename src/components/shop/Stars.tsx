@@ -7,14 +7,14 @@ export default function Stars({ value, count, size = 16 }: { value: number | nul
   return (
     <span className="inline-flex items-center gap-1.5" role="img" aria-label={label}>
       <span className="relative inline-block leading-none" style={{ width: size * 5, height: size }} aria-hidden="true">
-        <svg width={size * 5} height={size} viewBox="0 0 120 24" className="absolute inset-0" fill="none" stroke="var(--ink)" strokeWidth="1.5">
+        <svg width={size * 5} height={size} viewBox="0 0 120 24" className="absolute inset-0" fill="none" stroke="#c9cfca" strokeWidth="1.5">
           {[0, 1, 2, 3, 4].map((i) => <path key={i} d={star} transform={`translate(${i * 24} 0)`} />)}
         </svg>
-        <svg width={size * 5} height={size} viewBox="0 0 120 24" className="absolute inset-0" style={{ clipPath: `inset(0 ${(1 - pct) * 100}% 0 0)` }} fill="var(--gold)" stroke="var(--ink)" strokeWidth="1.5">
+        <svg width={size * 5} height={size} viewBox="0 0 120 24" className="absolute inset-0" style={{ clipPath: `inset(0 ${(1 - pct) * 100}% 0 0)` }} fill="var(--orange)" stroke="var(--orange)" strokeWidth="1.5">
           {[0, 1, 2, 3, 4].map((i) => <path key={i} d={star} transform={`translate(${i * 24} 0)`} />)}
         </svg>
       </span>
-      {count !== undefined && <span className="num text-xs font-semibold text-ink-soft" aria-hidden="true">({count})</span>}
+      {count !== undefined && <span className="num text-xs text-link" aria-hidden="true">({count})</span>}
     </span>
   );
 }

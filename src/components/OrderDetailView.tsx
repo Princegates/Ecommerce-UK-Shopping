@@ -3,6 +3,7 @@ import { buyAgainAction } from "@/app/actions/cart";
 import Breakdown from "@/components/Breakdown";
 import StatusChip from "@/components/StatusChip";
 import StatusTracker from "@/components/StatusTracker";
+import { ghsToGbpMinor } from "@/lib/pricing";
 import { ghs } from "@/lib/money";
 import type { OrderEvent, OrderItemRow, OrderRow, TrackingEntry } from "@/lib/orders";
 import { TRACKING_STAGE_LABEL } from "@/lib/orders";
@@ -33,7 +34,7 @@ export default function OrderDetailView({
       <header>
         <p className="label">Order</p>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="mono text-3xl font-semibold tracking-tight sm:text-4xl">{order.number}</h1>
+          <h1 className="mono text-3xl font-semibold tracking-tight sm:text-2xl">{order.number}</h1>
           <StatusChip status={order.status} />
         </div>
         <p className="mt-1 text-ink-soft">Placed {fmt(order.createdAt)} · {order.customerName}</p>
@@ -89,13 +90,13 @@ export default function OrderDetailView({
           {!closed && (
             <section aria-labelledby="miles-h">
               <h2 id="miles-h" className="text-2xl">Progress</h2>
-              <ol className="mt-3 border-t-2 border-ink">
+              <ol className="mt-3 border-t border-line">
                 {PROGRESS.map((s) => {
                   const at = reachedAt.get(s);
                   return (
-                    <li key={s} className="flex items-center justify-between gap-4 border-b border-ink/25 py-2.5">
+                    <li key={s} className="flex items-center justify-between gap-4 border-b border-line py-2.5">
                       <span className={`flex items-center gap-3 ${at ? "font-semibold" : "text-ink/50"}`}>
-                        <span aria-hidden="true" className={`mono grid h-5 w-5 place-items-center border-2 text-xs ${at ? "border-green bg-green text-paper" : "border-ink/30"}`}>{at ? "✓" : ""}</span>
+                        <span aria-hidden="true" className={`mono grid h-5 w-5 place-items-center border-2 text-xs ${at ? "border-green bg-green text-paper" : "border-line"}`}>{at ? "✓" : ""}</span>
                         {STATUS_LABEL[s]}
                       </span>
                       <span className="label num">{at ? fmt(at) : "Waiting"}</span>
@@ -108,9 +109,9 @@ export default function OrderDetailView({
 
           <section>
             <h2 className="text-2xl">Items</h2>
-            <ul className="mt-3 border-t-2 border-ink">
+            <ul className="mt-3 border-t border-line">
               {items.map((i) => (
-                <li key={i.id} className="flex justify-between gap-4 border-b border-ink/30 py-3">
+                <li key={i.id} className="flex justify-between gap-4 border-b border-line py-3">
                   <div>
                     <p className="font-semibold">{i.quantity} × {i.name}</p>
                     <p className="label">{i.shopName}</p>
@@ -126,10 +127,10 @@ export default function OrderDetailView({
 
           <section>
             <h2 className="text-2xl">Updates</h2>
-            <ol className="mt-3 border-l-2 border-ink pl-5">
+            <ol className="mt-3 border-l border-line pl-5">
               {[...events].reverse().map((e, idx) => (
                 <li key={idx} className="relative pb-5">
-                  <span className="absolute -left-[1.62rem] top-1.5 h-3 w-3 border-2 border-ink bg-gold" aria-hidden="true" />
+                  <span className="absolute -left-[1.62rem] top-1.5 h-3 w-3 border border-line bg-gold" aria-hidden="true" />
                   <p className="font-semibold">{isOrderStatus(e.status) ? STATUS_LABEL[e.status] : e.status}</p>
                   {e.note && <p className="text-sm text-ink-soft">{e.note}</p>}
                   <p className="label num">{e.createdAt} UTC</p>
@@ -142,7 +143,7 @@ export default function OrderDetailView({
         <aside className="grid content-start gap-8">
           <div className="receipt p-5">
             <h2 className="!text-xl">What you paid</h2>
-            <div className="mt-3"><Breakdown b={order} /></div>
+            <div className="mt-3"><Breakdown b={order} approxGbpMinor={ghsToGbpMinor(order.totalMinor, { rate: order.fxRate, markupPct: order.fxMarkupPct })} /></div>
             <hr />
             <p className="text-xs text-ink-soft">
               Priced at £1 = GH₵{(order.fxRate * (1 + order.fxMarkupPct / 100)).toFixed(4)} when you ordered. Import duty charged by customs, if any, is not included.

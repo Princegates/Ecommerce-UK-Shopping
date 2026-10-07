@@ -39,6 +39,7 @@ function migrate(d: Db): void {
   const productCols = has("products");
   if (!productCols.includes("compare_at_minor")) d.exec("ALTER TABLE products ADD COLUMN compare_at_minor INTEGER");
   if (!productCols.includes("deal_ends_at")) d.exec("ALTER TABLE products ADD COLUMN deal_ends_at TEXT");
+  if (!productCols.includes("last_synced_at")) d.exec("ALTER TABLE products ADD COLUMN last_synced_at TEXT");
   if (!has("link_requests").includes("customer_id")) d.exec("ALTER TABLE link_requests ADD COLUMN customer_id INTEGER");
 
   const msgCols = has("messages");

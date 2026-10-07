@@ -37,7 +37,7 @@ export default async function PayPage({
   return (
     <div className="mx-auto max-w-xl px-4 py-14">
       <p className="label">Step 3 of 3</p>
-      <h1 className="text-5xl">
+      <h1 className="text-3xl">
         Pay for order <span className="mono whitespace-nowrap text-[0.7em]">{order.number}</span>
       </h1>
 

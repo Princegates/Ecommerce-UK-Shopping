@@ -19,11 +19,11 @@ export default function StatusTracker({ status }: { status: OrderStatus }) {
           <li
             key={s}
             aria-current={here ? "step" : undefined}
-            className={`relative border-t-4 pt-2 pb-4 pr-2 ${done || here ? "border-green" : "border-ink/25"}`}
+            className={`relative border-t-4 pt-2 pb-4 pr-2 ${done || here ? "border-green" : "border-line"}`}
           >
             <span
               className={`mono mb-1 grid h-6 w-6 place-items-center border-2 text-xs font-semibold ${
-                done ? "border-green bg-green text-paper" : here ? "border-ink bg-gold" : "border-ink/30 text-ink/40"
+                done ? "border-green bg-green text-paper" : here ? "border-line bg-gold" : "border-line text-ink/40"
               }`}
               aria-hidden="true"
             >

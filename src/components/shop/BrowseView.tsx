@@ -106,7 +106,7 @@ export default function BrowseView({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <nav aria-label="Breadcrumb" className="label"><Link href="/" className="hover:underline">Home</Link> / {heading}</nav>
-      <h1 className="mt-2 text-4xl md:text-5xl">{heading}</h1>
+      <h1 className="mt-2 text-2xl md:text-3xl">{heading}</h1>
       {intro && <div className="mt-2 max-w-2xl text-ink-soft">{intro}</div>}
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[16rem_1fr]">

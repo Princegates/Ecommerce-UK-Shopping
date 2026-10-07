@@ -44,7 +44,7 @@ export default async function AccountHome({ searchParams }: { searchParams: Prom
   return (
     <>
       <p className="label">Your account</p>
-      <h1 className="text-5xl">Hello, {c.name.split(" ")[0]}</h1>
+      <h1 className="text-3xl">Hello, {c.name.split(" ")[0]}</h1>
       {sp.reset && <p role="status" className="box mt-4 bg-gold/40 p-3 font-semibold">Your password was changed and you are signed in.</p>}
 
       {latestOpen && (
@@ -68,7 +68,7 @@ export default async function AccountHome({ searchParams }: { searchParams: Prom
           <li key={label}>
             <Link href={href} className="box box-shadow block p-4 hover:-translate-y-0.5">
               <p className="label">{label}</p>
-              <p className="display num text-4xl">{n}</p>
+              <p className="display num text-2xl">{n}</p>
             </Link>
           </li>
         ))}

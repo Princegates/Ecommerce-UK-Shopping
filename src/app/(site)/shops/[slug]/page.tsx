@@ -48,7 +48,7 @@ export default async function ShopPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <section className="border-b-2 border-ink" style={{ background: shop.accent, color: "#fff" }}>
+      <section className="border-b border-line" style={{ background: shop.accent, color: "#fff" }}>
         <div className="mx-auto max-w-7xl px-4 py-10">
           <nav aria-label="Breadcrumb" className="label !text-white/80">
             <Link href="/shops" className="hover:underline">Shops</Link> / {shop.category}

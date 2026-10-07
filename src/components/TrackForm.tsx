@@ -8,7 +8,7 @@ export default function TrackForm() {
   return (
     <div className="mx-auto max-w-xl px-4 py-14">
       <p className="label">Tracking</p>
-      <h1 className="text-5xl">Where is my order?</h1>
+      <h1 className="text-3xl">Where is my order?</h1>
       <p className="mt-3 text-ink-soft">Enter your order number and the phone number or email you used at checkout.</p>
       <form action={action} className="box box-shadow mt-8 grid gap-4 p-5">
         <div className="field">

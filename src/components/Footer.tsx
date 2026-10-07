@@ -1,65 +1,54 @@
 import Link from "next/link";
 import { getSettings } from "@/lib/settings";
 
+const PAY = ["Mobile Money", "Visa", "Mastercard", "Pay in GH₵", "Pay in £ at the shop"];
+
 export default function Footer() {
   const { siteName, supportWhatsapp } = getSettings();
   const wa = supportWhatsapp.replace(/\D/g, "");
+  const col = "grid content-start gap-1.5 text-sm";
+  const a = "text-white/80 hover:text-white hover:underline";
   return (
-    <footer className="mt-20 pb-16 md:pb-0">
-      <div className="mx-auto grid max-w-7xl gap-3 px-4 pb-8 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          ["Full price upfront", "Items, service charge, shipping and delivery shown before you pay."],
-          ["Pay in cedis", "Mobile Money and cards. No UK card needed."],
-          ["Tracked to your door", "Updates by SMS, WhatsApp, email and on your account."],
-          ["We buy it for you", "No UK address needed. We order, ship and deliver."],
-        ].map(([t, d]) => (
-          <div key={t} className="box p-4">
-            <p className="display text-lg">{t}</p>
-            <p className="mt-1 text-sm text-ink-soft">{d}</p>
-          </div>
-        ))}
-      </div>
+    <footer className="mt-10 pb-16 text-white md:pb-0">
       <div className="strip" />
-      <div className="bg-ink text-paper">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-          <div>
-            <p className="display text-3xl">{siteName}</p>
-            <p className="mt-3 max-w-sm text-paper/75">
-              We buy from UK shops for you, ship to Ghana and deliver to your door. One site, one payment in cedis,
-              one tracking page.
-            </p>
-          </div>
-          <nav aria-label="Shop" className="grid content-start gap-2">
-            <p className="label !text-gold">Shop</p>
-            <Link className="link" href="/shops">All shops</Link>
-            <Link className="link" href="/search">Search</Link>
-            <Link className="link" href="/search?deals=1&sort=discount">Today&rsquo;s deals</Link>
-            <Link className="link" href="/request">Request an item by link</Link>
+      <div className="bg-navy-2">
+        <div className="mx-auto grid max-w-[90rem] gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
+          <nav aria-label="Shop" className={col}>
+            <p className="mb-1 text-base font-bold">Shop</p>
+            <Link className={a} href="/shops">All shops</Link>
+            <Link className={a} href="/search?deals=1&sort=discount">Today&rsquo;s deals</Link>
+            <Link className={a} href="/search?sort=newest">New arrivals</Link>
+            <Link className={a} href="/search">Search everything</Link>
           </nav>
-          <nav aria-label="Orders" className="grid content-start gap-2">
-            <p className="label !text-gold">Your order</p>
-            <Link className="link" href="/cart">Cart</Link>
-            <Link className="link" href="/account/orders">My orders</Link>
-            <Link className="link" href="/account/wishlist">Wishlist</Link>
-            <Link className="link" href="/track">Track an order</Link>
-            {wa && <a className="link" href={`https://wa.me/${wa}`}>Chat on WhatsApp</a>}
+          <nav aria-label="Your orders" className={col}>
+            <p className="mb-1 text-base font-bold">Your orders</p>
+            <Link className={a} href="/account/orders">My orders</Link>
+            <Link className={a} href="/account/wishlist">Saved items</Link>
+            <Link className={a} href="/track">Track an order</Link>
+            <Link className={a} href="/cart">Cart</Link>
           </nav>
-          <div className="grid content-start gap-2 text-sm text-paper/75">
-            <p className="label !text-gold">Good to know</p>
-            <p>Your total covers the items, our service charge, shipping to Ghana and delivery to your address.</p>
-            <p>Import duty and taxes charged by customs, if any, are not included.</p>
+          <nav aria-label="Help" className={col}>
+            <p className="mb-1 text-base font-bold">Help</p>
+            <Link className={a} href="/request">Request an item by link</Link>
+            <Link className={a} href="/#how">How it works</Link>
+            {wa && <a className={a} href={`https://wa.me/${wa}`}>Chat on WhatsApp</a>}
+            <Link className={a} href="/bot">About our catalogue reader</Link>
+          </nav>
+          <div className={col}>
+            <p className="mb-1 text-base font-bold">Good to know</p>
+            <p className="text-white/80">Your total covers the items, our service charge, shipping to Ghana and delivery to your address. Prices are shown in pounds and cedis.</p>
+            <p className="text-white/80">Import duty and taxes charged by customs, if any, are not included.</p>
           </div>
         </div>
-        <div className="border-t border-paper/20">
-          <ul className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 pt-4" aria-label="Ways to pay">
-            {["Mobile Money", "Visa", "Mastercard", "Card payments", "Pay in GH₵"].map((m) => (
-              <li key={m} className="label border border-paper/40 px-2 py-1 !text-paper/80">{m}</li>
-            ))}
+      </div>
+      <div className="bg-navy">
+        <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-4 px-4 py-6">
+          <p className="text-xl font-bold">{siteName}</p>
+          <ul className="flex flex-wrap items-center gap-2" aria-label="Ways to pay">
+            {PAY.map((m) => <li key={m} className="rounded border border-white/30 px-2 py-1 text-xs text-white/85">{m}</li>)}
           </ul>
-          <p className="label mx-auto max-w-7xl px-4 py-4 !text-paper/60">
-            © {new Date().getFullYear()} {siteName}. Shop names and prices shown are sample data until you replace them in the admin area.
-          </p>
         </div>
+        <p className="mx-auto max-w-[90rem] px-4 pb-6 text-xs text-white/60">© {new Date().getFullYear()} {siteName}. Shop names and prices shown are sample data until you replace them in the admin area.</p>
       </div>
     </footer>
   );

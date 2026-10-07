@@ -36,7 +36,7 @@ export default function IntegrationCard({
 
   return (
     <article id={def.id} className="box box-shadow scroll-mt-24">
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b-2 border-ink p-5">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line p-5">
         <div>
           <h3 className="text-2xl">{def.name}</h3>
           <p className="mt-1 max-w-xl text-sm text-ink-soft">{def.blurb}</p>
@@ -65,7 +65,7 @@ export default function IntegrationCard({
           <div className="grid gap-2">
             <p className="label">Saved keys</p>
             {savedSecrets.map((f) => (
-              <form key={f.key} action={clearFieldAction} className="flex flex-wrap items-center justify-between gap-3 border-2 border-ink/30 px-3 py-2">
+              <form key={f.key} action={clearFieldAction} className="flex flex-wrap items-center justify-between gap-3 border border-line px-3 py-2">
                 <input type="hidden" name="provider" value={def.id} />
                 <input type="hidden" name="key" value={f.key} />
                 <span className="text-sm"><span className="font-semibold">{f.label}</span> <span className="mono ml-2">{maskSecret(cfg.values[f.key])}</span></span>
@@ -115,7 +115,7 @@ export default function IntegrationCard({
         </form>
 
         {webhookUrl && (
-          <div className="grid gap-2 border-t-2 border-dashed border-ink/30 pt-5">
+          <div className="grid gap-2 border-t-2 border-solid border-line pt-5">
             <p className="label">Webhook URL</p>
             <input readOnly value={webhookUrl} className="input mono text-sm" aria-label={`${def.name} webhook URL`} />
             <p className="hint">{def.webhook!.help}</p>
@@ -124,7 +124,7 @@ export default function IntegrationCard({
           </div>
         )}
 
-        <div className="grid gap-3 border-t-2 border-dashed border-ink/30 pt-5">
+        <div className="grid gap-3 border-t-2 border-solid border-line pt-5">
           <p className="label">Check it works</p>
           {isPayment || isRates ? (
             <form action={testIntegrationAction} className="flex flex-wrap items-center gap-3">

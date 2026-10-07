@@ -40,12 +40,47 @@ webhooks are signed and idempotent, and card data never touches this server.
 **Messages:** order updates by SMS (Arkesel, Twilio), WhatsApp (Meta Cloud API, Twilio) and email (Resend,
 Postmark) through a retrying outbox, with per-status rules and per-order customer preferences.
 
+**Catalogue feeding (Admin > Catalogue sources):** shops and products fill themselves in. Each source runs on its own
+schedule from a built-in scheduler, publishes new items automatically, keeps prices, was-prices and stock current, and hides items
+that go stale. See [Catalogue sources](#catalogue-sources) below.
+
+**Themes (Admin > Appearance):** 15 colour themes, applied to the whole shop at once. Ghana green and gold is the default.
+
 **Exchange rate:** set by you. An optional feed (ExchangeRate-API, Open Exchange Rates) can suggest or apply
 rates inside guardrails; your markup always applies on top.
 
 **Admin** (`/admin`): dashboard with sales, margin and attention list; orders and status changes; customers;
 link requests; shops, items and deals; reviews moderation; pricing, shipping and delivery areas;
 integrations (keys are encrypted and shown masked); message log; activity log; CSV export.
+
+## Catalogue sources
+
+A source is one place we are allowed to read a shop's products from. Add them in **Admin > Catalogue sources**:
+
+| Type | Use it for | Notes |
+| --- | --- | --- |
+| Product feed (CSV or JSON) | Official and affiliate feeds | Most reliable. Columns are recognised automatically; override them with lines like `price=cost.gbp`. |
+| Shop website (sitemap + product pages) | Shops whose terms and robots.txt allow it | Reads the sitemap, then product pages one at a time using the product data (JSON-LD or Open Graph) each page publishes. |
+| Pasted links | One-off items | Paste up to 20 product links. Prices are re-checked automatically. |
+
+**What runs by itself:** new items go live, price, was-price and stock changes update live items, items that disappear from a
+feed (or go out of stock) are hidden, and anything not refreshed within the source's "stale" window is hidden so an old price
+never stays on sale. A price move bigger than the source's limit (40% by default), or an implausible price, waits in **Import
+review** instead.
+
+**Rules the importer follows, and will not break:**
+- A source cannot be switched on until you confirm you have checked the shop's terms or hold a licence for the feed.
+- It identifies itself as `ShopCatalogBot` with a page shops can read (`/bot`), obeys `robots.txt` and any `Crawl-delay`, and waits
+  at least two seconds between page requests.
+- It never reaches private or internal addresses, and feed addresses (which often carry keys) are stored encrypted.
+- When a shop answers 401, 403, 429 or shows a verification page, it **stops**, pauses that source for 24 hours and tells you.
+  It does not retry with another identity, rotate addresses or try to get past CAPTCHAs or blocks. Use the shop's official feed or add
+  items by hand for shops that refuse automated reading.
+- Only prices in pounds are accepted. Images are linked from the source, so confirm your licence covers that.
+
+The scheduler runs inside the server every ten minutes. To run it from your own scheduler instead, set `INGEST_AUTORUN=false` and call
+`/api/cron/ingest`. On the **Request an item by link** page, a shopper's pasted link is looked up the same way (obeying robots.txt)
+to fill in the name and price, or to point them at the item if it is already listed.
 
 ## Configuration
 
@@ -62,16 +97,19 @@ can be set as environment variables or in **Admin > Integrations**.
 | Flutterwave webhook | `{APP_URL}/api/webhooks/flutterwave` |
 | Retry queued messages | `GET {APP_URL}/api/cron/messages` every few minutes |
 | Sync market exchange rate | `GET {APP_URL}/api/cron/fx` hourly or daily |
+| Run due catalogue sources | `GET {APP_URL}/api/cron/ingest` (only if `INGEST_AUTORUN=false`) |
 
-Send `Authorization: Bearer $CRON_SECRET` to the two cron endpoints. Each integration card in the admin
+Send `Authorization: Bearer $CRON_SECRET` to the cron endpoints. Each integration card in the admin
 shows the exact webhook URL and the events to enable.
 
 ## Before you go live
 
 - **The provider integrations are covered by unit tests with mocked responses only.** Test each one in the
   provider's sandbox with the admin "Test" button and a real payment before taking live orders.
-- Check each UK retailer's terms before listing it, and do not bypass bot protection. Add products by hand,
-  from an affiliate or product feed you are licensed to use, or from orders customers request by link.
+- Check each UK retailer's terms before pointing a source at it, and do not bypass bot protection. Major retailers generally forbid
+  scraping and block it; use their affiliate or product feeds, or add items by hand.
+- Automatic publishing means a bad feed can put a wrong price on the site. Keep the price-move limit on, and look at the Import review
+  queue and each source's run history now and then.
 - Phone and email are not verified at sign-up. Add OTP verification before relying on them for security.
 - Rate limits are in memory and per instance; use a shared store if you run several instances.
 - Get legal and tax advice on customs duty, VAT, consumer terms and any payment licensing that applies to you.

@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/bricolage-grotesque/wdth.css";
-import "@fontsource-variable/instrument-sans";
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/500.css";
-import "@fontsource/ibm-plex-mono/600.css";
+import "@fontsource-variable/figtree";
 import "./globals.css";
 import { getSettings } from "@/lib/settings";
+import { themeVars } from "@/lib/themes";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { siteName } = getSettings();
@@ -18,8 +16,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" style={themeVars(getSettings().theme) as React.CSSProperties}>
+      <body>
+        <noscript><style>{".reveal{opacity:1!important;transform:none!important}.slide .stagger>*{opacity:1!important}"}</style></noscript>
+        {children}
+      </body>
     </html>
   );
 }

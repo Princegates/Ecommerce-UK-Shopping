@@ -2,6 +2,7 @@ import Link from "next/link";
 import { logoutAction } from "@/app/admin/actions";
 import { requireAdmin } from "@/lib/auth";
 import { newRequestCount } from "@/lib/admin";
+import { reviewCount } from "@/lib/ingest/store";
 import { getSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
@@ -9,15 +10,16 @@ export const dynamic = "force-dynamic";
 const NAV: { heading: string; items: [string, string][] }[] = [
   { heading: "Overview", items: [["/admin", "Dashboard"]] },
   { heading: "Sales", items: [["/admin/orders", "Orders"], ["/admin/customers", "Customers"], ["/admin/requests", "Link requests"]] },
-  { heading: "Catalogue", items: [["/admin/shops", "Shops"], ["/admin/items", "Items"], ["/admin/reviews", "Reviews"]] },
+  { heading: "Catalogue", items: [["/admin/shops", "Shops"], ["/admin/items", "Items"], ["/admin/sources", "Catalogue sources"], ["/admin/import", "Import review"], ["/admin/reviews", "Reviews"]] },
   { heading: "Pricing and delivery", items: [["/admin/pricing", "Pricing"], ["/admin/shipping", "Shipping"], ["/admin/zones", "Delivery areas"]] },
-  { heading: "System", items: [["/admin/integrations", "Integrations"], ["/admin/messages", "Messages"], ["/admin/audit", "Activity log"]] },
+  { heading: "System", items: [["/admin/appearance", "Appearance"], ["/admin/integrations", "Integrations"], ["/admin/messages", "Messages"], ["/admin/audit", "Activity log"]] },
 ];
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();
   const { siteName } = getSettings();
   const pending = newRequestCount();
+  const toReview = reviewCount();
   return (
     <div className="grid min-h-screen md:grid-cols-[14rem_1fr]">
       <aside className="bg-ink text-paper md:sticky md:top-0 md:h-screen md:overflow-y-auto">
@@ -33,6 +35,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
                 <Link key={href} href={href} className="whitespace-nowrap px-3 py-2 font-semibold hover:bg-gold hover:text-ink">
                   {label}
                   {href === "/admin/requests" && pending > 0 && <span className="tag tag-gold ml-2">{pending}</span>}
+                  {href === "/admin/import" && toReview > 0 && <span className="tag tag-gold ml-2">{toReview}</span>}
                 </Link>
               ))}
             </div>

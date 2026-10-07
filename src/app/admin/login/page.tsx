@@ -10,7 +10,7 @@ export default async function LoginPage() {
   return (
     <div className="mx-auto w-full max-w-md px-4 py-20">
       <p className="label">Staff only</p>
-      <h1 className="text-5xl">Admin sign in</h1>
+      <h1 className="text-3xl">Admin sign in</h1>
       {cfg ? (
         <LoginForm devHint={cfg.isDevDefault} />
       ) : (

@@ -24,7 +24,7 @@ export default function AccountNav() {
             key={href}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={`whitespace-nowrap border-2 px-4 py-2 font-semibold ${active ? "border-ink bg-ink text-paper" : "border-transparent hover:border-ink hover:bg-gold"}`}
+            className={`whitespace-nowrap border-2 px-4 py-2 font-semibold ${active ? "border-line bg-ink text-paper" : "border-transparent hover:border-line hover:bg-gold"}`}
           >
             {label}
           </Link>

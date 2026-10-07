@@ -201,6 +201,14 @@ export function actionQueue(agingDays = 5, d: Db = db()): QueueItem[] {
       ),
     },
     {
+      key: "importreview", label: "Imported items waiting for review", tone: "normal", href: "/admin/import", hint: "Odd prices, big price jumps or items you chose to approve by hand.",
+      count: one("SELECT COUNT(*) AS n FROM import_items WHERE status IN ('PENDING', 'HELD')"),
+    },
+    {
+      key: "sourceproblem", label: "Catalogue sources that stopped", tone: "urgent", href: "/admin/sources", hint: "A shop refused access or a feed failed. Open the source to see why.",
+      count: one("SELECT COUNT(*) AS n FROM catalog_sources WHERE enabled = 1 AND last_status IN ('BLOCKED', 'ERROR')"),
+    },
+    {
       key: "failedmsg", label: "Messages that could not be sent", tone: "normal", href: "/admin/messages?status=FAILED", hint: "Check the provider keys, then retry.",
       count: one("SELECT COUNT(*) AS n FROM messages WHERE status = 'FAILED'"),
     },

@@ -25,7 +25,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   return (
     <>
       <p className="label">Your account</p>
-      <h1 className="text-5xl">Your orders</h1>
+      <h1 className="text-3xl">Your orders</h1>
       {sp.error && <p role="alert" className="box mt-4 border-red bg-red/10 p-3 font-semibold text-red">{sp.error}</p>}
       <nav aria-label="Filter orders" className="mt-6 flex flex-wrap gap-2">
         {FILTERS.map(([k, label]) => (

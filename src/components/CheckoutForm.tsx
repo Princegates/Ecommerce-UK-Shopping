@@ -6,7 +6,7 @@ import { placeOrderAction, type CheckoutState } from "@/app/actions/checkout";
 import Breakdown from "@/components/Breakdown";
 import { computeQuote, DeliverySelectors, type QuoteConfig } from "@/components/quote-client";
 import { ghs } from "@/lib/money";
-import type { PriceableItem } from "@/lib/pricing";
+import { ghsToGbpMinor, type PriceableItem } from "@/lib/pricing";
 
 type Summary = { itemId: string; name: string; shop: string; options: string; quantity: number; lineGhsMinor: number };
 type Addr = { id: number; label: string; recipient: string; phone: string; zoneId: number | null; address: string; landmark: string; isDefault: boolean };
@@ -146,7 +146,7 @@ export default function CheckoutForm({
             ))}
           </ul>
           <hr />
-          {quote ? <Breakdown b={quote} /> : <p>Choose a delivery area and shipping method.</p>}
+          {quote ? <Breakdown b={quote} approxGbpMinor={ghsToGbpMinor(quote.totalMinor, cfg.fx)} /> : <p>Choose a delivery area and shipping method.</p>}
           <hr />
           <p className="text-xs text-ink-soft">
             Import duty charged by customs, if any, is not included. You pay us in cedis; we buy the items from the UK shops for you.

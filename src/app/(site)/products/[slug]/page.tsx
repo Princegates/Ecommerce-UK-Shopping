@@ -2,17 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import BuyBox from "@/components/BuyBox";
+import Price from "@/components/Price";
 import ProductArt from "@/components/ProductArt";
+import Countdown from "@/components/shop/Countdown";
 import RecentlyViewed, { TrackView } from "@/components/shop/RecentlyViewed";
 import ProductShelf from "@/components/shop/ProductShelf";
 import Reviews from "@/components/shop/Reviews";
 import Stars from "@/components/shop/Stars";
 import WishlistButton from "@/components/shop/WishlistButton";
 import { MAX_ITEM_QUANTITY } from "@/lib/cart";
-import { getProduct, isDealLive, relatedProducts } from "@/lib/catalog";
+import { dealPercent, getProduct, isDealLive, relatedProducts } from "@/lib/catalog";
+import { landedMinor } from "@/lib/landed";
+import { gbp, ghs } from "@/lib/money";
 import { appUrl } from "@/lib/app-url";
 import { getSettings, getShippingMethods, getZones } from "@/lib/settings";
-import { gbpToGhsMinor } from "@/lib/pricing";
+import { gbpToGhsMinor, ghsToGbpMinor } from "@/lib/pricing";
 import { getShopper } from "@/lib/shopper";
 
 export const dynamic = "force-dynamic";
@@ -68,88 +72,97 @@ export default async function ProductPage({ params }: Props) {
     ...(product.reviewCount > 0 && product.ratingAvg ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.ratingAvg, reviewCount: product.reviewCount } } : {}),
   };
 
+  const was = deal ? product.compareAtMinor : null;
+  const saveGbp = was ? was - product.priceMinor : 0;
+  const door = shopper.ctx ? landedMinor(product, shopper.ctx) : null;
+
   return (
     <>
       <TrackView productId={product.id} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <nav aria-label="Breadcrumb" className="label">
-          <Link href="/" className="hover:underline">Home</Link> / <Link href="/shops" className="hover:underline">Shops</Link> /{" "}
-          <Link href={`/shops/${product.shopSlug}`} className="hover:underline">{product.shopName}</Link>
+      <div className="mx-auto max-w-[90rem] px-3 py-4 md:px-4">
+        <nav aria-label="Breadcrumb" className="text-xs text-ink-soft">
+          <Link href="/" className="hover:text-link-hover hover:underline">Home</Link> › <Link href="/shops" className="hover:text-link-hover hover:underline">Shops</Link> ›{" "}
+          <Link href={`/shops/${product.shopSlug}`} className="hover:text-link-hover hover:underline">{product.shopName}</Link>
         </nav>
 
-        <div className="mt-6 grid gap-10 lg:grid-cols-[1.1fr_1fr]">
-          <div>
-            <div className="box box-shadow relative overflow-hidden">
+        <div className="mt-3 grid gap-5 rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(15,17,17,0.12)] md:p-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)_21rem]">
+          <div className="lg:sticky lg:top-36 lg:self-start">
+            <div className="relative overflow-hidden rounded-lg border border-line">
               <ProductArt name={product.name} accent={product.shopAccent} imageUrl={product.imageUrl} />
-              {deal && <span className="badge badge-deal left-3 top-3 !text-sm">Deal</span>}
-              <div className="flex flex-wrap items-center justify-between gap-3 p-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="tag tag-gold">{product.category || "Item"}</span>
-                  <Link href={`/shops/${product.shopSlug}`} className="link font-semibold">More from {product.shopName}</Link>
-                </div>
-                <div className="flex items-center gap-2">
-                  <WishlistButton productId={product.id} saved={shopper.saved.has(product.id)} />
-                  {share && <a href={share} target="_blank" rel="noopener noreferrer" className="btn btn-small">Share on WhatsApp</a>}
-                </div>
+              {deal && <span className="badge badge-deal left-3 top-3 !text-sm">-{dealPercent(product)}% deal</span>}
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <span className="tag">{product.category || "Item"}</span>
+              <div className="flex items-center gap-2">
+                <WishlistButton productId={product.id} saved={shopper.saved.has(product.id)} />
+                {share && <a href={share} target="_blank" rel="noopener noreferrer" className="btn btn-small">Share on WhatsApp</a>}
               </div>
             </div>
+          </div>
 
-            <ul className="mt-6 grid gap-3 sm:grid-cols-3" aria-label="Why buy here">
+          <div className="min-w-0">
+            <Link href={`/shops/${product.shopSlug}`} className="link text-sm">Visit the {product.shopName} shop ›</Link>
+            <h1 className="mt-1 text-2xl font-medium leading-snug">{product.name}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              {product.brand && <p className="text-ink-soft">Brand: <span className="text-link">{product.brand}</span></p>}
+              {product.reviewCount > 0 ? (
+                <a href="#reviews" className="hover:underline"><Stars value={product.ratingAvg} count={product.reviewCount} /></a>
+              ) : (
+                <a href="#reviews" className="link">No reviews yet</a>
+              )}
+            </div>
+            <hr className="my-3 border-line" />
+            {saveGbp > 0 && <p className="mb-1 text-sm font-bold text-red">Limited-time deal{product.dealEndsAt && <> · ends in <Countdown endsAt={product.dealEndsAt} /></>}</p>}
+            <Price gbpMinor={product.priceMinor} wasGbpMinor={was} fx={fx} size="lg" />
+            {saveGbp > 0 && (
+              <p className="mt-2 inline-block rounded bg-spark px-2 py-0.5 text-sm font-bold">You save {gbp(saveGbp)} · {ghs(gbpToGhsMinor(saveGbp, fx))}</p>
+            )}
+            <p className="mt-2 text-xs text-ink-soft">The price above is for the item only, at today&rsquo;s rate. Service charge, shipping and delivery are shown on the right before you pay.</p>
+            {door !== null && shopper.ctx && (
+              <p className="mt-3 text-sm">
+                <span className="font-bold text-green">{ghs(door)} (about {gbp(ghsToGbpMinor(door, fx))}) delivered to {shopper.ctx.zoneName}</span>
+                <span className="text-ink-soft"> by {shopper.ctx.methodName.toLowerCase()}{methods[0]?.eta ? `, ${methods[0].eta}` : ""}. Change your area at the top of the page.</span>
+              </p>
+            )}
+
+            <ul className="mt-4 grid gap-2 sm:grid-cols-3" aria-label="Why buy here">
               {TRUST.map(([t, b]) => (
-                <li key={t} className="box p-3"><p className="text-sm font-bold">{t}</p><p className="mt-0.5 text-xs text-ink-soft">{b}</p></li>
+                <li key={t} className="rounded-lg border border-line p-3"><p className="text-sm font-bold">{t}</p><p className="mt-0.5 text-xs text-ink-soft">{b}</p></li>
               ))}
             </ul>
 
-            <section className="mt-10">
-              <h2 className="text-2xl">About this item</h2>
-              <p className="mt-3 max-w-2xl text-lg">{product.description || "No description yet."}</p>
-              <dl className="mt-6 max-w-2xl border-t-2 border-ink">
-                {details.map(([k, v]) => (
-                  <div key={k} className="grid grid-cols-[8rem_1fr] gap-4 border-b border-ink/30 py-3">
-                    <dt className="label self-center">{k}</dt>
-                    <dd>{v}</dd>
-                  </div>
-                ))}
-              </dl>
+            <section className="mt-5">
+              <h2 className="text-lg font-bold">About this item</h2>
+              <p className="mt-2 max-w-2xl">{product.description || "No description yet."}</p>
+              <table className="mt-4 w-full max-w-2xl text-sm">
+                <tbody>
+                  {details.map(([k, v]) => (
+                    <tr key={k} className="border-t border-line first:border-0">
+                      <th scope="row" className="w-36 py-2 pr-3 text-left font-bold">{k}</th>
+                      <td className="py-2">{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
               {product.sourceUrl && (
-                <p className="mt-4 text-sm">
-                  <a href={product.sourceUrl} target="_blank" rel="noopener noreferrer" className="link">See this item on the shop&rsquo;s own website ↗</a>
+                <p className="mt-3 text-sm">
+                  <a href={product.sourceUrl} target="_blank" rel="noopener noreferrer nofollow" className="link">See this item on the shop&rsquo;s own website ↗</a>
                 </p>
               )}
             </section>
           </div>
 
-          <div className="lg:sticky lg:top-44 lg:self-start">
-            <p className="label">{product.shopName}</p>
-            <h1 className="mt-1 text-[clamp(2rem,4.5vw,3.2rem)]">{product.name}</h1>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-              {product.brand && <p className="text-ink-soft">by {product.brand}</p>}
-              {product.reviewCount > 0 ? (
-                <a href="#reviews" className="hover:underline"><Stars value={product.ratingAvg} count={product.reviewCount} /></a>
-              ) : (
-                <a href="#reviews" className="link text-sm">No reviews yet</a>
-              )}
-            </div>
-            {shopper.ctx && (
-              <p className="mt-3 text-sm">
-                <span className="font-bold">Delivered to {shopper.ctx.zoneName}</span>
-                <span className="text-ink-soft"> by {shopper.ctx.methodName.toLowerCase()}{methods[0]?.eta ? `, ${methods[0].eta}` : ""}. Change your area at the top of the page.</span>
-              </p>
-            )}
-            <div className="mt-6">
-              <BuyBox
-                product={{ id: product.id, name: product.name, priceMinor: product.priceMinor, weightGrams: product.weightGrams, options: product.options }}
-                cfg={cfg}
-                maxQty={MAX_ITEM_QUANTITY}
-                compareAtMinor={deal ? product.compareAtMinor : null}
-                dealEndsAt={deal ? product.dealEndsAt : null}
-              />
-            </div>
+          <div className="lg:sticky lg:top-36 lg:self-start">
+            <BuyBox
+              product={{ id: product.id, name: product.name, priceMinor: product.priceMinor, weightGrams: product.weightGrams, options: product.options }}
+              cfg={cfg}
+              maxQty={MAX_ITEM_QUANTITY}
+            />
           </div>
         </div>
 
-        <div className="mt-16"><Reviews productId={product.id} slug={product.slug} customer={shopper.customer} /></div>
+        <div className="mt-4 rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(15,17,17,0.12)] md:p-6"><Reviews productId={product.id} slug={product.slug} customer={shopper.customer} /></div>
       </div>
 
       <ProductShelf id="related" title={`More from ${product.shopName}`} products={related} shopper={shopper} href={`/shops/${product.shopSlug}`} linkLabel="Visit the shop" />

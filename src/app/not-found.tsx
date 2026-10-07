@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <main className="mx-auto grid min-h-[70vh] max-w-2xl place-content-center px-4 py-20 text-center">
       <p className="label">Error 404</p>
-      <h1 className="mt-2 text-6xl">Nothing here</h1>
+      <h1 className="mt-2 text-2xl">Nothing here</h1>
       <p className="mx-auto mt-4 max-w-md text-ink-soft">
         That page does not exist, or the item is no longer listed on {siteName}.
       </p>

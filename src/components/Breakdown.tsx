@@ -8,12 +8,15 @@ export default function Breakdown({
   shippingLabel = "Shipping to Ghana",
   deliveryLabel = "Delivery in Ghana",
   showGbp = true,
+  approxGbpMinor,
 }: {
   b: Pick<PriceBreakdown, "itemsGbpMinor" | "itemsGhsMinor" | "serviceFeeMinor" | "shippingMinor" | "deliveryMinor" | "totalMinor">;
   serviceLabel?: string;
   shippingLabel?: string;
   deliveryLabel?: string;
   showGbp?: boolean;
+  /** The total in pounds at the same rate, shown under the cedi total. */
+  approxGbpMinor?: number;
 }) {
   return (
     <dl>
@@ -38,6 +41,12 @@ export default function Breakdown({
         <dt>Total to pay</dt>
         <dd className="num">{ghs(b.totalMinor)}</dd>
       </div>
+      {approxGbpMinor !== undefined && (
+        <div className="row !pt-0">
+          <dt />
+          <dd className="num text-sm text-ink-soft">about {gbp(approxGbpMinor)}</dd>
+        </div>
+      )}
     </dl>
   );
 }

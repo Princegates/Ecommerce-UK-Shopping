@@ -14,7 +14,7 @@ export default async function WishlistPage() {
   return (
     <>
       <p className="label">Your account</p>
-      <h1 className="text-5xl">Saved items</h1>
+      <h1 className="text-3xl">Saved items</h1>
       {items.length === 0 ? (
         <div className="box mt-6 p-6">
           <p className="font-semibold">Nothing saved yet.</p>

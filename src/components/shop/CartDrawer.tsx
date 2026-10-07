@@ -60,7 +60,7 @@ export default function CartDrawer() {
     <>
       <div className="drawer-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
       <aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-h">
-        <header className="flex items-center justify-between gap-3 border-b-2 border-ink p-4">
+        <header className="flex items-center justify-between gap-3 border-b border-line p-4">
           <h2 id="drawer-h" className="text-2xl">Your cart{data ? ` (${data.count})` : ""}</h2>
           <button ref={closeRef} className="icon-btn" onClick={() => setOpen(false)} aria-label="Close cart">✕</button>
         </header>
@@ -78,13 +78,13 @@ export default function CartDrawer() {
                   ) : (
                     <p className="font-semibold text-green">You have reached the minimum order. You are good to check out.</p>
                   )}
-                  <div className="mt-2 h-2.5 border border-ink bg-paper-2" aria-hidden="true"><div className="h-full bg-green" style={{ width: `${progress}%` }} /></div>
+                  <div className="mt-2 h-2.5 border border-line bg-paper-2" aria-hidden="true"><div className="h-full bg-green" style={{ width: `${progress}%` }} /></div>
                 </div>
               )}
               <ul className="grid gap-3">
                 {data.items.map((i) => (
-                  <li key={i.id} className="grid grid-cols-[4rem_1fr_auto] items-center gap-3 border-b border-ink/25 pb-3">
-                    <div className="grid h-16 w-16 place-items-center border-2 border-ink text-xl font-bold text-white" style={{ background: i.accent }} aria-hidden="true">
+                  <li key={i.id} className="grid grid-cols-[4rem_1fr_auto] items-center gap-3 border-b border-line pb-3">
+                    <div className="grid h-16 w-16 place-items-center border border-line text-xl font-bold text-white" style={{ background: i.accent }} aria-hidden="true">
                       {i.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={i.imageUrl} alt="" className="h-full w-full object-cover" />
@@ -104,7 +104,7 @@ export default function CartDrawer() {
         </div>
 
         {data && data.items.length > 0 && (
-          <footer className="grid gap-3 border-t-2 border-ink bg-paper-3 p-4">
+          <footer className="grid gap-3 border-t border-line bg-paper-3 p-4">
             <p className="flex items-baseline justify-between"><span className="font-semibold">Items subtotal</span><span className="num display text-2xl">{ghs(data.itemsGhsMinor)}</span></p>
             <p className="hint">Service charge, shipping and delivery are added at the next step.</p>
             <div className="grid grid-cols-2 gap-3">

@@ -162,7 +162,7 @@ export default async function AdminOrder({
             <h2 className="text-2xl">History</h2>
             <ol className="mt-3 grid gap-2">
               {events.map((e, i) => (
-                <li key={i} className="border-l-4 border-ink pl-3">
+                <li key={i} className="border-l border-line pl-3">
                   <span className="font-semibold">{isOrderStatus(e.status) ? STATUS_LABEL[e.status] : e.status}</span>
                   <span className="label ml-3 num">{e.createdAt} UTC</span>
                   {e.note && <p className="text-sm text-ink-soft">{e.note}</p>}
@@ -223,7 +223,7 @@ export default async function AdminOrder({
             ) : (
               <ul className="mt-3 grid gap-2 text-sm">
                 {attempts.map((a) => (
-                  <li key={a.id} className="border-l-4 border-ink pl-3">
+                  <li key={a.id} className="border-l border-line pl-3">
                     <span className="font-semibold">{a.provider}</span> · {a.currency} {(a.amountMinor / 100).toFixed(2)} ·{" "}
                     <span className={`tag ${a.status === "SUCCEEDED" ? "tag-green" : a.status === "MISMATCH" || a.status === "FAILED" ? "tag-red" : ""}`}>{a.status.toLowerCase()}</span>
                     <span className="label block num">{a.createdAt} UTC</span>

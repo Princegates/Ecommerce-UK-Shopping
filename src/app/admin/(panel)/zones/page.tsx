@@ -39,12 +39,12 @@ export default async function ZonesPage({ searchParams }: { searchParams: Promis
               <span>{z.name} {!z.active && <span className="tag ml-2">Hidden</span>}</span>
               <span className="num mono text-base font-medium">GH₵{minorToInput(z.feeMinor)}</span>
             </summary>
-            <div className="border-t-2 border-ink p-5"><ZoneForm z={z} /></div>
+            <div className="border-t border-line p-5"><ZoneForm z={z} /></div>
           </details>
         ))}
         <details className="box box-shadow">
           <summary className="cursor-pointer p-4 text-xl font-bold">+ Add a delivery area</summary>
-          <div className="border-t-2 border-ink p-5"><ZoneForm /></div>
+          <div className="border-t border-line p-5"><ZoneForm /></div>
         </details>
       </div>
     </>

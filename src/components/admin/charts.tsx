@@ -70,7 +70,7 @@ export function RankBars({ rows, format }: { rows: { name: string; value: number
             <span className="min-w-0 truncate font-semibold">{r.name}</span>
             <span className="num whitespace-nowrap">{format(r.value)}</span>
           </div>
-          <div className="mt-1 h-2.5 border border-ink/40 bg-paper-2" aria-hidden="true">
+          <div className="mt-1 h-2.5 border border-line bg-paper-2" aria-hidden="true">
             <div className="h-full bg-green" style={{ width: `${Math.max(2, (r.value / max) * 100)}%` }} />
           </div>
           {r.sub && <p className="label mt-0.5">{r.sub}</p>}
@@ -99,7 +99,7 @@ export function Composition({ parts }: { parts: { label: string; value: number; 
   if (total === 0) return <p className="text-sm text-ink-soft">No paid orders in this period.</p>;
   return (
     <div>
-      <div className="flex h-8 border-2 border-ink" role="img" aria-label={parts.map((p) => `${p.label} ${((p.value / total) * 100).toFixed(0)}%`).join(", ")}>
+      <div className="flex h-8 border border-line" role="img" aria-label={parts.map((p) => `${p.label} ${((p.value / total) * 100).toFixed(0)}%`).join(", ")}>
         {parts.map((p) => (
           <div key={p.label} style={{ width: `${(p.value / total) * 100}%`, background: p.color }} title={`${p.label}: ${ghs(p.value)}`} />
         ))}
@@ -107,7 +107,7 @@ export function Composition({ parts }: { parts: { label: string; value: number; 
       <ul className="mt-3 grid gap-1.5 text-sm sm:grid-cols-2">
         {parts.map((p) => (
           <li key={p.label} className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-2"><span className="h-3 w-3 border border-ink" style={{ background: p.color }} aria-hidden="true" />{p.label}</span>
+            <span className="flex items-center gap-2"><span className="h-3 w-3 border border-line" style={{ background: p.color }} aria-hidden="true" />{p.label}</span>
             <span className="num">{ghs(p.value)} <span className="label">{((p.value / total) * 100).toFixed(0)}%</span></span>
           </li>
         ))}

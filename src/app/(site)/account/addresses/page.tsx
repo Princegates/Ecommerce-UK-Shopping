@@ -16,7 +16,7 @@ export default async function AddressesPage() {
   return (
     <>
       <p className="label">Your account</p>
-      <h1 className="text-5xl">Delivery addresses</h1>
+      <h1 className="text-3xl">Delivery addresses</h1>
       <p className="mt-2 max-w-xl text-ink-soft">Save the places you get orders delivered and pick one at checkout.</p>
 
       <ul className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -41,7 +41,7 @@ export default async function AddressesPage() {
                 <button className="link text-sm text-red">Delete</button>
               </form>
             </div>
-            <details className="mt-2 border-t-2 border-dashed border-ink/30 pt-3">
+            <details className="mt-2 border-t-2 border-solid border-line pt-3">
               <summary className="cursor-pointer font-semibold">Edit</summary>
               <div className="mt-3"><AddressForm address={a} zones={zones} /></div>
             </details>

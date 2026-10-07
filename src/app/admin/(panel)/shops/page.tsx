@@ -41,17 +41,17 @@ export default async function ShopsAdmin({ searchParams }: { searchParams: Promi
           <details key={s.id} className="box box-shadow">
             <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 p-4 text-xl font-bold">
               <span className="flex items-center gap-3">
-                <span className="h-5 w-5 border-2 border-ink" style={{ background: s.accent }} aria-hidden="true" />
+                <span className="h-5 w-5 border border-line" style={{ background: s.accent }} aria-hidden="true" />
                 {s.name} {!s.active && <span className="tag">Hidden</span>}
               </span>
               <span className="label">{s.productCount} items</span>
             </summary>
-            <div className="border-t-2 border-ink p-5"><ShopForm s={s} /></div>
+            <div className="border-t border-line p-5"><ShopForm s={s} /></div>
           </details>
         ))}
         <details className="box box-shadow">
           <summary className="cursor-pointer p-4 text-xl font-bold">+ Add a shop</summary>
-          <div className="border-t-2 border-ink p-5"><ShopForm /></div>
+          <div className="border-t border-line p-5"><ShopForm /></div>
         </details>
       </div>
     </>

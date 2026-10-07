@@ -299,4 +299,74 @@ CREATE TABLE IF NOT EXISTS order_tracking (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS order_tracking_order_idx ON order_tracking (order_id);
+
+-- Catalogue ingestion. A source is one place we are allowed to read a shop's products from.
+CREATE TABLE IF NOT EXISTS catalog_sources (
+  id                  INTEGER PRIMARY KEY,
+  shop_id             INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+  name                TEXT NOT NULL,
+  kind                TEXT NOT NULL CHECK (kind IN ('feed_csv', 'feed_json', 'sitemap', 'links')),
+  url                 TEXT NOT NULL DEFAULT '',
+  field_map           TEXT NOT NULL DEFAULT '{}',
+  terms_url           TEXT NOT NULL DEFAULT '',
+  terms_note          TEXT NOT NULL DEFAULT '',
+  terms_confirmed_at  TEXT,
+  enabled             INTEGER NOT NULL DEFAULT 0,
+  auto_publish_new    INTEGER NOT NULL DEFAULT 1,
+  auto_apply_updates  INTEGER NOT NULL DEFAULT 1,
+  max_price_change_pct INTEGER NOT NULL DEFAULT 40,
+  max_items           INTEGER NOT NULL DEFAULT 50,
+  delay_ms            INTEGER NOT NULL DEFAULT 3000,
+  interval_hours      INTEGER NOT NULL DEFAULT 24,
+  stale_days          INTEGER NOT NULL DEFAULT 14,
+  default_category    TEXT NOT NULL DEFAULT '',
+  default_weight_grams INTEGER NOT NULL DEFAULT 500,
+  last_run_at         TEXT,
+  last_status         TEXT NOT NULL DEFAULT '',
+  last_message        TEXT NOT NULL DEFAULT '',
+  paused_until        TEXT,
+  running_since       TEXT,
+  created_at          TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Everything we read, held here until a person (or an explicit rule) publishes it.
+CREATE TABLE IF NOT EXISTS import_items (
+  id             INTEGER PRIMARY KEY,
+  source_id      INTEGER NOT NULL REFERENCES catalog_sources(id) ON DELETE CASCADE,
+  external_id    TEXT NOT NULL,
+  product_url    TEXT NOT NULL DEFAULT '',
+  name           TEXT NOT NULL,
+  brand          TEXT NOT NULL DEFAULT '',
+  category       TEXT NOT NULL DEFAULT '',
+  description    TEXT NOT NULL DEFAULT '',
+  price_minor    INTEGER NOT NULL,
+  compare_at_minor INTEGER,
+  image_url      TEXT NOT NULL DEFAULT '',
+  in_stock       INTEGER NOT NULL DEFAULT 1,
+  weight_grams   INTEGER,
+  fingerprint    TEXT NOT NULL DEFAULT '',
+  status         TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PUBLISHED', 'HELD', 'REJECTED')),
+  hold_reason    TEXT NOT NULL DEFAULT '',
+  product_id     INTEGER REFERENCES products(id) ON DELETE SET NULL,
+  first_seen_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  last_seen_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (source_id, external_id)
+);
+CREATE INDEX IF NOT EXISTS import_items_status_idx ON import_items (status);
+
+CREATE TABLE IF NOT EXISTS import_runs (
+  id          INTEGER PRIMARY KEY,
+  source_id   INTEGER NOT NULL REFERENCES catalog_sources(id) ON DELETE CASCADE,
+  started_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  finished_at TEXT,
+  status      TEXT NOT NULL DEFAULT 'RUNNING',
+  fetched     INTEGER NOT NULL DEFAULT 0,
+  created     INTEGER NOT NULL DEFAULT 0,
+  updated     INTEGER NOT NULL DEFAULT 0,
+  held        INTEGER NOT NULL DEFAULT 0,
+  skipped     INTEGER NOT NULL DEFAULT 0,
+  removed     INTEGER NOT NULL DEFAULT 0,
+  message     TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS import_runs_source_idx ON import_runs (source_id);
 `;

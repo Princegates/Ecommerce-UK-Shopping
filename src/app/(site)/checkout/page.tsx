@@ -27,7 +27,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
   if (methods.length === 0 || zones.length === 0) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-20">
-        <h1 className="text-4xl">Checkout is unavailable</h1>
+        <h1 className="text-2xl">Checkout is unavailable</h1>
         <p className="mt-3">Delivery options are not set up yet. Please try again soon.</p>
       </div>
     );
@@ -63,7 +63,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       <p className="label">Step 2 of 3</p>
-      <h1 className="text-5xl">Checkout</h1>
+      <h1 className="text-3xl">Checkout</h1>
       <p className="mt-2 text-ink-soft">
         <Link href="/cart" className="link">← Back to cart</Link>
       </p>

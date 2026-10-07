@@ -49,12 +49,12 @@ export default async function ShippingPage({ searchParams }: { searchParams: Pro
             <summary className="cursor-pointer p-4 text-xl font-bold">
               {m.name} {!m.active && <span className="tag ml-2">Hidden</span>}
             </summary>
-            <div className="border-t-2 border-ink p-5"><MethodForm m={m} /></div>
+            <div className="border-t border-line p-5"><MethodForm m={m} /></div>
           </details>
         ))}
         <details className="box box-shadow">
           <summary className="cursor-pointer p-4 text-xl font-bold">+ Add a shipping method</summary>
-          <div className="border-t-2 border-ink p-5"><MethodForm /></div>
+          <div className="border-t border-line p-5"><MethodForm /></div>
         </details>
       </div>
     </>

@@ -1,6 +1,7 @@
 import type Database from "better-sqlite3";
 import { z } from "zod";
 import { db } from "./db";
+import { THEMES } from "./themes";
 import type { FxConfig, RateCard, ServiceFeeRule } from "./pricing";
 
 type Db = Database.Database;
@@ -32,6 +33,7 @@ export type Settings = {
   serviceFee: ServiceFeeRule;
   minOrderGbpMinor: number;
   supportWhatsapp: string;
+  theme: string;
 };
 
 const DEFAULTS = {
@@ -41,6 +43,7 @@ const DEFAULTS = {
   service_fee: { mode: "percent", percent: 10, minMinor: 0 } as ServiceFeeRule,
   min_order_gbp_minor: 0,
   support_whatsapp: "",
+  theme: "ghana",
 };
 
 function readRaw(d: Db): Record<string, unknown> {
@@ -70,6 +73,7 @@ export function getSettings(d: Db = db()): Settings {
     serviceFee: fee.success ? fee.data : DEFAULTS.service_fee,
     minOrderGbpMinor: minor.catch(DEFAULTS.min_order_gbp_minor).parse(raw.min_order_gbp_minor),
     supportWhatsapp: z.string().catch("").parse(raw.support_whatsapp),
+    theme: typeof raw.theme === "string" && THEMES.some((x) => x.id === raw.theme) ? raw.theme : DEFAULTS.theme,
   };
 }
 

@@ -15,7 +15,7 @@ export default async function ShopsPage({ searchParams }: { searchParams: Promis
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       <p className="label">Directory</p>
-      <h1 className="text-5xl">UK shops</h1>
+      <h1 className="text-3xl">UK shops</h1>
       <p className="mt-3 max-w-2xl text-ink-soft">
         Every shop below is one we can buy from. Open a shop, add items to your cart, and pay us once in cedis.
       </p>

@@ -18,8 +18,15 @@ export function encryptionPassphrase(env: NodeJS.ProcessEnv = process.env): stri
   return null;
 }
 
+const keyCache = new Map<string, Buffer>();
 function key(passphrase: string): Buffer {
-  return scryptSync(passphrase, SALT, 32);
+  let k = keyCache.get(passphrase);
+  if (!k) {
+    k = scryptSync(passphrase, SALT, 32);
+    if (keyCache.size > 8) keyCache.clear();
+    keyCache.set(passphrase, k);
+  }
+  return k;
 }
 
 export function encrypt(plain: string, passphrase: string): string {

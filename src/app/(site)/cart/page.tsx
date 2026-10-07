@@ -24,7 +24,7 @@ export default async function CartPage() {
       <>
       <div className="mx-auto max-w-3xl px-4 pt-20 text-center">
         <p className="label">Your cart</p>
-        <h1 className="mt-2 text-5xl">It&rsquo;s empty</h1>
+        <h1 className="mt-2 text-3xl">It&rsquo;s empty</h1>
         <p className="mx-auto mt-4 max-w-md text-ink-soft">
           Pick something from one of the UK shops and it will show up here with the full price to your door.
         </p>
@@ -70,77 +70,84 @@ export default async function CartPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
-      <p className="label">Step 1 of 3</p>
-      <h1 className="text-5xl">Your cart</h1>
-
+    <div className="mx-auto max-w-[90rem] px-3 py-4 md:px-4">
       {minGbp > 0 && (
-        <div className="box mt-6 p-4" role="status">
-          <p className="font-bold">
+        <div className="mb-3 rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(15,17,17,0.12)]" role="status">
+          <p className={`text-sm font-bold ${reached ? "text-green" : ""}`}>
             {reached
-              ? "You have reached the minimum order. You can check out."
-              : `Add ${gbp(minGbp - itemsGbp)} more of items to check out.`}
+              ? "✓ You have reached the minimum order. You can check out."
+              : `Add ${gbp(minGbp - itemsGbp)} (about ${ghs(gbpToGhsMinor(minGbp - itemsGbp, settings.fx))}) more of items to check out.`}
           </p>
-          <div className="mt-2 h-3 border-2 border-ink bg-paper-3" aria-hidden>
-            <div className={`h-full ${reached ? "bg-green" : "bg-gold"}`} style={{ width: `${pct}%` }} />
+          <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-paper" aria-hidden>
+            <div className={`h-full rounded-full transition-all duration-700 ${reached ? "bg-green" : "bg-spark"}`} style={{ width: `${pct}%` }} />
           </div>
         </div>
       )}
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
-        <ul className="grid gap-4">
-          {lines.map((l) => {
-            const unit = gbpToGhsMinor(l.product.priceMinor, settings.fx);
-            const lineTotal = gbpToGhsMinor(l.product.priceMinor * l.quantity, settings.fx);
-            return (
-              <li key={l.itemId} className="box box-shadow grid grid-cols-[6.5rem_1fr] sm:grid-cols-[9rem_1fr]">
-                <div className="border-r-2 border-ink">
-                  <ProductArt name={l.product.name} accent={l.product.shopAccent} imageUrl={l.product.imageUrl} />
-                </div>
-                <div className="grid gap-3 p-4">
-                  <div>
-                    <p className="label">{l.product.shopName}</p>
-                    <Link href={`/products/${l.product.slug}`} className="display text-xl hover:underline">
-                      {l.product.name}
-                    </Link>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
+        <section className="rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(15,17,17,0.12)] md:p-6" aria-labelledby="cart-h">
+          <div className="flex items-baseline justify-between gap-3 border-b border-line pb-3">
+            <h1 id="cart-h" className="text-2xl font-medium">Shopping cart</h1>
+            <p className="hidden text-sm text-ink-soft sm:block">Price</p>
+          </div>
+          <ul>
+            {lines.map((l) => {
+              const unit = gbpToGhsMinor(l.product.priceMinor, settings.fx);
+              const lineGbp = l.product.priceMinor * l.quantity;
+              const lineTotal = gbpToGhsMinor(lineGbp, settings.fx);
+              return (
+                <li key={l.itemId} className="grid grid-cols-[6rem_1fr] gap-4 border-b border-line py-4 last:border-0 sm:grid-cols-[9rem_1fr_auto]">
+                  <Link href={`/products/${l.product.slug}`} className="block overflow-hidden rounded-lg border border-line">
+                    <ProductArt name={l.product.name} accent={l.product.shopAccent} imageUrl={l.product.imageUrl} />
+                  </Link>
+                  <div className="grid content-start gap-1.5">
+                    <Link href={`/products/${l.product.slug}`} className="text-base font-medium leading-snug hover:text-link-hover">{l.product.name}</Link>
+                    <p className="text-xs text-ink-soft">Sold by {l.product.shopName}</p>
+                    <p className="text-xs font-bold text-green">Available · we buy it from the UK shop for you</p>
                     {Object.keys(l.options).length > 0 && (
-                      <p className="mt-1 flex flex-wrap gap-1.5">
+                      <p className="flex flex-wrap gap-1.5 text-xs">
                         {Object.entries(l.options).map(([k, v]) => (
-                          <span key={k} className="tag">{k}: {v}</span>
+                          <span key={k}><span className="font-bold">{k}:</span> {v}</span>
                         ))}
                       </p>
                     )}
-                  </div>
-                  <div className="flex flex-wrap items-end justify-between gap-3">
-                    <form action={updateQuantityAction} className="inline-flex border-2 border-ink bg-paper-3">
-                      <input type="hidden" name="itemId" value={l.itemId} />
-                      <button name="quantity" value={l.quantity - 1} className="h-10 w-10 text-lg font-bold hover:bg-gold" aria-label={`Decrease quantity of ${l.product.name}`}>
-                        −
-                      </button>
-                      <output className="num grid h-10 w-12 place-items-center border-x-2 border-ink font-semibold">{l.quantity}</output>
-                      <button name="quantity" value={l.quantity + 1} className="h-10 w-10 text-lg font-bold hover:bg-gold" aria-label={`Increase quantity of ${l.product.name}`}>
-                        +
-                      </button>
-                    </form>
-                    <div className="text-right">
-                      <p className="num display text-xl">{ghs(lineTotal)}</p>
-                      {l.quantity > 1 && <p className="label num">{ghs(unit)} each</p>}
+                    <div className="mt-1 flex flex-wrap items-center gap-3">
+                      <form action={updateQuantityAction} className="inline-flex overflow-hidden rounded-full border border-[#888c8c] bg-paper-2">
+                        <input type="hidden" name="itemId" value={l.itemId} />
+                        <button name="quantity" value={l.quantity - 1} className="h-8 w-9 text-lg font-bold hover:bg-blue-soft" aria-label={`Decrease quantity of ${l.product.name}`}>
+                          −
+                        </button>
+                        <output className="num grid h-8 w-10 place-items-center border-x border-[#888c8c] bg-white text-sm font-bold">{l.quantity}</output>
+                        <button name="quantity" value={l.quantity + 1} className="h-8 w-9 text-lg font-bold hover:bg-blue-soft" aria-label={`Increase quantity of ${l.product.name}`}>
+                          +
+                        </button>
+                      </form>
+                      <span className="text-line" aria-hidden="true">|</span>
+                      <form action={removeItemAction}>
+                        <input type="hidden" name="itemId" value={l.itemId} />
+                        <button className="link text-xs">Delete</button>
+                      </form>
                     </div>
                   </div>
-                  <form action={removeItemAction}>
-                    <input type="hidden" name="itemId" value={l.itemId} />
-                    <button className="link text-sm text-red">Remove</button>
-                  </form>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                  <div className="col-span-2 text-right sm:col-span-1">
+                    <p className="num text-lg font-bold">{ghs(lineTotal)}</p>
+                    <p className="num text-sm text-ink-soft">{gbp(lineGbp)}</p>
+                    {l.quantity > 1 && <p className="num text-xs text-ink-soft">{ghs(unit)} each</p>}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="border-t border-line pt-3 text-right text-sm">
+            Items ({lines.reduce((n, l) => n + l.quantity, 0)}): <span className="num font-bold">{ghs(gbpToGhsMinor(itemsGbp, settings.fx))}</span>{" "}
+            <span className="num text-ink-soft">({gbp(itemsGbp)})</span>
+          </p>
+        </section>
 
         <CartSummary items={items} cfg={cfg} minOrderGbpMinor={settings.minOrderGbpMinor} />
       </div>
 
-      <div className="-mx-4">
+      <div className="-mx-3 md:-mx-4">
         <ProductShelf id="cart-picks" title="You might also like" products={picks} shopper={shopper} />
       </div>
     </div>

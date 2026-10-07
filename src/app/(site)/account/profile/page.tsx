@@ -11,7 +11,7 @@ export default async function ProfilePage() {
   return (
     <>
       <p className="label">Your account</p>
-      <h1 className="text-5xl">Profile</h1>
+      <h1 className="text-3xl">Profile</h1>
       <dl className="mt-4 flex flex-wrap gap-x-10 gap-y-2 text-sm">
         <div><dt className="label">Phone</dt><dd>{c.phone}</dd></div>
         <div><dt className="label">Email</dt><dd>{c.email ?? "Not added"}</dd></div>

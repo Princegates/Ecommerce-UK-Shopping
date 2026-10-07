@@ -66,17 +66,17 @@ export function DeliverySelectors({
       </div>
 
       <fieldset className="field">
-        <legend className="label mb-1 text-ink">Shipping to Ghana</legend>
+        <legend className="mb-1 text-sm font-bold">Shipping to Ghana</legend>
         <div className="grid gap-2">
           {cfg.methods.map((m) => (
-            <label key={m.code} className={`box flex cursor-pointer items-start gap-3 p-3 ${m.code === code ? "!bg-gold/40" : ""}`}>
+            <label key={m.code} className={`box flex cursor-pointer items-start gap-3 p-3 ${m.code === code ? "!border-blue !bg-blue-soft ring-1 ring-blue" : ""}`}>
               <input
                 type="radio"
                 name="ship"
                 value={m.code}
                 checked={m.code === code}
                 onChange={() => onCode(m.code)}
-                className="mt-1 h-4 w-4 accent-[var(--green)]"
+                className="mt-1 h-4 w-4 accent-[var(--blue)]"
               />
               <span>
                 <span className="block font-semibold">{m.name}</span>

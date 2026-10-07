@@ -5,7 +5,7 @@ import { goToCheckoutAction } from "@/app/actions/cart";
 import Breakdown from "@/components/Breakdown";
 import { computeQuote, DeliverySelectors, type QuoteConfig } from "@/components/quote-client";
 import { gbp } from "@/lib/money";
-import type { PriceableItem } from "@/lib/pricing";
+import { ghsToGbpMinor, type PriceableItem } from "@/lib/pricing";
 
 export default function CartSummary({
   items,
@@ -22,20 +22,20 @@ export default function CartSummary({
   const belowMin = quote ? quote.itemsGbpMinor < minOrderGbpMinor : false;
 
   return (
-    <form action={goToCheckoutAction} className="receipt grid gap-4 p-5 lg:sticky lg:top-44">
-      <h2 className="!text-2xl">Order summary</h2>
+    <form action={goToCheckoutAction} className="receipt grid content-start gap-4 p-5 lg:sticky lg:top-36 lg:self-start">
+      <h2 className="text-lg font-bold">Order summary</h2>
       <div className="font-sans">
         <DeliverySelectors cfg={cfg} zoneId={zoneId} code={code} onZone={setZoneId} onCode={setCode} idPrefix="cart" />
       </div>
       <hr className="!my-0" />
-      {quote ? <Breakdown b={quote} /> : <p>Delivery options are not available right now.</p>}
+      {quote ? <Breakdown b={quote} approxGbpMinor={ghsToGbpMinor(quote.totalMinor, cfg.fx)} /> : <p>Delivery options are not available right now.</p>}
       {belowMin && (
         <p className="error-text" role="alert">
           The minimum order is {gbp(minOrderGbpMinor)} of items. Add a little more to continue.
         </p>
       )}
-      <button className="btn btn-primary w-full !text-lg" disabled={!quote || belowMin}>
-        Continue to checkout
+      <button className="btn btn-gold w-full !min-h-11 !text-base" disabled={!quote || belowMin}>
+        Proceed to checkout
       </button>
       <p className="text-xs text-ink-soft">
         Import duty charged by customs, if any, is not included. You will confirm your address on the next step.

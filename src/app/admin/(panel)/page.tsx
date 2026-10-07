@@ -341,7 +341,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             {activity.length === 0 ? <p className="mt-3">Nothing recorded yet.</p> : (
               <ul className="mt-3 grid gap-2">
                 {activity.map((a) => (
-                  <li key={a.id} className="border-l-4 border-ink pl-3 text-sm">
+                  <li key={a.id} className="border-l border-line pl-3 text-sm">
                     <span className="font-semibold">{a.action}</span> · {a.target}{a.detail && <span className="text-ink-soft"> · {a.detail}</span>}
                     <span className="label num block">{a.at} UTC</span>
                   </li>

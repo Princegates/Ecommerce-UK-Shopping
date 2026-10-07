@@ -145,7 +145,7 @@ export default async function IntegrationsPage({
               <button className="btn btn-small w-fit">Save</button>
             </form>
             {flash.saved === "channel-rates" && <p role="status" className="text-sm font-semibold">Saved.</p>}
-            <div className="border-t-2 border-dashed border-ink/30 pt-4">
+            <div className="border-t-2 border-solid border-line pt-4">
               <p className="label">Latest market rate</p>
               {market ? (
                 <p className="mt-1"><span className="display num text-2xl">£1 = GH₵{market.rate}</span> <span className="hint">from {market.provider}, fetched {market.fetchedAt.slice(0, 16).replace("T", " ")} UTC</span></p>

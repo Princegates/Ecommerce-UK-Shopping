@@ -12,7 +12,7 @@ export default async function SecurityPage() {
   return (
     <>
       <p className="label">Your account</p>
-      <h1 className="text-5xl">Security</h1>
+      <h1 className="text-3xl">Security</h1>
       <div className="mt-6 grid gap-8">
         <SignInDetailsForm phone={c.phone} email={c.email} />
         <PasswordForm />

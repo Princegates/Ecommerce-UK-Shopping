@@ -21,7 +21,8 @@ import { addTracking, deleteTracking } from "@/lib/orders";
 import { setReviewStatus } from "@/lib/reviews";
 import { ORDER_STATUSES } from "@/lib/order-status";
 import { buildGateway } from "@/lib/payments";
-import { getSettings } from "@/lib/settings";
+import { getSettings, setSetting } from "@/lib/settings";
+import { THEMES } from "@/lib/themes";
 import { db } from "@/lib/db";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
@@ -268,4 +269,16 @@ export async function setReviewStatusAction(f: FormData): Promise<void> {
   const status = str(f, "status") === "HIDDEN" ? "HIDDEN" : "PUBLISHED";
   if (Number.isInteger(id) && setReviewStatus(id, status)) audit(`review.${status.toLowerCase()}`, `review #${id}`);
   back("/admin/reviews", { saved: "1" });
+}
+
+// ---------------------------------------------------------------- appearance
+
+export async function setThemeAction(f: FormData): Promise<void> {
+  await requireAdmin();
+  const id = str(f, "theme");
+  const theme = THEMES.find((t) => t.id === id);
+  if (!theme) back("/admin/appearance", { error: "Choose one of the themes." });
+  setSetting("theme", theme.id);
+  audit("theme.set", theme.name);
+  back("/admin/appearance", { saved: "1" });
 }

@@ -11,9 +11,9 @@ const PERKS = [
 export default function AuthShell({ title, lead, children, footer }: { title: string; lead?: string; children: ReactNode; footer?: ReactNode }) {
   return (
     <div className="mx-auto grid max-w-6xl gap-0 px-4 py-10 md:grid-cols-[1fr_1.1fr] md:py-16">
-      <aside className="hidden border-2 border-r-0 border-ink bg-ink p-10 text-paper md:block">
+      <aside className="hidden border-2 border-r border-line bg-ink p-10 text-paper md:block">
         <p className="label !text-gold">Your account</p>
-        <h2 className="mt-3 text-4xl text-paper">Everything about your UK orders, in one place.</h2>
+        <h2 className="mt-3 text-2xl text-paper">Everything about your UK orders, in one place.</h2>
         <ul className="mt-10 grid gap-6">
           {PERKS.map(([t, b]) => (
             <li key={t} className="flex gap-4">
@@ -26,11 +26,11 @@ export default function AuthShell({ title, lead, children, footer }: { title: st
           ))}
         </ul>
       </aside>
-      <section className="border-2 border-ink bg-paper-3 p-6 shadow-[5px_5px_0_var(--ink)] md:p-10">
-        <h1 className="text-4xl">{title}</h1>
+      <section className="border border-line bg-paper-3 p-6 shadow-[5px_5px_0_var(--ink)] md:p-10">
+        <h1 className="text-2xl">{title}</h1>
         {lead && <p className="mt-2 text-ink-soft">{lead}</p>}
         <div className="mt-6">{children}</div>
-        {footer && <div className="mt-6 border-t-2 border-dashed border-ink/30 pt-4 text-sm">{footer}</div>}
+        {footer && <div className="mt-6 border-t-2 border-solid border-line pt-4 text-sm">{footer}</div>}
       </section>
     </div>
   );

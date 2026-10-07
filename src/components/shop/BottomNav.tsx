@@ -22,10 +22,10 @@ export default function BottomNav({ cartCount, signedIn }: { cartCount: number; 
       {items.map((it) => {
         const active = it.href === "/" ? path === "/" : path.startsWith(it.href);
         return (
-          <Link key={it.label} href={it.href} aria-current={active ? "page" : undefined} className={`relative grid justify-items-center gap-0.5 py-2 text-[0.7rem] font-bold ${active ? "bg-gold" : ""}`}>
+          <Link key={it.label} href={it.href} aria-current={active ? "page" : undefined} className={`relative grid justify-items-center gap-0.5 py-2 text-[0.7rem] font-bold ${active ? "text-blue" : "text-ink-soft"}`}>
             {icon(it.d)}
             {it.label}
-            {it.badge ? <span className="num absolute right-[28%] top-1 grid h-4 min-w-4 place-items-center bg-red px-1 text-[0.65rem] text-white">{it.badge}</span> : null}
+            {it.badge ? <span className="num absolute right-[28%] top-1 grid h-4 min-w-4 place-items-center rounded-full bg-orange px-1 text-[0.65rem] text-ink">{it.badge}</span> : null}
           </Link>
         );
       })}

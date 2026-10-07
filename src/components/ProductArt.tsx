@@ -18,14 +18,14 @@ export default function ProductArt({
 }) {
   if (imageUrl) {
     return (
-      <div className="art" style={{ background: accent }}>
+      <div className="art">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl} alt={name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        <img src={imageUrl} alt={name} className="absolute inset-0 h-full w-full object-contain p-3" loading="lazy" />
       </div>
     );
   }
   return (
-    <div className="art" style={{ background: accent }} role="img" aria-label={`${name} (image coming soon)`}>
+    <div className="art" role="img" aria-label={`${name} (image coming soon)`} style={{ "--art-accent": accent } as React.CSSProperties}>
       <b aria-hidden="true">{initials(name)}</b>
     </div>
   );

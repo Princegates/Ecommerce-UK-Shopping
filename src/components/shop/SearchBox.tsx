@@ -53,7 +53,7 @@ export default function SearchBox({ departments, initialQuery = "", initialDepar
         key: `p-${p.slug}`, href: `/products/${p.slug}`,
         node: (
           <span className="flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center border-2 border-ink text-sm font-bold text-white" style={{ background: p.accent }} aria-hidden="true">{p.name.slice(0, 1)}</span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center border border-line text-sm font-bold text-white" style={{ background: p.accent }} aria-hidden="true">{p.name.slice(0, 1)}</span>
             <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{p.name}</span><span className="label">{p.shop}</span></span>
             <span className="num text-sm font-semibold">{ghs(p.priceMinor)}</span>
           </span>
@@ -72,19 +72,19 @@ export default function SearchBox({ departments, initialQuery = "", initialDepar
       ref={box}
       action="/search"
       role="search"
-      className="relative flex w-full min-w-0"
+      className="relative flex w-full min-w-0 items-center rounded-full bg-white p-1 pl-1 shadow-inner transition-shadow focus-within:ring-[3px] focus-within:ring-spark"
       onSubmit={(e) => {
         if (active >= 0 && rows[active]) { e.preventDefault(); setOpen(false); router.push(rows[active].href); }
       }}
     >
       <label htmlFor="site-dept" className="sr-only">Department</label>
-      <select id="site-dept" name={dept ? "d" : undefined} value={dept} onChange={(e) => setDept(e.target.value)} className="select hidden !w-auto max-w-40 !border-r-0 !bg-paper-2 font-semibold md:block">
+      <select id="site-dept" name={dept ? "d" : undefined} value={dept} onChange={(e) => setDept(e.target.value)} className="select hidden !min-h-9 !w-auto max-w-36 cursor-pointer !rounded-full !border-0 !bg-paper-2 !py-1 !pl-3 !shadow-none text-sm font-bold text-ink md:block">
         <option value="">All</option>
         {departments.map((d) => <option key={d.slug} value={d.slug}>{d.name}</option>)}
       </select>
       <label htmlFor="site-q" className="sr-only">Search items and shops</label>
       <input
-        id="site-q" name="q" type="search" autoComplete="off" value={q} placeholder="Search trainers, laptops, skincare…" className="input min-w-0 flex-1 !border-r-0"
+        id="site-q" name="q" type="search" autoComplete="off" value={q} placeholder="Search UK products, brands and shops" className="input min-w-0 flex-1 !min-h-9 !rounded-full !border-0 !bg-transparent !px-3 !shadow-none focus:!shadow-none"
         role="combobox" aria-expanded={show} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
         onChange={(e) => { setQ(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
@@ -94,7 +94,7 @@ export default function SearchBox({ departments, initialQuery = "", initialDepar
           else if (e.key === "Escape") { setOpen(false); setActive(-1); }
         }}
       />
-      <button className="btn btn-primary !shadow-none" type="submit" aria-label="Search">
+      <button className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-blue text-white transition-colors hover:bg-blue-dark md:h-10 md:w-11" type="submit" aria-label="Search">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><circle cx="10.500" cy="10.500" r="6.500" /><path d="M16 16l5 5" /></svg>
       </button>
       {show && (

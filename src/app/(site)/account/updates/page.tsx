@@ -14,7 +14,7 @@ export default async function UpdatesPage() {
     <>
       <MarkSeen />
       <p className="label">Your account</p>
-      <h1 className="text-5xl">Order updates</h1>
+      <h1 className="text-3xl">Order updates</h1>
       <p className="mt-2 max-w-xl text-ink-soft">Everything that has happened on your orders, newest first.</p>
       {feed.length === 0 ? (
         <p className="mt-8">Nothing yet. Updates appear here as soon as you place an order.</p>

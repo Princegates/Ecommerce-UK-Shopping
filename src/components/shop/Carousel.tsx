@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  * Hero slider. Autoplays, but stops for hover, focus, a hidden tab, or people who ask for less motion,
  * and every slide stays reachable with the dots, the arrows and the keyboard.
  */
-export default function Carousel({ slides, label, interval = 7000 }: { slides: ReactNode[]; label: string; interval?: number }) {
+export default function Carousel({ slides, label, interval = 7000, dotsClassName = "bottom-3" }: { slides: ReactNode[]; label: string; interval?: number; dotsClassName?: string }) {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const reduced = useRef(false);
@@ -27,7 +27,7 @@ export default function Carousel({ slides, label, interval = 7000 }: { slides: R
     <section
       aria-roledescription="carousel"
       aria-label={label}
-      className="relative min-w-0"
+      className="relative min-w-0 overflow-hidden rounded-2xl"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -37,19 +37,22 @@ export default function Carousel({ slides, label, interval = 7000 }: { slides: R
       <div className="overflow-hidden">
         <div className="flex transition-transform duration-500 ease-out motion-reduce:transition-none" style={{ transform: `translateX(-${i * 100}%)` }} aria-live={paused ? "polite" : "off"}>
           {slides.map((s, idx) => (
-            <div key={idx} role="group" aria-roledescription="slide" aria-label={`${idx + 1} of ${n}`} aria-hidden={idx !== i} inert={idx !== i} className="w-full shrink-0">
+            <div key={idx} role="group" aria-roledescription="slide" aria-label={`${idx + 1} of ${n}`} aria-hidden={idx !== i} inert={idx !== i} className={`slide w-full shrink-0 ${idx === i ? "is-active" : ""}`}>
               {s}
             </div>
           ))}
         </div>
       </div>
       {n > 1 && (
+        <span key={`${i}-${paused}`} aria-hidden="true" className="carousel-progress" style={{ animationDuration: `${interval}ms`, animationPlayState: paused ? "paused" : "running" }} />
+      )}
+      {n > 1 && (
         <>
           <button type="button" className="icon-btn absolute left-3 top-1/2 hidden -translate-y-1/2 md:grid" onClick={() => go(i - 1)} aria-label="Previous slide">‹</button>
           <button type="button" className="icon-btn absolute right-3 top-1/2 hidden -translate-y-1/2 md:grid" onClick={() => go(i + 1)} aria-label="Next slide">›</button>
-          <div className="absolute inset-x-0 bottom-3 flex justify-center gap-2" role="group" aria-label="Choose a slide">
+          <div className={`absolute inset-x-0 flex justify-center gap-2 ${dotsClassName}`} role="group" aria-label="Choose a slide">
             {slides.map((_, idx) => (
-              <button key={idx} type="button" onClick={() => go(idx)} aria-label={`Slide ${idx + 1}`} aria-current={idx === i} className={`h-3 border-2 border-ink ${idx === i ? "w-8 bg-ink" : "w-3 bg-paper-3"}`} />
+              <button key={idx} type="button" onClick={() => go(idx)} aria-label={`Slide ${idx + 1}`} aria-current={idx === i} className={`h-2.5 rounded-full transition-all ${idx === i ? "w-7 bg-white" : "w-2.5 bg-white/50 hover:bg-white/80"}`} />
             ))}
           </div>
         </>
