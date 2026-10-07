@@ -24,10 +24,11 @@ export default function SearchBox({ departments, initialQuery = "", initialDepar
   const [active, setActive] = useState(-1);
   const box = useRef<HTMLFormElement>(null);
   const listId = useId();
+  const isLink = /^https?:\/\/\S+\.\S+/i.test(q.trim());
 
   useEffect(() => {
     const term = q.trim();
-    if (term.length < 2) return;
+    if (term.length < 2 || /^https?:\/\//i.test(term)) return;
     const ctl = new AbortController();
     const t = setTimeout(async () => {
       try {
@@ -46,7 +47,7 @@ export default function SearchBox({ departments, initialQuery = "", initialDepar
 
   const searchHref = `/search?q=${encodeURIComponent(q.trim())}${dept ? `&d=${encodeURIComponent(dept)}` : ""}`;
   const rows: Row[] = [];
-  const shown = q.trim().length >= 2 ? sug : null;
+  const shown = q.trim().length >= 2 && !isLink ? sug : null;
   if (shown) {
     for (const p of shown.products) {
       rows.push({
@@ -63,7 +64,9 @@ export default function SearchBox({ departments, initialQuery = "", initialDepar
     for (const s of shown.shops) rows.push({ key: `s-${s.slug}`, href: `/shops/${s.slug}`, node: <span>Shop: <strong>{s.name}</strong> <span className="label ml-1">{s.category}</span></span> });
     for (const d of shown.departments) rows.push({ key: `d-${d.slug}`, href: `/department/${d.slug}`, node: <span>Department: <strong>{d.name}</strong></span> });
   }
-  if (q.trim().length >= 2) rows.push({ key: "all", href: searchHref, node: <span className="font-semibold">See all results for &ldquo;{q.trim()}&rdquo; →</span> });
+  const linkHref = `/request?${new URLSearchParams({ url: q.trim() }).toString()}`;
+  if (isLink) rows.push({ key: "link", href: linkHref, node: <span className="font-bold">That looks like a product link. Get its price in cedis →</span> });
+  else if (q.trim().length >= 2) rows.push({ key: "all", href: searchHref, node: <span className="font-semibold">See all results for &ldquo;{q.trim()}&rdquo; →</span> });
 
   const show = open && rows.length > 0;
 
@@ -74,7 +77,8 @@ export default function SearchBox({ departments, initialQuery = "", initialDepar
       role="search"
       className="relative flex w-full min-w-0 items-center rounded-full bg-white p-1 pl-1 shadow-inner transition-shadow focus-within:ring-[3px] focus-within:ring-spark"
       onSubmit={(e) => {
-        if (active >= 0 && rows[active]) { e.preventDefault(); setOpen(false); router.push(rows[active].href); }
+        if (isLink) { e.preventDefault(); setOpen(false); router.push(linkHref); }
+        else if (active >= 0 && rows[active]) { e.preventDefault(); setOpen(false); router.push(rows[active].href); }
       }}
     >
       <label htmlFor="site-dept" className="sr-only">Department</label>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Breakdown from "@/components/Breakdown";
 import ProductArt from "@/components/ProductArt";
+import LinkFinder from "@/components/shop/LinkFinder";
 import Marquee from "@/components/shop/Marquee";
 import Reveal from "@/components/shop/Reveal";
 import ShopTile from "@/components/ShopTile";
@@ -83,8 +84,8 @@ export default async function HomePage() {
             <h1 className="mt-2 text-[clamp(2rem,4.6vw,3.6rem)] font-bold leading-[1.05]">Shop the UK.<br />Pay in <span className="text-spark">cedis</span>.<br />We bring it home.</h1>
             <p className="mt-4 max-w-lg text-lg text-white/90">See every price in pounds and cedis, pay once, and track your order from the UK shop to your door.</p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/shops" className="btn btn-gold !px-6 !text-base">Shop now</Link>
-              <Link href="/search?deals=1&sort=discount" className="btn !border-white/60 !bg-white/10 !text-white hover:!bg-white/20">See today&rsquo;s deals</Link>
+              <a href="#paste-link" className="btn btn-gold !px-6 !text-base">Paste a product link</a>
+              <Link href="/shops" className="btn !border-white/60 !bg-white/10 !text-white hover:!bg-white/20">Browse our shops</Link>
             </div>
           </div>
           {sample && method && zone && (
@@ -135,7 +136,7 @@ export default async function HomePage() {
             <p className="text-sm font-bold text-spark">Not in our shops?</p>
             <h2 className="mt-2 text-[clamp(2rem,4.6vw,3.6rem)] font-bold leading-[1.05]">Send us any UK link</h2>
             <p className="mt-3 max-w-lg text-lg text-white/90">Paste the link. We read the price, quote the full cost in cedis, and buy it once you pay.</p>
-            <Link href="/request" className="btn btn-gold mt-6 !px-6 !text-base">Request an item by link</Link>
+            <a href="#paste-link" className="btn btn-gold mt-6 !px-6 !text-base">Paste a product link</a>
           </div>
           <ol className="hidden gap-3 md:grid">
             {["Paste the link", "We quote the full cost", "You pay, we buy it"].map((t, i) => (
@@ -167,6 +168,28 @@ export default async function HomePage() {
   return (
     <>
       <section className="mx-auto max-w-[90rem] px-3 pt-3 md:px-4"><Carousel slides={slides} label="Featured offers" /></section>
+
+      <section id="paste-link" aria-labelledby="paste-h" className="mx-auto mt-3 max-w-[90rem] scroll-mt-40 px-3 md:px-4">
+        <div className="relative isolate overflow-hidden rounded-2xl border-4 border-cta bg-[color-mix(in_srgb,var(--cta)_22%,white)] p-5 shadow-[0_6px_0_var(--navy)] md:p-8">
+          <span className="float-slow absolute -right-10 -top-10 -z-10 h-44 w-44 rounded-full bg-cta/50" aria-hidden="true" />
+          <div className="grid gap-6 lg:grid-cols-[1fr_1.25fr] lg:items-center">
+            <div>
+              <p className="inline-block rounded-full bg-navy px-3 py-1 text-xs font-bold uppercase tracking-wide text-spark">The easiest way to shop</p>
+              <h2 id="paste-h" className="mt-2 text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold leading-tight">Found it on a UK website? Paste the link.</h2>
+              <p className="mt-2 max-w-xl text-base text-ink-soft">Works with any UK shop: Amazon, Argos, Next, Tesco, Currys, M&amp;S, B&amp;Q and more. We check the price, quote the full cost in pounds and cedis, and buy it once you pay.</p>
+              <ol className="mt-4 grid gap-2 text-sm font-semibold sm:grid-cols-3">
+                {["Paste the link", "Get your price in cedis", "Pay, we ship to Ghana"].map((t, i) => (
+                  <li key={t} className="flex items-center gap-2"><span className="num grid h-7 w-7 shrink-0 place-items-center rounded-full bg-navy text-spark">{i + 1}</span>{t}</li>
+                ))}
+              </ol>
+            </div>
+            <div className="rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(16,20,18,0.2)] md:p-5">
+              <LinkFinder big />
+              <p className="mt-3 text-xs text-ink-soft">Not sure where to find the link? Open the product on the shop&rsquo;s website, then copy the address from your browser&rsquo;s address bar.</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section aria-label="Quick picks" className="mx-auto mt-4 grid max-w-[90rem] gap-3 px-3 sm:grid-cols-2 md:px-4 xl:grid-cols-4">
         {shopper.customer ? (
@@ -289,19 +312,6 @@ export default async function HomePage() {
 
       <ProductShelf id="new" title="New arrivals" products={arrivals} shopper={shopper} href="/search?sort=newest" badge="new" />
       <RecentlyViewed />
-
-      <section aria-label="Request an item by link" className="mx-auto mt-4 max-w-[90rem] px-3 md:px-4">
-        <Reveal>
-          <div className="relative isolate overflow-hidden rounded-2xl hero-cta p-6 text-white md:flex md:items-center md:justify-between md:p-8">
-            <span className="float-slow absolute -right-8 -top-8 -z-10 h-40 w-40 rounded-full bg-spark/30" aria-hidden="true" />
-            <div>
-              <h2 className="text-2xl font-bold">Can&rsquo;t find it here?</h2>
-              <p className="mt-1 max-w-xl text-white/90">Paste the link to any UK product. We check the price and stock, send you the full cost in pounds and cedis, and buy it once you pay.</p>
-            </div>
-            <Link href="/request" className="btn btn-gold mt-4 !px-6 !text-base md:mt-0">Request an item by link</Link>
-          </div>
-        </Reveal>
-      </section>
 
       <section id="how" aria-labelledby="how-h" className="mx-auto mt-4 max-w-[90rem] scroll-mt-40 px-3 md:px-4">
         <Reveal>

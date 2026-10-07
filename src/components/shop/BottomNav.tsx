@@ -13,7 +13,7 @@ export default function BottomNav({ cartCount, signedIn }: { cartCount: number; 
   const items = [
     { href: "/", label: "Home", d: "M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10" },
     { href: "/shops", label: "Shops", d: "M3 9l2-5h14l2 5M4 9v11h16V9M9 20v-6h6v6" },
-    { href: "/search", label: "Search", d: "M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-5-5" },
+    { href: "/request", label: "Paste link", d: "M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1" },
     { href: "/cart", label: "Cart", d: "M3 4h2l2.500 11h11L21 7H6M9 20a1 1 0 100-2 1 1 0 000 2zM17 20a1 1 0 100-2 1 1 0 000 2z", badge: cartCount },
     { href: signedIn ? "/account" : "/login", label: signedIn ? "Account" : "Sign in", d: "M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0" },
   ];
