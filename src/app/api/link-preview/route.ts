@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { clientKey } from "@/lib/auth";
 import { findListedProductByUrl } from "@/lib/ingest/store";
 import { lookupLink } from "@/lib/ingest/run";
+import { getItemTypes } from "@/lib/link-auto";
+import { gbpToGhsMinor } from "@/lib/pricing";
+import { getSettings } from "@/lib/settings";
 import { createLimiter } from "@/lib/throttle";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +29,10 @@ export async function GET(req: Request) {
   const r = await lookupLink(url);
   if (!r.ok) return none(r.reason);
   return NextResponse.json(
-    { ok: true, name: r.item.name, priceMinor: r.item.priceMinor, imageUrl: r.item.imageUrl, host: new URL(url).hostname },
+    {
+      ok: true, name: r.item.name, priceMinor: r.item.priceMinor, priceGhsMinor: gbpToGhsMinor(r.item.priceMinor, getSettings().fx), imageUrl: r.item.imageUrl,
+      host: new URL(url).hostname, itemTypes: getItemTypes().map((t) => t.name),
+    },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

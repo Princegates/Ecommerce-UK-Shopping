@@ -1,14 +1,19 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { clientKey } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { getCustomer } from "@/lib/customer-session";
 import { lookupLink } from "@/lib/ingest/run";
-import { autoQuoteRequest, getItemTypes, getLinkAuto } from "@/lib/link-auto";
+import { submitLinkRequest } from "@/lib/link-submit";
 import { createLimiter } from "@/lib/throttle";
 import { firstError, linkRequestSchema } from "@/lib/validation";
 
 const limiter = createLimiter(6, 60 * 60 * 1000);
+
+async function readPagePrice(url: string): Promise<number | null> {
+  const seen = await lookupLink(url);
+  return seen.ok && seen.item.priceMinor > 0 ? seen.item.priceMinor : null;
+}
 
 export type RequestState = {
   error?: string; done?: boolean; values?: Record<string, string>;
@@ -28,25 +33,31 @@ export async function requestAction(_prev: RequestState, formData: FormData): Pr
   limiter.record(key);
   const r = parsed.data;
   const customer = await getCustomer();
-  const itemType = getItemTypes().some((t) => t.name === r.itemType) ? r.itemType : "";
-  const info = db()
-    .prepare(
-      "INSERT INTO link_requests (url, title, details, quantity, price_seen, name, phone, email, customer_id, item_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    )
-    .run(r.url, r.title, r.details, r.quantity, r.priceSeen, r.name, r.phone, r.email, customer?.id ?? null, itemType);
-  const id = Number(info.lastInsertRowid);
-
-  // Price it by itself when the admin's rules allow. A failure here only means a person quotes it, as before.
-  try {
-    let pagePrice: number | null = null;
-    if (getLinkAuto().pageEnabled) {
-      const seen = await lookupLink(r.url);
-      if (seen.ok && seen.item.priceMinor > 0) pagePrice = seen.item.priceMinor;
-    }
-    const q = autoQuoteRequest(id, pagePrice);
-    if (q.quoted) return { done: true, quote: { token: q.token, unitPriceMinor: q.unitPriceMinor, source: q.source } };
-  } catch (e) {
-    console.error("[request] automatic quote failed", e instanceof Error ? e.message : "unknown error");
-  }
+  const out = await submitLinkRequest(r, customer?.id ?? null, readPagePrice);
+  if (out.quote) return { done: true, quote: out.quote };
   return { done: true };
+}
+
+
+/**
+ * One click from the "we found it" box: the signed-in customer's details are used, the price is read from the shop's page again
+ * on the server (a price sent from the browser is never trusted), and the customer goes straight to their price and payment.
+ */
+export async function quickLinkAction(formData: FormData): Promise<void> {
+  const url = String(formData.get("url") ?? "").trim().slice(0, 500);
+  const title = String(formData.get("title") ?? "").trim().slice(0, 150);
+  const back = `/request?${new URLSearchParams({ url, title }).toString()}`;
+  const customer = await getCustomer();
+  if (!customer) redirect(`/login?next=${encodeURIComponent(back)}`);
+  const quantity = Math.min(20, Math.max(1, Math.round(Number(formData.get("quantity")) || 1)));
+  const parsed = linkRequestSchema.safeParse({
+    url, title, details: String(formData.get("details") ?? ""), quantity, priceSeen: "", itemType: String(formData.get("itemType") ?? ""),
+    name: customer.name, phone: customer.phone, email: customer.email ?? "",
+  });
+  if (!parsed.success) redirect(back);
+  const key = `request:${await clientKey()}`;
+  if (!limiter.allowed(key)) redirect(back);
+  limiter.record(key);
+  const out = await submitLinkRequest(parsed.data, customer.id, readPagePrice);
+  redirect(out.quote ? `/quote/${out.quote.token}` : "/account#requests");
 }

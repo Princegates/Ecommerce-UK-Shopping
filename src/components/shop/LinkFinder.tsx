@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { gbp } from "@/lib/money";
+import { quickLinkAction } from "@/app/actions/request";
+import { gbp, ghs } from "@/lib/money";
 
 type Result =
   | { kind: "idle" }
   | { kind: "loading" }
   | { kind: "onsite"; slug: string; name: string }
-  | { kind: "found"; name: string; priceMinor: number; host: string }
+  | { kind: "found"; name: string; priceMinor: number; priceGhsMinor: number; host: string; itemTypes: string[] }
   | { kind: "none"; reason: string }
   | { kind: "invalid" };
 
@@ -32,7 +33,7 @@ export default function LinkFinder({ big = false, onDark = false }: { big?: bool
       const j = await r.json();
       if (n !== seq.current) return;
       if (j.ok && j.onSite) setRes({ kind: "onsite", slug: j.onSite.slug, name: j.onSite.name });
-      else if (j.ok) setRes({ kind: "found", name: j.name, priceMinor: j.priceMinor, host: j.host });
+      else if (j.ok) setRes({ kind: "found", name: j.name, priceMinor: j.priceMinor, priceGhsMinor: j.priceGhsMinor ?? 0, host: j.host, itemTypes: Array.isArray(j.itemTypes) ? j.itemTypes : [] });
       else setRes({ kind: "none", reason: j.reason ?? "error" });
     } catch {
       if (n === seq.current) setRes({ kind: "none", reason: "error" });
@@ -42,7 +43,8 @@ export default function LinkFinder({ big = false, onDark = false }: { big?: bool
   const qs = (extra: Record<string, string> = {}) => new URLSearchParams({ url: url.trim(), ...extra }).toString();
 
   return (
-    <form onSubmit={find} className="grid gap-3">
+    <div className="grid gap-3">
+      <form onSubmit={find} className="grid gap-3">
       {!big && (
         <div>
           <p className="text-base font-bold">Add any UK item by link</p>
@@ -60,6 +62,7 @@ export default function LinkFinder({ big = false, onDark = false }: { big?: bool
           {res.kind === "loading" ? "Looking…" : big ? "Get my price in cedis" : "Find"}
         </button>
       </div>
+      </form>
       <div aria-live="polite" className={`text-sm ${onDark ? "text-ink" : ""}`}>
         {res.kind === "invalid" && <p className={onDark ? "rounded-lg bg-white p-2 font-semibold text-red" : "error-text"}>Paste a full link starting with https://</p>}
         {res.kind === "onsite" && (
@@ -70,11 +73,32 @@ export default function LinkFinder({ big = false, onDark = false }: { big?: bool
           </div>
         )}
         {res.kind === "found" && (
-          <div className="pop grid gap-2 rounded-xl border border-line bg-white p-3">
-            <p className="font-bold">We found it</p>
-            <p>{res.name}</p>
-            <p className="num"><span className="font-bold">{gbp(res.priceMinor)}</span> <span className="text-ink-soft">on {res.host}</span></p>
-            <Link href={`/request?${qs({ title: res.name, price: (res.priceMinor / 100).toFixed(2) })}`} className="btn btn-small btn-gold w-fit">Request this item</Link>
+          <div className="pop grid gap-3 rounded-xl border-2 border-green bg-white p-3">
+            <div>
+              <p className="font-bold text-green">We found it</p>
+              <p className="font-semibold">{res.name}</p>
+              <p className="num mt-1">
+                <span className="text-lg font-bold">{gbp(res.priceMinor)}</span> on {res.host}
+                {res.priceGhsMinor > 0 && <span className="ml-2 font-bold text-red">≈ {ghs(res.priceGhsMinor)}</span>}
+              </p>
+              <p className="text-xs text-ink-soft">Item price only. The next step shows your full cost with shipping and delivery to Ghana.</p>
+            </div>
+            <form action={quickLinkAction} className="grid gap-2">
+              <input type="hidden" name="url" value={url.trim()} />
+              <input type="hidden" name="title" value={res.name} />
+              <div className="grid gap-2 sm:grid-cols-[5rem_1fr]">
+                <div className="field"><label className="label" htmlFor={`${big ? "b" : "h"}-qty`}>Quantity</label><input id={`${big ? "b" : "h"}-qty`} name="quantity" type="number" min={1} max={20} defaultValue={1} className="input !min-h-10" /></div>
+                {res.itemTypes.length > 0 && (
+                  <div className="field"><label className="label" htmlFor={`${big ? "b" : "h"}-type`}>Kind of item</label>
+                    <select id={`${big ? "b" : "h"}-type`} name="itemType" className="select !min-h-10" defaultValue={res.itemTypes[res.itemTypes.length - 1]}>
+                      {res.itemTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+              <div className="field"><label className="label" htmlFor={`${big ? "b" : "h"}-det`}>Size, colour or other details</label><input id={`${big ? "b" : "h"}-det`} name="details" className="input !min-h-10" placeholder="e.g. UK 9, black" maxLength={300} /></div>
+              <button className="btn btn-gold w-full !min-h-12 !text-base">Get my full price and pay</button>
+            </form>
           </div>
         )}
         {res.kind === "none" && (
@@ -84,6 +108,6 @@ export default function LinkFinder({ big = false, onDark = false }: { big?: bool
           </div>
         )}
       </div>
-    </form>
+    </div>
   );
 }
