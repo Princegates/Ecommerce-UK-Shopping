@@ -30,17 +30,17 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         <p>No orders match.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="table">
+          <table className="table table-cards">
             <thead><tr><th>Order</th><th>Placed</th><th>Customer</th><th>Area</th><th>Status</th><th className="text-right">Total</th></tr></thead>
             <tbody>
               {orders.map((o) => (
                 <tr key={o.id}>
-                  <td><Link className="link mono" href={`/admin/orders/${o.id}`}>{o.number}</Link></td>
-                  <td className="num whitespace-nowrap">{o.createdAt.slice(0, 10)}</td>
-                  <td>{o.customerName}<br /><span className="label">{o.phone}</span></td>
-                  <td>{o.zoneName}</td>
-                  <td>{STATUS_LABEL[o.status as OrderStatus]}{o.paymentStatus !== "PAID" && <span className="tag ml-2">{o.paymentStatus}</span>}</td>
-                  <td className="num text-right">{ghs(o.totalMinor)}</td>
+                  <td data-label=""><Link className="link mono" href={`/admin/orders/${o.id}`}>{o.number}</Link></td>
+                  <td data-label="Placed" className="num whitespace-nowrap">{o.createdAt.slice(0, 10)}</td>
+                  <td data-label="Customer">{o.customerName}<br /><span className="label">{o.phone}</span></td>
+                  <td data-label="Area">{o.zoneName}</td>
+                  <td data-label="Status">{STATUS_LABEL[o.status as OrderStatus]}{o.paymentStatus !== "PAID" && <span className="tag ml-2">{o.paymentStatus}</span>}</td>
+                  <td data-label="Total" className="num text-right">{ghs(o.totalMinor)}</td>
                 </tr>
               ))}
             </tbody>

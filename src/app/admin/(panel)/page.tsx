@@ -317,15 +317,15 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             </div>
             {recent.length === 0 ? <p className="mt-3">No orders yet.</p> : (
               <div className="mt-3 overflow-x-auto">
-                <table className="table">
+                <table className="table table-cards">
                   <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th className="text-right">Total</th></tr></thead>
                   <tbody>
                     {recent.map((o) => (
                       <tr key={o.id}>
-                        <td><Link className="link mono" href={`/admin/orders/${o.id}`}>{o.number}</Link></td>
-                        <td>{o.customerName}</td>
-                        <td><StatusChip status={o.status} /></td>
-                        <td className="num text-right">{ghs(o.totalMinor)}</td>
+                        <td data-label=""><Link className="link mono" href={`/admin/orders/${o.id}`}>{o.number}</Link></td>
+                        <td data-label="Customer">{o.customerName}</td>
+                        <td data-label="Status"><StatusChip status={o.status} /></td>
+                        <td data-label="Total" className="num text-right">{ghs(o.totalMinor)}</td>
                       </tr>
                     ))}
                   </tbody>

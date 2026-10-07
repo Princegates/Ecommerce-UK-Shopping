@@ -22,18 +22,18 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
         <p>No customers {q ? "match" : "yet"}.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="table">
+          <table className="table table-cards">
             <thead><tr><th>Customer</th><th>Contact</th><th className="text-right">Orders</th><th className="text-right">Spent</th><th>Joined</th><th>Last sign-in</th><th>Status</th></tr></thead>
             <tbody>
               {customers.map((c) => (
                 <tr key={c.id}>
-                  <td><Link className="link font-semibold" href={`/admin/customers/${c.id}`}>{c.name}</Link></td>
-                  <td>{c.phone}{c.email && <span className="label block normal-case">{c.email}</span>}</td>
-                  <td className="num text-right">{c.orderCount}</td>
-                  <td className="num text-right">{ghs(c.spentMinor)}</td>
-                  <td className="num whitespace-nowrap">{c.createdAt.slice(0, 10)}</td>
-                  <td className="num whitespace-nowrap">{c.lastLoginAt?.slice(0, 10) ?? "never"}</td>
-                  <td>{c.status === "ACTIVE" ? "Active" : <span className="tag tag-red">Disabled</span>}</td>
+                  <td data-label=""><Link className="link font-semibold" href={`/admin/customers/${c.id}`}>{c.name}</Link></td>
+                  <td data-label="Contact">{c.phone}{c.email && <span className="label block normal-case">{c.email}</span>}</td>
+                  <td data-label="Orders" className="num text-right">{c.orderCount}</td>
+                  <td data-label="Spent" className="num text-right">{ghs(c.spentMinor)}</td>
+                  <td data-label="Joined" className="num whitespace-nowrap">{c.createdAt.slice(0, 10)}</td>
+                  <td data-label="Last sign-in" className="num whitespace-nowrap">{c.lastLoginAt?.slice(0, 10) ?? "never"}</td>
+                  <td data-label="Status">{c.status === "ACTIVE" ? "Active" : <span className="tag tag-red">Disabled</span>}</td>
                 </tr>
               ))}
             </tbody>
