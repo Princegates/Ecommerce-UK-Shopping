@@ -8,13 +8,14 @@ import { canonicalUrl, type FieldMap, type NormalizedItem } from "./parse";
 
 type Db = Database.Database;
 
-export type SourceKind = "feed_csv" | "feed_json" | "sitemap" | "links" | "ebay" | "shopify";
+export type SourceKind = "feed_csv" | "feed_json" | "sitemap" | "links" | "ebay" | "shopify" | "upload";
 export const SOURCE_KINDS: { kind: SourceKind; label: string; help: string }[] = [
   { kind: "feed_csv", label: "Product feed (CSV)", help: "An official or affiliate feed. The most reliable source: prices, stock and images come straight from the shop." },
   { kind: "feed_json", label: "Product feed (JSON)", help: "The same, as JSON." },
   { kind: "sitemap", label: "Shop website (sitemap + product pages)", help: "Reads the shop's sitemap and the product data on each page. Only for shops whose terms and robots.txt allow it." },
   { kind: "ebay", label: "eBay (official API)", help: "Real UK listings with eBay's own photos, prices and links. Needs your free eBay developer keys (Admin > Integrations)." },
   { kind: "shopify", label: "Shopify shop (public product list)", help: "Many small UK brands run on Shopify. Reads the shop's public product list: photos, prices, stock and sizes. Only for shops priced in pounds that allow it in their robots.txt, and with the owner's agreement." },
+  { kind: "upload", label: "File import (CSV or JSON you upload)", help: "For data you collected yourself, for example a spreadsheet or the export from a tool such as Octoparse or ParseHub. Upload the file on this source's page after creating it. Nothing is fetched from any shop. Only upload data you are allowed to use." },
   { kind: "links", label: "Pasted product links", help: "Items added one by one from a link. Their prices are refreshed automatically." },
 ];
 
@@ -157,7 +158,7 @@ export function saveSource(i: SourceInput, d: Db = db()): { ok: true; id: number
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : "That address cannot be used." };
     }
-  } else if (i.kind !== "links" && i.kind !== "ebay" && i.id === 0) {
+  } else if (i.kind !== "links" && i.kind !== "ebay" && i.kind !== "upload" && i.id === 0) {
     return { ok: false, error: "Enter the feed or sitemap address." };
   }
   if (i.kind === "ebay" && parseQueries(i.fieldMap.queries ?? "").length === 0) return { ok: false, error: "List at least one eBay search, one per line (for example: men's trainers)." };

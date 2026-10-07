@@ -8,7 +8,7 @@ describe("widening catalogue source kinds on an existing database", () => {
     const d = new Database(":memory:");
     d.pragma("foreign_keys = ON");
     // a database created before eBay support: the same schema with the old, narrower rule
-    d.exec(SCHEMA.replace("'links', 'ebay', 'shopify'))", "'links'))"));
+    d.exec(SCHEMA.replace("'links', 'ebay', 'shopify', 'upload'))", "'links'))"));
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'x', 'ebay')").run()).toThrow();
     d.prepare("INSERT INTO shops (id, slug, name, category) VALUES (1, 's', 'Shop', 'Fashion')").run();
     d.prepare("INSERT INTO catalog_sources (id, shop_id, name, kind, url) VALUES (7, 1, 'Feed', 'feed_csv', 'v1:secret')").run();
@@ -22,18 +22,19 @@ describe("widening catalogue source kinds on an existing database", () => {
     expect(d.prepare("SELECT COUNT(*) AS n FROM import_runs WHERE source_id = 7").get()).toEqual({ n: 1 });
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'eBay', 'ebay')").run()).not.toThrow();
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'Brand', 'shopify')").run()).not.toThrow();
+    expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'File', 'upload')").run()).not.toThrow();
     expect(d.prepare("SELECT options FROM import_items WHERE source_id = 7").get()).toEqual({ options: "[]" });
     // children still point at the rebuilt table
     expect(() => d.prepare("INSERT INTO import_items (source_id, external_id, name, price_minor) VALUES (999, 'b', 'Bad', 1)").run()).toThrow();
     expect(d.pragma("foreign_key_check")).toEqual([]);
     migrate(d); // running it again changes nothing
-    expect(d.prepare("SELECT COUNT(*) AS n FROM catalog_sources").get()).toEqual({ n: 3 });
+    expect(d.prepare("SELECT COUNT(*) AS n FROM catalog_sources").get()).toEqual({ n: 4 });
   });
 
   it("also widens a database that already knows eBay but not Shopify, and adds the options column", () => {
     const d = new Database(":memory:");
     d.pragma("foreign_keys = ON");
-    d.exec(SCHEMA.replace(", 'shopify'))", "))").replace("  options        TEXT NOT NULL DEFAULT '[]',\n", ""));
+    d.exec(SCHEMA.replace(", 'shopify', 'upload'))", "))").replace("  options        TEXT NOT NULL DEFAULT '[]',\n", ""));
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'x', 'shopify')").run()).toThrow();
     migrate(d);
     d.prepare("INSERT INTO shops (id, slug, name, category) VALUES (1, 's', 'Shop', 'Fashion')").run();

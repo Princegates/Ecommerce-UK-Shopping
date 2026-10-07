@@ -62,6 +62,14 @@ export default async function SourcesAdmin({ searchParams }: { searchParams: Pro
             </ol>
             <p className="mt-1 text-ink-soft">It reads the shop&rsquo;s public product list (photos, prices, stock, sizes and colours) only when the shop&rsquo;s robots.txt allows it and the shop prices in pounds, and it stops at the first refusal. Products whose sizes cost different amounts are skipped.</p>
           </div>
+          <div className="md:col-span-2">
+            <p className="font-bold">Data you collected yourself (spreadsheet, or an export from a tool)</p>
+            <ol className="mt-1 grid list-decimal gap-1 pl-5">
+              <li>Here: <strong>Add a source → File import</strong>, tick the permission box and click <strong>Create source</strong>.</li>
+              <li>On the source&rsquo;s page, upload your CSV or JSON file: one product per row with name, price in pounds, product link and photo link.</li>
+            </ol>
+            <p className="mt-1 text-ink-soft">Nothing is fetched from any shop by this site. Whether a shop&rsquo;s terms allow you to collect and show its data is for you to check. Items are hidden again after the &ldquo;hide items not refreshed&rdquo; days unless you upload a fresh file.</p>
+          </div>
           <div>
             <p className="font-bold">What you get, and what you don&rsquo;t</p>
             <ul className="mt-1 grid list-disc gap-1 pl-5">

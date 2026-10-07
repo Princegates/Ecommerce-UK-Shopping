@@ -39,6 +39,7 @@ export default function SourceForm({
   const [kind, setKind] = useState(v.kind);
   const isEbay = kind === "ebay";
   const isShopify = kind === "shopify";
+  const isUpload = kind === "upload";
 
   return (
     <form action={saveSourceAction} className="grid gap-8">
@@ -73,14 +74,17 @@ export default function SourceForm({
           </>
         ) : (
           <>
+            {isUpload && <input type="hidden" name="url" value="" />}
             {isShopify && <input type="hidden" name="fieldMap" value="" />}
-            <Text
-              label={isShopify ? (editing ? "Shop address (leave empty to keep the saved one)" : "Shop address, for example https://shop.example.co.uk") : editing ? "Feed or sitemap address (leave empty to keep the saved one)" : "Feed or sitemap address"}
-              name="url"
-              type="url"
-              placeholder="https://"
-              hint={editing && v.urlDisplay ? `Saved address: ${v.urlDisplay}. Addresses are stored encrypted because feed links often contain a key.` : "Stored encrypted because feed links often contain a key. Not needed for pasted links."}
-            />
+            {!isUpload && (
+              <Text
+                label={isShopify ? (editing ? "Shop address (leave empty to keep the saved one)" : "Shop address, for example https://shop.example.co.uk") : editing ? "Feed or sitemap address (leave empty to keep the saved one)" : "Feed or sitemap address"}
+                name="url"
+                type="url"
+                placeholder="https://"
+                hint={editing && v.urlDisplay ? `Saved address: ${v.urlDisplay}. Addresses are stored encrypted because feed links often contain a key.` : "Stored encrypted because feed links often contain a key. Not needed for pasted links."}
+              />
+            )}
             {isShopify ? (
               <p className="hint">Nothing else to set up. Products whose sizes or colours cost different amounts are skipped, because the site holds one price per product. Click &ldquo;Check this setup first&rdquo; to see what would be read.</p>
             ) : (
@@ -117,13 +121,13 @@ export default function SourceForm({
 
       <section className="box box-shadow grid gap-4 p-5">
         <h2 className="text-2xl">What happens to what we read</h2>
-        <Check label="Switch this source on (it then runs by itself on the schedule below)" name="enabled" defaultChecked={v.enabled} />
+        <Check label={isUpload ? "Switch this source on (items stay visible while it is on)" : "Switch this source on (it then runs by itself on the schedule below)"} name="enabled" defaultChecked={v.enabled} />
         <Check label="Publish new items automatically" name="autoPublishNew" defaultChecked={v.autoPublishNew} />
         <Check label="Update prices, was-prices and stock on live items automatically" name="autoApplyUpdates" defaultChecked={v.autoApplyUpdates} />
         <div className="grid gap-4 md:grid-cols-3">
           <Text label="Hold a price move bigger than (%)" name="maxPriceChangePct" inputMode="numeric" defaultValue={v.maxPriceChangePct} hint="Bigger jumps wait for you in Import review." />
           <Text label="Run every (hours)" name="intervalHours" inputMode="numeric" defaultValue={v.intervalHours} />
-          <Text label="Hide items not refreshed for (days)" name="staleDays" inputMode="numeric" defaultValue={v.staleDays} hint="So an old price never stays on sale." />
+          <Text label="Hide items not refreshed for (days)" name="staleDays" inputMode="numeric" defaultValue={v.staleDays} hint={isUpload ? "Up to 90. Upload a fresh file before then, or the items are hidden so an old price never stays on sale." : "So an old price never stays on sale."} />
         </div>
         <details>
           <summary className="cursor-pointer font-semibold">More settings</summary>

@@ -6,7 +6,7 @@ import { after } from "next/server";
 import { audit } from "@/lib/audit";
 import { requireAdmin } from "@/lib/auth";
 import { parseFieldMap } from "@/lib/ingest/field-map";
-import { importLinks, previewSource, publishItem, rejectItem, runSource, type LinkResult, type Preview } from "@/lib/ingest/run";
+import { importFile, importLinks, previewSource, publishItem, rejectItem, runSource, type LinkResult, type Preview } from "@/lib/ingest/run";
 import { SOURCE_KINDS, deleteSource, getSource, getSourceUrl, saveSource, setSourceEnabled, type SourceKind } from "@/lib/ingest/store";
 import { db } from "@/lib/db";
 
@@ -63,6 +63,19 @@ export async function deleteSourceAction(f: FormData): Promise<void> {
   if (!r.ok) back(`/admin/sources/${id}`, { error: r.error });
   audit("source.delete", name, removeProducts ? `and ${r.products} product(s)` : "products kept");
   back("/admin/sources", { saved: "1" });
+}
+
+export async function importFileAction(f: FormData): Promise<void> {
+  await requireAdmin();
+  const id = num(f, "id");
+  const path = `/admin/sources/${id}`;
+  const file = f.get("file");
+  if (!(file instanceof File) || file.size === 0) back(path, { error: "Choose a CSV or JSON file to upload." });
+  if (file.size > 15 * 1024 * 1024) back(path, { error: "The file is larger than 15 MB. Split it and upload the parts one by one." });
+  const r = importFile(id, file.name, await file.text());
+  if (!r.ok) back(path, { error: r.error });
+  audit("source.import_file", getSource(id)?.name ?? `#${id}`, r.message);
+  back(path, { imported: r.message });
 }
 
 export async function toggleSourceAction(f: FormData): Promise<void> {

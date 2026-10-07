@@ -306,7 +306,7 @@ CREATE TABLE IF NOT EXISTS catalog_sources (
   id                  INTEGER PRIMARY KEY,
   shop_id             INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
   name                TEXT NOT NULL,
-  kind                TEXT NOT NULL CHECK (kind IN ('feed_csv', 'feed_json', 'sitemap', 'links', 'ebay', 'shopify')),
+  kind                TEXT NOT NULL CHECK (kind IN ('feed_csv', 'feed_json', 'sitemap', 'links', 'ebay', 'shopify', 'upload')),
   url                 TEXT NOT NULL DEFAULT '',
   field_map           TEXT NOT NULL DEFAULT '{}',
   terms_url           TEXT NOT NULL DEFAULT '',

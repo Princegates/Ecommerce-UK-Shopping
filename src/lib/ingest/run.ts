@@ -325,6 +325,7 @@ export async function runSource(id: number, o: IngestDeps = {}, d: Db = db(), op
   const source = getSource(id, d);
   if (!source) return { status: "ERROR", message: "That source no longer exists.", ...zero() };
   if (!source.termsConfirmedAt) return skipped("Confirm the shop's terms on this source before it can run.");
+  if (source.kind === "upload") return skipped("A file-import source only changes when you upload a file on its page.");
   if (opts.scheduled && !source.enabled) return skipped("The source is switched off.");
   if (source.pausedUntil && source.pausedUntil > sqlTime(now)) return skipped(`Paused until ${source.pausedUntil} UTC after the shop refused access.`);
   if (source.runningSince && source.runningSince > sqlTime(now - LOCK_MINUTES * 60_000)) return skipped("A run is already in progress.");
@@ -412,6 +413,53 @@ export async function runSource(id: number, o: IngestDeps = {}, d: Db = db(), op
     finishSource(d, id, runId, blocked ? "BLOCKED" : "ERROR", message, c, blocked ? 24 : 0, now);
     return { status: blocked ? "BLOCKED" : "ERROR", message, ...c };
   }
+}
+
+// ------------------------------------------------------------------ importing a file
+
+const UPLOAD_ROW_LIMIT = 20_000;
+
+/**
+ * Brings in a CSV or JSON file the admin uploaded (a spreadsheet, or an export from a tool such as Octoparse). Nothing is
+ * fetched from any shop. The rows go through the same checks as a feed: prices must be in pounds, odd prices wait for
+ * review, and a price that jumps is held. A file never removes products, because it is only part of a shop.
+ */
+export function importFile(
+  sourceId: number, fileName: string, text: string, o: { now?: () => number } = {}, d: Db = db(),
+): { ok: true; message: string } | { ok: false; error: string } {
+  const source = getSource(sourceId, d);
+  if (!source || source.kind !== "upload") return { ok: false, error: "That is not a file-import source." };
+  if (!source.termsConfirmedAt) return { ok: false, error: "Confirm that you may use this data before importing a file." };
+  const now = (o.now ?? Date.now)();
+  const runStart = sqlTime(now);
+  const looksJson = /\.json$/i.test(fileName) || /^[\s\uFEFF]*[[{]/.test(text.slice(0, 20));
+  let records: Record<string, unknown>[];
+  try {
+    records = (looksJson ? jsonToRecords(text) : csvToRecords(text)).slice(0, UPLOAD_ROW_LIMIT);
+  } catch {
+    return { ok: false, error: "That file could not be read. Upload a CSV (with a header row) or a JSON list of products." };
+  }
+  if (records.length === 0) return { ok: false, error: "The file had no rows we could read. Check it has a header row and one product per row." };
+  const c = zero();
+  const skips = new Map<string, number>();
+  const seen = new Set<string>();
+  const items: NormalizedItem[] = [];
+  for (const rec of records) {
+    const m = mapRecord(rec, source.fieldMap);
+    if ("skip" in m) { addSkip(skips, m.skip); continue; }
+    if (seen.has(m.item.externalId)) { addSkip(skips, "duplicate id"); continue; }
+    seen.add(m.item.externalId);
+    items.push(m.item);
+  }
+  const runId = Number(d.prepare("INSERT INTO import_runs (source_id, started_at) VALUES (?, ?)").run(sourceId, runStart).lastInsertRowid);
+  c.fetched = items.length;
+  c.skipped = [...skips.values()].reduce((a, b) => a + b, 0);
+  d.transaction(() => {
+    for (const it of items) stageItem(d, source, it, runStart, now, c);
+  })();
+  const message = [`${fileName.slice(0, 60)}: ${c.fetched} read, ${c.created} new, ${c.updated} updated, ${c.held} held for review`, summarise(skips)].filter(Boolean).join(". ");
+  finishSource(d, sourceId, runId, items.length > 0 ? "OK" : "ERROR", items.length > 0 ? message : `${message}. Nothing usable: check the column names and that prices are in pounds.`, c, 0, now);
+  return items.length > 0 ? { ok: true, message } : { ok: false, error: `Nothing in that file could be used. ${summarise(skips)}` };
 }
 
 // ------------------------------------------------------------------ keeping things fresh
