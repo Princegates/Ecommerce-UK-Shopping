@@ -3,7 +3,7 @@ import { openForTest } from "../db";
 import { listShops } from "../catalog";
 import { importLinks, lookupLink, previewSource, publishItem, rejectItem, runDueSources, runSource, sanityProblem, sweepStale, type IngestDeps } from "./run";
 import { resetHostClock, type Fetcher, type HttpResponse } from "./net";
-import { getSource, listImportItems, listRuns, reviewCount, saveSource, setSourceEnabled, findListedProductByUrl, type SourceInput } from "./store";
+import { deleteSource, getSource, listImportItems, listRuns, reviewCount, saveSource, setSourceEnabled, findListedProductByUrl, type SourceInput } from "./store";
 
 const res = (status: number, body = ""): HttpResponse => ({ status, headers: {}, body: Buffer.from(body), truncated: false });
 type Routes = Record<string, string | HttpResponse | (() => string | HttpResponse)>;
@@ -401,5 +401,49 @@ describe("staying fresh", () => {
     setSourceEnabled(id, false, d);
     resetHostClock();
     expect((await runDueSources({ ...f.deps, now: () => Date.parse("2026-10-20T13:00:00Z") }, d)).ran).toHaveLength(0);
+  });
+});
+
+describe("removing a source", () => {
+  const sourceCount = (d: ReturnType<typeof openForTest>) => (d.prepare("SELECT COUNT(*) AS n FROM catalog_sources").get() as { n: number }).n;
+
+  it("can keep the products it brought in, as ordinary items", async () => {
+    const { d, id, shop } = setup();
+    await runSource(id, fake({ [FEED]: csv([row("1", "Keep Me", "20.00"), row("2", "Keep Me Too", "30.00")]) }).deps, d);
+    expect(deleteSource(id, false, d)).toEqual({ ok: true, products: 0 });
+    expect(getSource(id, d)).toBeNull();
+    expect(listImportItems({}, d).total).toBe(0);
+    expect(d.prepare("SELECT COUNT(*) AS n FROM import_runs").get()).toEqual({ n: 0 });
+    expect(products(d, shop.id, "Keep Me")).toHaveLength(1);
+    expect(products(d, shop.id, "Keep Me")[0].active).toBe(1);
+  });
+
+  it("can remove its products too, cleaning carts but not touching other sources or orders", async () => {
+    const { d, id, shop } = setup();
+    const other = saveSource({ id: 0, shopId: shop.id, name: "Other feed", kind: "feed_csv", url: "https://feeds.example/other.csv", fieldMap: {}, termsUrl: "", termsNote: "", confirmTerms: true, enabled: false, autoPublishNew: true, autoApplyUpdates: true, maxPriceChangePct: 40, maxItems: 50, delayMs: 3000, intervalHours: 24, staleDays: 14, defaultCategory: "", defaultWeightGrams: 500 }, d);
+    if (!other.ok) throw new Error(other.error);
+    await runSource(id, fake({ [FEED]: csv([row("1", "Gone Hat", "20.00"), row("2", "Gone Scarf", "30.00")]) }).deps, d);
+    const pid = products(d, shop.id, "Gone Hat")[0].id;
+    d.prepare("INSERT INTO carts (token) VALUES ('t')").run();
+    d.prepare("INSERT INTO cart_items (cart_token, product_id, quantity) VALUES ('t', ?, 1)").run(pid);
+    const before = sourceCount(d);
+
+    expect(deleteSource(id, true, d)).toEqual({ ok: true, products: 2 });
+    expect(sourceCount(d)).toBe(before - 1);
+    expect(getSource(other.id, d)).not.toBeNull();
+    expect(products(d, shop.id, "Gone Hat")).toHaveLength(0);
+    expect(products(d, shop.id, "Gone Scarf")).toHaveLength(0);
+    expect(d.prepare("SELECT COUNT(*) AS n FROM cart_items").get()).toEqual({ n: 0 });
+  });
+
+  it("refuses while a run is in progress and for a source that is already gone", async () => {
+    const { d, id } = setup();
+    const t = Date.parse("2026-10-07T12:00:00Z");
+    d.prepare("UPDATE catalog_sources SET running_since = '2026-10-07 11:50:00' WHERE id = ?").run(id);
+    expect(deleteSource(id, false, d, t)).toMatchObject({ ok: false });
+    expect(getSource(id, d)).not.toBeNull();
+    d.prepare("UPDATE catalog_sources SET running_since = '2026-10-07 09:00:00' WHERE id = ?").run(id); // a stale lock from a crashed run
+    expect(deleteSource(id, false, d, t)).toMatchObject({ ok: true });
+    expect(deleteSource(id, false, d, t)).toMatchObject({ ok: false });
   });
 });

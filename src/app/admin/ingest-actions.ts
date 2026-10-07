@@ -7,7 +7,7 @@ import { audit } from "@/lib/audit";
 import { requireAdmin } from "@/lib/auth";
 import { parseFieldMap } from "@/lib/ingest/field-map";
 import { importLinks, previewSource, publishItem, rejectItem, runSource, type LinkResult, type Preview } from "@/lib/ingest/run";
-import { SOURCE_KINDS, getSource, getSourceUrl, saveSource, setSourceEnabled, type SourceKind } from "@/lib/ingest/store";
+import { SOURCE_KINDS, deleteSource, getSource, getSourceUrl, saveSource, setSourceEnabled, type SourceKind } from "@/lib/ingest/store";
 import { db } from "@/lib/db";
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
@@ -52,6 +52,17 @@ export async function saveSourceAction(f: FormData): Promise<void> {
   if (!result.ok) back(path, { error: result.error });
   audit(id > 0 ? "source.update" : "source.create", str(f, "name"), `${kind}`);
   back(`/admin/sources/${result.id}`, { saved: "1" });
+}
+
+export async function deleteSourceAction(f: FormData): Promise<void> {
+  await requireAdmin();
+  const id = num(f, "id");
+  const name = getSource(id)?.name ?? `#${id}`;
+  const removeProducts = str(f, "mode") === "remove";
+  const r = deleteSource(id, removeProducts);
+  if (!r.ok) back(`/admin/sources/${id}`, { error: r.error });
+  audit("source.delete", name, removeProducts ? `and ${r.products} product(s)` : "products kept");
+  back("/admin/sources", { saved: "1" });
 }
 
 export async function toggleSourceAction(f: FormData): Promise<void> {

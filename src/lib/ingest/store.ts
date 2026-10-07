@@ -196,6 +196,34 @@ export function saveSource(i: SourceInput, d: Db = db()): { ok: true; id: number
   return { ok: true, id: Number(info.lastInsertRowid) };
 }
 
+/**
+ * Removes a source and everything we recorded about its runs. `removeProducts` decides what happens to the products it brought in:
+ *  - false: they stay on the shop as ordinary items you manage by hand (they are no longer refreshed);
+ *  - true:  they are deleted too (carts and wishlists drop them; orders already placed keep their own record).
+ */
+export function deleteSource(
+  id: number, removeProducts: boolean, d: Db = db(), now = Date.now(),
+): { ok: true; products: number } | { ok: false; error: string } {
+  const s = getSource(id, d);
+  if (!s) return { ok: false, error: "That source no longer exists." };
+  if (s.runningSince && s.runningSince > new Date(now - 30 * 60_000).toISOString().replace("T", " ").slice(0, 19)) {
+    return { ok: false, error: "A run is in progress. Wait for it to finish, then remove the source." };
+  }
+  let removed = 0;
+  d.transaction(() => {
+    if (removeProducts) {
+      const ids = (d.prepare("SELECT DISTINCT product_id FROM import_items WHERE source_id = ? AND product_id IS NOT NULL").all(id) as { product_id: number }[]).map((r) => r.product_id);
+      for (const pid of ids) {
+        d.prepare("DELETE FROM cart_items WHERE product_id = ?").run(pid);
+        d.prepare("DELETE FROM products WHERE id = ?").run(pid);
+        removed++;
+      }
+    }
+    d.prepare("DELETE FROM catalog_sources WHERE id = ?").run(id); // its items and runs go with it
+  })();
+  return { ok: true, products: removed };
+}
+
 export function setSourceEnabled(id: number, on: boolean, d: Db = db()): { ok: true } | { ok: false; error: string } {
   const s = getSource(id, d);
   if (!s) return { ok: false, error: "That source no longer exists." };

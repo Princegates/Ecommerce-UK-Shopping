@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { runSourceNowAction, toggleSourceAction } from "@/app/admin/ingest-actions";
+import { deleteSourceAction, runSourceNowAction, toggleSourceAction } from "@/app/admin/ingest-actions";
 import SourceForm, { type SourceFormValues } from "@/components/admin/SourceForm";
 import { Flash, PageHead } from "@/components/admin/ui";
 import { requireAdmin } from "@/lib/auth";
@@ -68,6 +68,34 @@ export default async function SourceDetail({ params, searchParams }: { params: P
       )}
 
       <SourceForm v={values} shops={shops} kinds={SOURCE_KINDS} />
+
+      {source && (
+        <details className="mt-10 rounded-2xl border border-red/40 p-4">
+          <summary className="cursor-pointer font-bold text-red">Remove this source</summary>
+          <div className="mt-3 grid gap-3 text-sm">
+            <p>
+              This deletes the source and its run history. It cannot be undone. {source.itemCount} item{source.itemCount === 1 ? "" : "s"} came from it.
+              Choose what happens to the products already on your shop:
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <form action={deleteSourceAction}>
+                <input type="hidden" name="id" value={source.id} />
+                <input type="hidden" name="mode" value="keep" />
+                <button className="btn">Remove source, keep its products</button>
+              </form>
+              <form action={deleteSourceAction}>
+                <input type="hidden" name="id" value={source.id} />
+                <input type="hidden" name="mode" value="remove" />
+                <button className="btn btn-danger">Remove source and its products</button>
+              </form>
+            </div>
+            <p className="hint">
+              Kept products stay on the shop but are no longer refreshed, so their prices can go out of date. Removed products disappear from the shop, carts and wishlists.
+              Orders already placed keep their own record of what was bought.
+            </p>
+          </div>
+        </details>
+      )}
 
       {runs.length > 0 && (
         <section className="mt-10" aria-labelledby="runs-h">
