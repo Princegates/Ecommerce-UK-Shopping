@@ -156,7 +156,7 @@ None. The system is a web application and uses no special hardware.
 | IR-EX-08 | **eBay Browse API** | out | OAuth client-credentials, search UK fixed-price listings in GBP. | Implemented |
 | IR-EX-09 | **Shop websites and feeds** | out | Fetch feeds, sitemaps, Shopify `/meta.json` and `/products.json`, and product pages, subject to FR-CAT-30 to FR-CAT-33. | Implemented |
 | IR-EX-10 | **Inbound endpoints** | in | `/api/webhooks/{stripe,paystack,flutterwave}`; `/api/cron/{messages,fx,ingest}` (bearer secret); `/api/health`. | Implemented |
-| IR-EX-11 | All outbound calls shall use HTTPS where the provider offers it and shall have time and size limits. | M | Implemented | Inspection; `net.test.ts` |
+| IR-EX-11 | **All outbound calls** | out | Shall use HTTPS where the provider offers it and shall have time and size limits (verified by inspection and `net.test.ts`). | Implemented |
 
 ---
 

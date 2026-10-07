@@ -20,6 +20,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--client", default="The owner of SHOP UK FROM GH")
 ap.add_argument("--version", default="1.0")
 ap.add_argument("--date", default=None)
+ap.add_argument("--keep-status", action="store_true", help="keep the implementation-status columns and appendix (internal edition)")
 args = ap.parse_args()
 
 def run(*cmd, **kw):
@@ -44,6 +45,54 @@ if not date:
         m = re.match(r"\*\*Date:\*\*\s*(.+)", l)
         if m: date = m.group(1).strip()
 date = date or "7 October 2026"
+
+def split_row(line):
+    """Cells of a pipe-table row, ignoring pipes inside code spans or escaped."""
+    cells, cur, tick, i = [], "", False, 0
+    line = line.strip()
+    if line.startswith("|"): line = line[1:]
+    if line.endswith("|") and not line.endswith("\\|"): line = line[:-1]
+    while i < len(line):
+        c = line[i]
+        if c == "\\" and i + 1 < len(line): cur += line[i:i + 2]; i += 2; continue
+        if c == "`": tick = not tick
+        if c == "|" and not tick: cells.append(cur.strip()); cur = ""
+        else: cur += c
+        i += 1
+    cells.append(cur.strip())
+    return cells
+
+def client_edition(lines):
+    """Remove the as-built implementation status: Status columns, status summary appendix and wording."""
+    out, i = [], 0
+    while i < len(lines):
+        l = lines[i]
+        if l.startswith("## Appendix A: Requirement status summary"):
+            while not lines[i].startswith("## Appendix B"): i += 1
+            continue
+        if l.startswith("|") and i + 1 < len(lines) and re.match(r"^\|[\s:|-]+\|$", lines[i + 1].strip()) and any(c in ("Status", "**Status**") for c in split_row(l)):
+            col = [c for c in split_row(l)].index("Status")
+            while i < len(lines) and lines[i].startswith("|"):
+                cells = split_row(lines[i]); del cells[col]
+                out.append("| " + " | ".join(cells) + " |"); i += 1
+            continue
+        out.append(l); i += 1
+    t = "\n".join(out)
+    t = re.sub(r"^> \*\*How to read this document\.\*\*.*$", "> **How to read this document.** It states what the system *shall* do. Requirements are numbered so they can be traced to tests ([section 5](#5-verification-and-traceability)). Other documents in the documentation set explain *how* to use, run and build the system; this one defines *what* it must do.", t, flags=re.M)
+    t = t.replace("its priority (M/S/C), its status, and how it is verified", "its priority (M/S/C) and how it is verified")
+    t = re.sub(r"\nStatus for these is \*\*Implemented\*\*.*\n", "\n", t)
+    t = t.replace("## Appendix B: Gaps and future work", "## Appendix A: Future work and planned enhancements")
+    t = re.sub(r"Items below are \*\*not implemented\*\* or only \*\*partial\*\*\..*", "Items below are enhancements and refinements planned for later releases, with a suggested priority.", t)
+    t = t.replace("## Appendix C: Glossary", "## Appendix B: Glossary").replace("## Appendix D: Revision history", "## Appendix C: Revision history")
+    t = t.replace("[Appendix C](#appendix-c-glossary)", "[Appendix B](#appendix-b-glossary)").replace("[Appendix B](#appendix-b-gaps-and-future-work)", "[Appendix A](#appendix-a-future-work-and-planned-enhancements)")
+    t = t.replace("Appendix B", "Appendix A") if False else t
+    t = t.replace("First complete, as-built SRS written from the finished system, with every requirement given a status and a means of verification.", "First complete issue of the SRS, with every requirement numbered, prioritised and given a means of verification.")
+    t = re.sub(r"\nTo keep this document true, update the status.*\n?", "\nTo keep this document current, add new requirements with the next free number in their area.\n", t)
+    return t.split("\n")
+
+if not args.keep_status:
+    md = client_edition(md)
+
 # drop title block, meta lines, reading note's blockquote stays; drop the doc's own Contents list
 start = next(i for i, l in enumerate(md) if l.startswith("> **How to read"))
 body = md[start:]
@@ -57,7 +106,7 @@ for l in body:
     if l.strip() == "---": continue          # headings already carry a rule
     out.append(re.sub(r"^## (.*)$", lambda m: "## " + m.group(1).upper(), l))
 text = "\n".join(out)
-text = text.replace("APPENDIX D: REVISION HISTORY", "APPENDIX D: REVISION HISTORY")
+ABOUT = "E" if args.keep_status else "D"
 
 tmp = tempfile.mkdtemp()
 body_md = os.path.join(tmp, "body.md"); open(body_md, "w", encoding="utf-8").write(text)
@@ -80,12 +129,16 @@ about_t = tpl.rindex("APPENDIX A: ABOUT ANKNOVATE")
 about_p = tpl.rfind("<w:p>", 0, about_t)
 about_p = max(about_p, tpl.rfind("<w:p ", 0, about_t))
 about = tpl[about_p:tpl.index("<w:sectPr", about_p)]
-about = about.replace("APPENDIX A: ABOUT ANKNOVATE", "APPENDIX E: ABOUT ANKNOVATE")
+about = about.replace("APPENDIX A: ABOUT ANKNOVATE", "APPENDIX %s: ABOUT ANKNOVATE" % ABOUT)
 sect = tpl[tpl.index("<w:sectPr", about_p):tpl.index("</w:body>")]
 head_xml = tpl[:b0]
 
 cover = cover_row(cover, "Document Version", args.version)
-cover = cover_row(cover, "Status", "As-built system specification")
+if args.keep_status:
+    cover = cover_row(cover, "Status", "As-built system specification")
+else:
+    cover, n = re.subn(r"<w:tr>(?:(?!</w:tr>).)*?<w:t(?: [^>]*)?>Status</w:t>.*?</w:tr>", "", cover, count=1, flags=re.S)
+    if n != 1: sys.exit("cover Status row not found")
 cover = cover_row(cover, "Business Model", "Online shop and purchasing agent: UK goods paid for once in cedis, shipped to Ghana and delivered to the door")
 cover = cover_row(cover, "Prepared for", args.client)
 cover = cover_row(cover, "Date", date)
@@ -149,7 +202,8 @@ def fit_code(x):
     return re.sub(r'<w:p>(?:(?!</w:p>).)*?<w:pStyle w:val="SourceCode"\s*/>.*?</w:p>', one, x, flags=re.S)
 
 bb = fit_code(fit_tables(bb))
-heads.append("APPENDIX E: ABOUT ANKNOVATE IT CONSULTANCY SERVICES")
+bb = re.sub(r'(<w:p>(?:(?!</w:p>).)*?<w:pStyle w:val="Heading1"\s*/>)((?:(?!</w:p>).)*?APPENDIX A:)', r'\1<w:pageBreakBefore/>\2', bb, count=1, flags=re.S)
+heads.append("APPENDIX %s: ABOUT ANKNOVATE IT CONSULTANCY SERVICES" % ABOUT)
 PB = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>'
 
 def toc(pages):
