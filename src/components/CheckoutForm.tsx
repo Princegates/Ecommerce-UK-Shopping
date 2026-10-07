@@ -13,8 +13,12 @@ type Addr = { id: number; label: string; recipient: string; phone: string; zoneI
 type Profile = { name: string; phone: string; email: string; notifySms: boolean; notifyEmail: boolean; notifyWhatsapp: boolean };
 
 export default function CheckoutForm({
-  items, summary, cfg, initialZone, initialShip, profile, addresses, selectedAddressId,
+  items, summary, cfg, initialZone, initialShip, profile, addresses, selectedAddressId, submitAction = placeOrderAction, hidden = {},
 }: {
+  /** replaces the normal cart checkout, for example when paying a quoted link request */
+  submitAction?: (prev: CheckoutState, formData: FormData) => Promise<CheckoutState>;
+  /** extra hidden fields sent with the form */
+  hidden?: Record<string, string>;
   items: PriceableItem[];
   summary: Summary[];
   cfg: QuoteConfig;
@@ -24,7 +28,7 @@ export default function CheckoutForm({
   addresses: Addr[];
   selectedAddressId: number | null;
 }) {
-  const [state, action, pending] = useActionState<CheckoutState, FormData>(placeOrderAction, {});
+  const [state, action, pending] = useActionState<CheckoutState, FormData>(submitAction, {});
   const first = addresses.find((a) => a.id === selectedAddressId) ?? null;
   const [choice, setChoice] = useState<number | "new">(first ? first.id : "new");
   const [zoneId, setZoneId] = useState(initialZone);
@@ -55,6 +59,7 @@ export default function CheckoutForm({
 
   return (
     <form action={action} className="mt-8 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
+      {Object.entries(hidden).map(([k, val]) => <input key={k} type="hidden" name={k} value={val} />)}
       <div className="grid content-start gap-8">
         {addresses.length > 0 && (
           <section className="box box-shadow grid gap-3 p-5" aria-labelledby="saved-h">

@@ -2,6 +2,7 @@
 
 import { clientKey } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getCustomer } from "@/lib/customer-session";
 import { createLimiter } from "@/lib/throttle";
 import { firstError, linkRequestSchema } from "@/lib/validation";
 
@@ -20,10 +21,11 @@ export async function requestAction(_prev: RequestState, formData: FormData): Pr
   if (!limiter.allowed(key)) return { error: "You have sent several requests recently. Please try again later.", values };
   limiter.record(key);
   const r = parsed.data;
+  const customer = await getCustomer();
   db()
     .prepare(
-      "INSERT INTO link_requests (url, title, details, quantity, price_seen, name, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO link_requests (url, title, details, quantity, price_seen, name, phone, email, customer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
-    .run(r.url, r.title, r.details, r.quantity, r.priceSeen, r.name, r.phone, r.email);
+    .run(r.url, r.title, r.details, r.quantity, r.priceSeen, r.name, r.phone, r.email, customer?.id ?? null);
   return { done: true };
 }

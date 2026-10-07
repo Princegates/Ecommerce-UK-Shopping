@@ -134,7 +134,15 @@ CREATE TABLE IF NOT EXISTS link_requests (
   email      TEXT NOT NULL DEFAULT '',
   status     TEXT NOT NULL DEFAULT 'NEW',
   admin_note TEXT NOT NULL DEFAULT '',
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  -- Filled in when the team quotes the request. The token is the customer's private link to pay for it.
+  token             TEXT,
+  quote_price_minor INTEGER,
+  quote_weight_grams INTEGER,
+  quote_note        TEXT NOT NULL DEFAULT '',
+  quoted_at         TEXT,
+  quote_expires_at  TEXT,
+  order_id          INTEGER
 );
 
 -- Keys and switches for every wired API. Secret values are stored encrypted.

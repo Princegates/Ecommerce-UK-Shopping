@@ -7,6 +7,7 @@ import { clearCart, loadCart, readCartToken } from "@/lib/cart";
 import { getCustomer } from "@/lib/customer-session";
 import { kickOutbox } from "@/lib/notify/kick";
 import { saveAddress } from "@/lib/customers";
+import { placeLinkOrder } from "@/lib/link-orders";
 import { createOrder, getOrderByRef, markPaid, markPaymentFailed } from "@/lib/orders";
 import { randomBytes } from "node:crypto";
 import { appHost, appUrl } from "@/lib/app-url";
@@ -68,6 +69,30 @@ export async function placeOrderAction(_prev: CheckoutState, formData: FormData)
   }
 
   if (token) clearCart(token);
+  revalidatePath("/", "layout");
+  redirect(`/pay/${res.paymentRef}`);
+}
+
+/** Pays for a link request the team has quoted: the same details as checkout, but the item comes from the quote. */
+export async function placeLinkOrderAction(_prev: CheckoutState, formData: FormData): Promise<CheckoutState> {
+  const token = String(formData.get("token") ?? "");
+  const customer = await getCustomer();
+  if (!customer) redirect("/login?next=" + encodeURIComponent(`/quote/${token}`));
+  const values: Record<string, string> = {};
+  for (const k of ["customerName", "phone", "email", "address", "landmark", "notes", "zone", "ship"]) values[k] = String(formData.get(k) ?? "");
+  const parsed = checkoutSchema.safeParse({
+    customerName: values.customerName, phone: values.phone, email: values.email, zoneId: values.zone, address: values.address,
+    landmark: values.landmark, notes: values.notes, shippingCode: values.ship,
+  });
+  if (!parsed.success) return { error: firstError(parsed.error), values };
+  const key = `order:${await clientKey()}`;
+  if (!orderLimiter.allowed(key)) return { error: "You have placed several orders recently. Please try again later or contact us.", values };
+  const res = placeLinkOrder(token, {
+    ...parsed.data, customerId: customer.id,
+    notifySms: formData.get("notifySms") === "on", notifyEmail: formData.get("notifyEmail") === "on", notifyWhatsapp: formData.get("notifyWhatsapp") === "on",
+  });
+  if (!res.ok) return { error: res.error, values };
+  if (!res.existing) orderLimiter.record(key);
   revalidatePath("/", "layout");
   redirect(`/pay/${res.paymentRef}`);
 }

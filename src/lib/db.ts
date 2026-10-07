@@ -46,6 +46,13 @@ export function migrate(d: Db): void {
   if (!productCols.includes("deal_ends_at")) d.exec("ALTER TABLE products ADD COLUMN deal_ends_at TEXT");
   if (!productCols.includes("last_synced_at")) d.exec("ALTER TABLE products ADD COLUMN last_synced_at TEXT");
   if (!has("link_requests").includes("customer_id")) d.exec("ALTER TABLE link_requests ADD COLUMN customer_id INTEGER");
+  for (const [col, ddl] of [
+    ["token", "token TEXT"], ["quote_price_minor", "quote_price_minor INTEGER"], ["quote_weight_grams", "quote_weight_grams INTEGER"],
+    ["quote_note", "quote_note TEXT NOT NULL DEFAULT ''"], ["quoted_at", "quoted_at TEXT"], ["quote_expires_at", "quote_expires_at TEXT"], ["order_id", "order_id INTEGER"],
+  ] as const) {
+    if (!has("link_requests").includes(col)) d.exec(`ALTER TABLE link_requests ADD COLUMN ${ddl}`);
+  }
+  d.exec("CREATE UNIQUE INDEX IF NOT EXISTS link_requests_token_idx ON link_requests (token) WHERE token IS NOT NULL");
 
   d.prepare("UPDATE settings SET value = ? WHERE key = 'site_name' AND value = ?").run(JSON.stringify("SHOP UK FROM GH"), JSON.stringify("Akwaaba UK"));
 

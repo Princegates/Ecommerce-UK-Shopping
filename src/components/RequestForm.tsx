@@ -12,7 +12,7 @@ type Preview =
   | { kind: "found"; name: string; priceMinor: number; host: string }
   | { kind: "none"; reason: string };
 
-export default function RequestForm({ initial = {} }: { initial?: { url?: string; title?: string; priceSeen?: string } }) {
+export default function RequestForm({ initial = {}, signedIn = false }: { initial?: { url?: string; title?: string; priceSeen?: string; name?: string; phone?: string; email?: string }; signedIn?: boolean }) {
   const [state, action, pending] = useActionState<RequestState, FormData>(requestAction, {});
   const v: Record<string, string | undefined> = { ...initial, ...(state.values ?? {}) };
   const [title, setTitle] = useState(v.title ?? "");
@@ -45,10 +45,11 @@ export default function RequestForm({ initial = {} }: { initial?: { url?: string
         <p className="tag tag-green">Request sent</p>
         <h1 className="mt-3 text-3xl">Thanks, we&rsquo;ll quote it</h1>
         <p className="mt-3 text-ink-soft">
-          We will check the price and stock, then contact you on the phone number you gave with the full cost in cedis.
-          Nothing is bought until you agree and pay.
+          We will check the price and stock, then send you the full cost in cedis by message{signedIn ? " and show it in your account" : ""}, with a link to pay.
+          Nothing is bought until you agree and pay. Your order then appears in your account with tracking, like any other order.
         </p>
         <div className="mt-8 flex gap-4">
+          {signedIn && <Link href="/account#requests" className="btn btn-gold">See my requests</Link>}
           <Link href="/shops" className="btn btn-primary">Keep browsing</Link>
           <Link href="/" className="btn">Home</Link>
         </div>

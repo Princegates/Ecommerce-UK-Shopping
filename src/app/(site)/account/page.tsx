@@ -10,6 +10,7 @@ import { STATUS_LABEL } from "@/lib/order-status";
 import { listAddresses } from "@/lib/customers";
 import { ghs } from "@/lib/money";
 import { gbpToGhsMinor } from "@/lib/pricing";
+import { listRequestsForCustomer, quoteState } from "@/lib/link-orders";
 import { listOrdersForCustomer, reorderableItems } from "@/lib/orders";
 import { getSettings } from "@/lib/settings";
 
@@ -20,6 +21,7 @@ export default async function AccountHome({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const orders = listOrdersForCustomer(c.id);
   const addresses = listAddresses(c.id);
+  const requests = listRequestsForCustomer(c.id, c.phone).slice(0, 5);
   const fx = getSettings().fx;
   const latestOpen = orders.find((o) => o.status !== "AWAITING_PAYMENT" && !["DELIVERED", "CANCELLED", "REFUNDED"].includes(o.status));
   const active = orders.filter((o) => !["DELIVERED", "CANCELLED", "REFUNDED"].includes(o.status)).length;
@@ -103,6 +105,29 @@ export default async function AccountHome({ searchParams }: { searchParams: Prom
           </ul>
         )}
       </section>
+
+      {requests.length > 0 && (
+        <section id="requests" className="mt-10 scroll-mt-40" aria-labelledby="req-h">
+          <h2 id="req-h" className="text-2xl">Your link requests</h2>
+          <ul className="mt-4 grid gap-3">
+            {requests.map((q) => {
+              const s = quoteState(q);
+              return (
+                <li key={q.id} className="box flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{q.title || q.url} × {q.quantity}</p>
+                    <p className="text-sm text-ink-soft">
+                      {s === "open" ? "Your price is ready." : s === "waiting" ? "We are checking this item." : s === "expired" ? "The quote expired. Contact us for a fresh price." : s === "ordered" ? "Ordered." : "We could not get this item."}
+                    </p>
+                  </div>
+                  {s === "open" && q.token && <Link href={`/quote/${q.token}`} className="btn btn-small btn-gold">See price and pay</Link>}
+                  {s === "ordered" && q.token && <Link href={`/quote/${q.token}`} className="btn btn-small">View order</Link>}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {again.length > 0 && (
         <section className="mt-10">

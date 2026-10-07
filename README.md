@@ -86,6 +86,16 @@ The scheduler runs inside the server every ten minutes. To run it from your own 
 `/api/cron/ingest`. On the **Request an item by link** page, a shopper's pasted link is looked up the same way (obeying robots.txt)
 to fill in the name and price, or to point them at the item if it is already listed.
 
+### Link orders
+
+Items from shops you do not list (Amazon, Argos and so on) are handled as **link orders**, so they are captured by the system like any other order:
+
+1. The shopper sends a link (home page box, header button, search box or `/request`). If they are signed in it is attached to their account.
+2. In **Admin > Link requests** you check the item on the shop and **send a quote**: the UK price of one item and its weight. The shopper is messaged
+   a private pay link (and you can copy the link yourself). The price is held for the number of days you choose.
+3. The shopper opens the link, sees the full cost in cedis, chooses delivery and pays through the normal checkout.
+4. It is now an ordinary order (statuses, tracking, messages, refunds), linked back to the request. Expired or repeated quotes cannot be ordered twice.
+
 ## Configuration
 
 Copy `.env.example` to `.env.local`. In production set at least `ADMIN_PASSWORD`, `ADMIN_SECRET`

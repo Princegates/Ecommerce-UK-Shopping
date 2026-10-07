@@ -45,6 +45,19 @@ ${i.link ? `<p style="margin:0 0 20px"><a href="${esc(i.link)}" style="display:i
   return { sms, whatsappText, vars, email: { subject, text, html } };
 }
 
+/** Tells a customer their link request has been checked and can be paid for. */
+export function renderQuoteMessage(siteName: string, customerName: string, item: string, link: string, validDays: number): Rendered {
+  const first = customerName.split(/\s+/)[0] || "there";
+  const title = item.length > 60 ? `${item.slice(0, 57)}...` : item;
+  const sms = `${siteName}: your price for "${title}" is ready. See the full cost in cedis and pay (valid ${validDays} days): ${link}`;
+  const text = `Hi ${first},\n\nWe checked "${item}" and your price is ready. Open the link to see the full cost in cedis, choose delivery and pay. The price is held for ${validDays} days.\n\n${link}\n\n${siteName}`;
+  const html = `<p>Hi ${esc(first)},</p><p>We checked <strong>${esc(item)}</strong> and your price is ready. See the full cost in cedis, choose delivery and pay. The price is held for ${validDays} days.</p><p><a href="${esc(link)}">See your price and pay</a></p><p>${esc(siteName)}</p>`;
+  return {
+    sms, whatsappText: sms, vars: { name: first, orderNumber: "", update: sms },
+    email: { subject: `${siteName}: your price is ready`, text, html },
+  };
+}
+
 export function renderResetMessage(siteName: string, link: string, minutes: number): Rendered {
   const sms = `${siteName}: reset your password within ${minutes} minutes: ${link}`;
   const text = `Someone asked to reset the password for your ${siteName} account.\n\nReset it here (valid for ${minutes} minutes): ${link}\n\nIf this was not you, ignore this message. Your password stays the same.`;

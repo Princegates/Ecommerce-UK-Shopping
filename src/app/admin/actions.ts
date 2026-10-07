@@ -9,6 +9,10 @@ import {
 } from "@/lib/auth";
 import { isUploadUrl, saveImage } from "@/lib/uploads";
 import { parseBrackets, parseOptionGroups, parseTiers, safeUrl, isHexColour } from "@/lib/admin-parse";
+import { quoteRequest, getLinkRequest } from "@/lib/link-orders";
+import { appUrl } from "@/lib/app-url";
+import { enqueueDirect } from "@/lib/notify/outbox";
+import { renderQuoteMessage } from "@/lib/notify/templates";
 import { deleteShop, deleteZone, updateLinkRequest, upsertMethod, upsertProduct, upsertShop, upsertZone } from "@/lib/admin";
 import { parseMinor } from "@/lib/money";
 import { setExchangeRate } from "@/lib/fx";
@@ -268,6 +272,28 @@ export async function setOrderStatusAction(f: FormData): Promise<void> {
     kickOutbox();
   }
   done(path, res.ok ? undefined : res.error);
+}
+
+/** Records the UK price the team checked, opens the customer's pay link and tells the customer. */
+export async function quoteRequestAction(f: FormData): Promise<void> {
+  await requireAdmin();
+  const id = num(f, "id");
+  const price = money(f, "unitPrice", "The UK price");
+  if (typeof price === "string") done("/admin/requests", price);
+  const validDays = Math.round(num(f, "validDays")) || 3;
+  const r = quoteRequest(id, { unitPriceMinor: price, weightGrams: Math.round(num(f, "weight")) || 500, validDays, note: str(f, "quoteNote") });
+  if (!r.ok) done("/admin/requests", r.error);
+  const req = getLinkRequest(id)!;
+  const base = appUrl();
+  let sent = "";
+  if (base && f.get("notify") === "on") {
+    const rendered = renderQuoteMessage(getSettings().siteName, req.name, req.title || req.url, `${base}/quote/${r.token}`, validDays);
+    sent = enqueueDirect({ phone: req.phone, email: req.email }, rendered, "link_quote") ?? "";
+    if (sent) kickOutbox();
+  }
+  audit("request.quote", `request ${id}`, `£${(price / 100).toFixed(2)} each${sent ? `, sent by ${sent}` : ", not sent"}`);
+  revalidatePath("/", "layout");
+  redirect(`/admin/requests?quoted=${id}&via=${encodeURIComponent(sent)}`);
 }
 
 export async function updateRequestAction(f: FormData): Promise<void> {

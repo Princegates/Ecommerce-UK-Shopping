@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
   const base = appUrl();
   return {
     rules: [
-      { userAgent: "*", allow: "/", disallow: ["/admin", "/account", "/api/", "/cart", "/checkout", "/pay/", "/order/", "/login", "/register", "/reset-password/"] },
+      { userAgent: "*", allow: "/", disallow: ["/admin", "/account", "/api/", "/cart", "/checkout", "/pay/", "/order/", "/quote/", "/login", "/register", "/reset-password/"] },
     ],
     ...(base ? { host: base } : {}),
   };
