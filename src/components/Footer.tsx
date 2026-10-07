@@ -48,7 +48,10 @@ export default function Footer() {
             {PAY.map((m) => <li key={m} className="rounded border border-white/30 px-2 py-1 text-xs text-white/85">{m}</li>)}
           </ul>
         </div>
-        <p className="mx-auto max-w-[90rem] px-4 pb-6 text-xs text-white/60">© {new Date().getFullYear()} {siteName}. Shop names and prices shown are sample data until you replace them in the admin area.</p>
+        <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-3 px-4 pb-6 text-xs text-white/60">
+          <p>© {new Date().getFullYear()} {siteName}. Shop names and prices shown are sample data until you replace them in the admin area.</p>
+          <Link href="/admin" rel="nofollow" className="rounded-lg border border-white/30 px-3 py-1.5 font-medium text-white/85 hover:bg-white/10 hover:text-white">Admin</Link>
+        </div>
       </div>
     </footer>
   );
