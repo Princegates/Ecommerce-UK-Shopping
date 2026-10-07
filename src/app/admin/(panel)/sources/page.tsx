@@ -45,13 +45,21 @@ export default async function SourcesAdmin({ searchParams }: { searchParams: Pro
               <li>Come back here: <strong>Add a source → Product feed (CSV)</strong>, paste the address, tick the permission box, click <strong>Check this setup first</strong>, then <strong>Create source</strong>.</li>
             </ol>
           </div>
+          <div className="md:col-span-2">
+            <p className="font-bold">The fastest way today: eBay&rsquo;s official free API</p>
+            <ol className="mt-1 grid list-decimal gap-1 pl-5">
+              <li>Create a free account at <a className="link" href="https://developer.ebay.com" target="_blank" rel="noopener noreferrer">developer.ebay.com</a> and create a <strong>Production</strong> keyset (App ID and Cert ID).</li>
+              <li>Paste them under <a className="link" href="/admin/integrations#catalog-apis">Integrations → Catalogue APIs</a> and press <strong>Test connection</strong>.</li>
+              <li>Here: <strong>Add a source → eBay (official API)</strong>, list your searches (for example <em>men&rsquo;s trainers</em>, <em>kettle</em>), click <strong>Check this setup first</strong>, then <strong>Create source</strong>.</li>
+            </ol>
+            <p className="mt-1 text-ink-soft">You get real UK listings with eBay&rsquo;s own photos, prices and links, refreshed automatically. Read eBay&rsquo;s API licence for how listing data and photos may be shown.</p>
+          </div>
           <div>
             <p className="font-bold">What you get, and what you don&rsquo;t</p>
             <ul className="mt-1 grid list-disc gap-1 pl-5">
               <li>Real product names, prices, was-prices, stock and <strong>the shop&rsquo;s own photos</strong>, refreshed automatically.</li>
               <li>Only shops that offer a feed (or allow reading their site). Big retailers that forbid scraping are reached through their affiliate programme, not by reading their website.</li>
               <li>Photos are linked from the shop&rsquo;s servers, not copied, so they update when the shop changes them.</li>
-              <li>Want to see it work first? Open <a className="link" href="/demo-shop">/demo-shop</a> on this site for a safe practice run.</li>
             </ul>
           </div>
         </div>

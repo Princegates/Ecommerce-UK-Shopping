@@ -33,7 +33,7 @@ export async function saveSourceAction(f: FormData): Promise<void> {
     name: str(f, "name"),
     kind: SOURCE_KINDS.some((k) => k.kind === kind) ? kind : "feed_csv",
     url: str(f, "url"),
-    fieldMap: parseFieldMap(str(f, "fieldMap")),
+    fieldMap: kind === "ebay" ? { queries: String(f.get("fieldMap") ?? "") } : parseFieldMap(str(f, "fieldMap")),
     termsUrl: str(f, "termsUrl"),
     termsNote: str(f, "termsNote"),
     confirmTerms: on(f, "confirmTerms"),
@@ -86,7 +86,8 @@ export type PreviewState = { preview?: Preview; error?: string };
 export async function previewSourceAction(_prev: PreviewState, f: FormData): Promise<PreviewState> {
   await requireAdmin();
   const kind = str(f, "kind") as SourceKind;
-  if (!SOURCE_KINDS.some((k) => k.kind === kind) || kind === "links") return { error: "Choose a feed or sitemap type to preview." };
+  if (!SOURCE_KINDS.some((k) => k.kind === kind) || kind === "links") return { error: "Choose a feed, sitemap or eBay type to preview." };
+  if (kind === "ebay") return { preview: await previewSource({ kind, url: "", fieldMap: { queries: String(f.get("fieldMap") ?? "") } }) };
   const id = num(f, "id");
   const url = str(f, "url") || (id > 0 ? getSourceUrl(id) : "");
   if (!url) return { error: "Enter the feed or sitemap address first." };

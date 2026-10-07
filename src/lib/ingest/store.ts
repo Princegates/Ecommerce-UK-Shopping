@@ -2,16 +2,18 @@ import "server-only";
 import type Database from "better-sqlite3";
 import { db } from "../db";
 import { decrypt, encrypt, encryptionPassphrase } from "../secrets";
+import { parseQueries } from "./ebay-queries";
 import { assertFetchableUrl } from "./net";
 import { canonicalUrl, type FieldMap, type NormalizedItem } from "./parse";
 
 type Db = Database.Database;
 
-export type SourceKind = "feed_csv" | "feed_json" | "sitemap" | "links";
+export type SourceKind = "feed_csv" | "feed_json" | "sitemap" | "links" | "ebay";
 export const SOURCE_KINDS: { kind: SourceKind; label: string; help: string }[] = [
   { kind: "feed_csv", label: "Product feed (CSV)", help: "An official or affiliate feed. The most reliable source: prices, stock and images come straight from the shop." },
   { kind: "feed_json", label: "Product feed (JSON)", help: "The same, as JSON." },
   { kind: "sitemap", label: "Shop website (sitemap + product pages)", help: "Reads the shop's sitemap and the product data on each page. Only for shops whose terms and robots.txt allow it." },
+  { kind: "ebay", label: "eBay (official API)", help: "Real UK listings with eBay's own photos, prices and links. Needs your free eBay developer keys (Admin > Integrations)." },
   { kind: "links", label: "Pasted product links", help: "Items added one by one from a link. Their prices are refreshed automatically." },
 ];
 
@@ -154,9 +156,10 @@ export function saveSource(i: SourceInput, d: Db = db()): { ok: true; id: number
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : "That address cannot be used." };
     }
-  } else if (i.kind !== "links" && i.id === 0) {
+  } else if (i.kind !== "links" && i.kind !== "ebay" && i.id === 0) {
     return { ok: false, error: "Enter the feed or sitemap address." };
   }
+  if (i.kind === "ebay" && parseQueries(i.fieldMap.queries ?? "").length === 0) return { ok: false, error: "List at least one eBay search, one per line (for example: men's trainers)." };
   if (i.termsUrl.trim() && !/^https?:\/\//i.test(i.termsUrl.trim())) return { ok: false, error: "The terms link must start with http:// or https://" };
   if (i.enabled && !i.confirmTerms && !(i.id > 0 && getSource(i.id, d)?.termsConfirmedAt)) {
     return { ok: false, error: "Confirm that you have checked the shop's terms (or hold a licence for this feed) before switching the source on." };

@@ -31,7 +31,8 @@ export default function IntegrationCard({
   const webhookUrl = def.webhook ? `${baseUrl ?? "https://YOUR-SITE"}${def.webhook.path}` : null;
   const isPayment = def.channels.includes("payments");
   const isRates = def.channels.includes("rates");
-  const checkChannel = isPayment ? "payments" : "rates";
+  const isCatalog = def.channels.includes("catalog");
+  const checkChannel = isPayment ? "payments" : isCatalog ? "catalog" : "rates";
   const savedSecrets = def.fields.filter((f) => f.secret && cfg.sources[f.key] === "admin");
 
   return (
@@ -126,12 +127,12 @@ export default function IntegrationCard({
 
         <div className="grid gap-3 border-t-2 border-solid border-line pt-5">
           <p className="label">Check it works</p>
-          {isPayment || isRates ? (
+          {isPayment || isRates || isCatalog ? (
             <form action={testIntegrationAction} className="flex flex-wrap items-center gap-3">
               <input type="hidden" name="provider" value={def.id} />
               <input type="hidden" name="channel" value={checkChannel} />
               <button className="btn btn-small" disabled={!isConfigured(def, cfg, checkChannel)}>Test connection</button>
-              <span className="hint">{isPayment ? `Makes one harmless call to ${def.name} with the saved keys. No money moves.` : `Fetches today's pound-to-cedi rate to prove the key works. Nothing is changed.`}</span>
+              <span className="hint">{isPayment ? `Makes one harmless call to ${def.name} with the saved keys. No money moves.` : isCatalog ? `Asks ${def.name} for a sign-in token to prove the keys work. Nothing is imported.` : `Fetches today's pound-to-cedi rate to prove the key works. Nothing is changed.`}</span>
             </form>
           ) : (
             <form action={testIntegrationAction} className="flex flex-wrap items-end gap-3">

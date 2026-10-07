@@ -10,11 +10,12 @@ import {
 import {
   canonicalUrl, csvToRecords, extractPageProduct, jsonToRecords, mapRecord, parseSitemap, type FieldMap, type NormalizedItem,
 } from "./parse";
+import { ebayConfig, ebayToken, mapEbayItem, parseQueries, searchEbay } from "./ebay";
 import { getSource, getSourceUrl, linksSourceFor, type ImportItem, type Source, type SourceKind } from "./store";
 
 type Db = Database.Database;
 
-export type IngestDeps = PoliteDeps & { now?: () => number };
+export type IngestDeps = PoliteDeps & { now?: () => number; /** replaces fetch for eBay API calls (tests) */ ebayFetch?: typeof fetch };
 
 const sqlTime = (ms: number) => new Date(ms).toISOString().replace("T", " ").slice(0, 19);
 const fmtGbp = (minor: number) => `£${(minor / 100).toFixed(2)}`;
@@ -186,6 +187,28 @@ function addSkip(m: Map<string, number>, why: string) {
 
 const FEED_ROW_LIMIT = 20_000;
 
+/** One sign-in, then one search per line. Search results vary from run to run, so a missing item is never treated as removed. */
+async function gatherEbay(queriesText: string, perSearch: number, d: Db, f?: typeof fetch): Promise<Gathered> {
+  const cfg = ebayConfig(d);
+  if (!cfg) throw new Error("Add your eBay App ID and Cert ID in Admin > Integrations first, and switch eBay on.");
+  const queries = parseQueries(queriesText);
+  if (queries.length === 0) throw new Error("This source has no eBay searches. Add one per line.");
+  const token = await ebayToken(cfg, f);
+  const skips = new Map<string, number>();
+  const seen = new Set<string>();
+  const items: NormalizedItem[] = [];
+  for (const q of queries) {
+    for (const raw of await searchEbay(cfg, token, q, perSearch, f)) {
+      const m = mapEbayItem(raw);
+      if ("skip" in m) { addSkip(skips, m.skip); continue; }
+      if (seen.has(m.item.externalId)) { addSkip(skips, "duplicate across searches"); continue; }
+      seen.add(m.item.externalId);
+      items.push(m.item);
+    }
+  }
+  return { items, skips, complete: false };
+}
+
 async function gatherFeed(kind: SourceKind, url: string, map: FieldMap, dp: PoliteDeps): Promise<Gathered> {
   const { res } = await politeFetch(url, dp, {
     maxBytes: 40_000_000, timeoutMs: 90_000, accept: kind === "feed_json" ? "application/json,*/*;q=0.5" : "text/csv,text/plain,*/*;q=0.5",
@@ -317,6 +340,8 @@ export async function runSource(id: number, o: IngestDeps = {}, d: Db = db(), op
     if (source.kind === "feed_csv" || source.kind === "feed_json") {
       if (!url) throw new Error("This source has no feed address.");
       gathered = await gatherFeed(source.kind, url, source.fieldMap, dp);
+    } else if (source.kind === "ebay") {
+      gathered = await gatherEbay(source.fieldMap.queries ?? "", source.maxItems, d, o.ebayFetch);
     } else {
       const robots = new RobotsCache(dp);
       let urls: string[];
@@ -506,9 +531,14 @@ export type Preview = { ok: boolean; message: string; sample: NormalizedItem[]; 
 export async function previewSource(
   i: { kind: SourceKind; url: string; fieldMap: FieldMap },
   ioDeps: IngestDeps = {},
+  d: Db = db(),
 ): Promise<Preview> {
   const dp = deps(ioDeps);
   try {
+    if (i.kind === "ebay") {
+      const g = await gatherEbay(i.fieldMap.queries ?? "", 10, d, ioDeps.ebayFetch);
+      return { ok: g.items.length > 0, message: g.items.length ? `eBay returned ${g.items.length} usable listing${g.items.length === 1 ? "" : "s"} for your searches.` : "eBay returned no usable listings for those searches. Try different words.", sample: g.items.slice(0, 5), skipNote: summarise(g.skips), totalRows: g.items.length };
+    }
     assertFetchableUrl(i.url);
     if (i.kind === "feed_csv" || i.kind === "feed_json") {
       const g = await gatherFeed(i.kind, i.url, i.fieldMap, dp);

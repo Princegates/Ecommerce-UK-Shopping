@@ -58,7 +58,7 @@ Ghana and the UK); a region cannot be changed after the service exists, so pick 
 ## 3. After the first deploy
 
 1. Open `https://<your-domain>/api/health`. It should answer `{"ok":true}`.
-2. Sign in at `/admin` and replace the fictional sample shops and products (or add catalogue sources).
+2. Sign in at `/admin`, add your eBay keys under **Integrations → Catalogue APIs**, then add a **Catalogue source** of type eBay with the searches you want. The shop is empty until you do.
 3. **Admin > Pricing:** set the exchange rate, markup, service charge and minimum order. **Shipping** and **Delivery areas:** set your real rates.
 4. **Admin > Integrations:** add a payment gateway, then the message providers. Use each card's webhook address from the page
    (`{APP_URL}/api/webhooks/stripe`, `/paystack`, `/flutterwave`) and press **Test**.

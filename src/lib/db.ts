@@ -3,7 +3,7 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { SCHEMA } from "./schema";
-import { applySampleImages, seedIfEmpty } from "./seed";
+import { removeSampleData, seedIfEmpty } from "./seed";
 
 type Db = Database.Database;
 
@@ -17,13 +17,15 @@ function open(): Db {
   db.pragma("foreign_keys = ON");
   db.exec(SCHEMA);
   migrate(db);
-  seedIfEmpty(db);
-  applySampleImages(db);
+  const sample = process.env.SEED_SAMPLE_DATA === "true";
+  seedIfEmpty(db, { sample });
+  if (!sample) removeSampleData(db);
   return db;
 }
 
 /** Columns added after the first release, applied to databases created before them. */
-function migrate(d: Db): void {
+export function migrate(d: Db): void {
+  widenSourceKinds(d);
   const has = (table: string) => (d.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
   const orderCols = has("orders");
   const add = (name: string, ddl: string) => {
@@ -50,6 +52,27 @@ function migrate(d: Db): void {
   if (!msgCols.includes("locked_at")) d.exec("ALTER TABLE messages ADD COLUMN locked_at TEXT");
 }
 
+/**
+ * Databases made before eBay support only allow four kinds of catalogue source. SQLite cannot change a CHECK
+ * constraint in place, so the table is rebuilt once with the wider rule (rows, and the items that point at them, are kept).
+ */
+function widenSourceKinds(d: Db): void {
+  const t = d.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'catalog_sources'").get() as { sql: string } | undefined;
+  if (!t || t.sql.includes("'ebay'")) return;
+  const widened = t.sql.replace("'links')", "'links', 'ebay')").replace(/CREATE TABLE (IF NOT EXISTS )?"?catalog_sources"?/i, "CREATE TABLE catalog_sources_new");
+  d.pragma("foreign_keys = OFF");
+  try {
+    d.transaction(() => {
+      d.exec(widened);
+      d.exec("INSERT INTO catalog_sources_new SELECT * FROM catalog_sources");
+      d.exec("DROP TABLE catalog_sources");
+      d.exec("ALTER TABLE catalog_sources_new RENAME TO catalog_sources");
+    })();
+  } finally {
+    d.pragma("foreign_keys = ON");
+  }
+}
+
 export function db(): Db {
   globalForDb.__shopDb ??= open();
   return globalForDb.__shopDb;
@@ -62,6 +85,5 @@ export function openForTest(): Db {
   d.exec(SCHEMA);
   migrate(d);
   seedIfEmpty(d);
-  applySampleImages(d);
   return d;
 }

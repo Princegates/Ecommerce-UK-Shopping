@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { previewSourceAction, saveSourceAction, type PreviewState } from "@/app/admin/ingest-actions";
 import { Area, Check, Select, Text } from "@/components/admin/ui";
 import { gbp } from "@/lib/money";
@@ -36,6 +36,8 @@ export default function SourceForm({
 }) {
   const [pv, previewAct, previewing] = useActionState<PreviewState, FormData>(previewSourceAction, {});
   const editing = v.id > 0;
+  const [kind, setKind] = useState(v.kind);
+  const isEbay = kind === "ebay";
 
   return (
     <form action={saveSourceAction} className="grid gap-8">
@@ -49,24 +51,44 @@ export default function SourceForm({
           </Select>
           <Text label="Name for this source" name="name" defaultValue={v.name} required placeholder="e.g. Northgate affiliate feed" />
         </div>
-        <Select label="Type" name="kind" defaultValue={v.kind} hint={kinds.map((k) => `${k.label}: ${k.help}`).join(" ")}>
-          {kinds.map((k) => <option key={k.kind} value={k.kind}>{k.label}</option>)}
-        </Select>
-        <Text
-          label={editing ? "Feed or sitemap address (leave empty to keep the saved one)" : "Feed or sitemap address"}
-          name="url"
-          type="url"
-          placeholder="https://"
-          hint={editing && v.urlDisplay ? `Saved address: ${v.urlDisplay}. Addresses are stored encrypted because feed links often contain a key.` : "Stored encrypted because feed links often contain a key. Not needed for pasted links."}
-        />
-        <Area
-          label="Column names (optional)"
-          name="fieldMap"
-          defaultValue={v.fieldMapText}
-          mono
-          rows={4}
-          hint="One per line, like name=product_title. Most feeds are recognised automatically. For JSON use paths like price=offer.gbp. For website sources, include=/product/ limits which pages are read."
-        />
+        <div className="field">
+          <label className="label" htmlFor="kind">Type</label>
+          <select id="kind" name="kind" className="select" value={kind} onChange={(e) => setKind(e.target.value)}>
+            {kinds.map((k) => <option key={k.kind} value={k.kind}>{k.label}</option>)}
+          </select>
+          <p className="hint">{kinds.find((k) => k.kind === kind)?.help}</p>
+        </div>
+        {isEbay ? (
+          <>
+            <input type="hidden" name="url" value="" />
+            <Area
+              label="Your eBay searches (one per line, up to 10)"
+              name="fieldMap"
+              defaultValue={v.fieldMapText}
+              mono
+              rows={5}
+              hint="For example: men's trainers, kettle, baby clothes. Each search brings in up to 'Items per search' new UK listings priced in pounds, with eBay's photos. Add your free eBay keys first under Integrations."
+            />
+          </>
+        ) : (
+          <>
+            <Text
+              label={editing ? "Feed or sitemap address (leave empty to keep the saved one)" : "Feed or sitemap address"}
+              name="url"
+              type="url"
+              placeholder="https://"
+              hint={editing && v.urlDisplay ? `Saved address: ${v.urlDisplay}. Addresses are stored encrypted because feed links often contain a key.` : "Stored encrypted because feed links often contain a key. Not needed for pasted links."}
+            />
+            <Area
+              label="Column names (optional)"
+              name="fieldMap"
+              defaultValue={v.fieldMapText}
+              mono
+              rows={4}
+              hint="One per line, like name=product_title. Most feeds are recognised automatically. For JSON use paths like price=offer.gbp. For website sources, include=/product/ limits which pages are read."
+            />
+          </>
+        )}
       </section>
 
       <section className="box box-shadow grid gap-4 border-gold p-5">
@@ -100,7 +122,7 @@ export default function SourceForm({
         <details>
           <summary className="cursor-pointer font-semibold">More settings</summary>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <Text label="Pages read per run (website and link sources)" name="maxItems" inputMode="numeric" defaultValue={v.maxItems} hint="Pages are read slowly, so a big shop is covered over several runs." />
+            <Text label={isEbay ? "Items per search" : "Pages read per run (website and link sources)"} name="maxItems" inputMode="numeric" defaultValue={v.maxItems} hint={isEbay ? "Up to 200. eBay returns its best matches for each search." : "Pages are read slowly, so a big shop is covered over several runs."} />
             <Text label="Seconds between page requests (at least 2)" name="delaySeconds" inputMode="decimal" defaultValue={v.delaySeconds} hint="A longer Crawl-delay in the shop's robots.txt always wins." />
             <Text label="Category for items that have none" name="defaultCategory" defaultValue={v.defaultCategory} />
             <Text label="Weight when the shop gives none (grams)" name="defaultWeightGrams" inputMode="numeric" defaultValue={v.defaultWeightGrams} hint="Used for shipping. Check heavy categories." />

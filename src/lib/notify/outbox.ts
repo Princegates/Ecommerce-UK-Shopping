@@ -15,7 +15,7 @@ import { renderOrderMessage, renderTestMessage, type Rendered } from "./template
 import type { Json } from "@/lib/json";
 
 type Db = Database.Database;
-export type MessageChannel = Exclude<Channel, "payments" | "rates">;
+export type MessageChannel = Exclude<Channel, "payments" | "rates" | "catalog">;
 export const MESSAGE_CHANNELS: MessageChannel[] = ["sms", "whatsapp", "email"];
 const MAX_ATTEMPTS = 3;
 const STALE_LOCK_MINUTES = 5;

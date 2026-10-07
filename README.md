@@ -16,8 +16,9 @@ npm install
 npm run dev          # http://localhost:3000, admin at /admin (dev password: admin)
 ```
 
-On first start the database is created and filled with **fictional sample shops and products**. Replace
-them in the admin before going live. Nothing shown is a real retailer listing or price.
+On first start the database is created with the settings, shipping rates, delivery areas and one shop, **eBay UK**.
+Nothing fictional is created. Fill the shop with real listings from a Catalogue source (see below). For local
+development only, `SEED_SAMPLE_DATA=true` adds made-up sample shops and products.
 
 ```bash
 npm run lint && npm run typecheck && npm test   # checks
@@ -61,6 +62,7 @@ A source is one place we are allowed to read a shop's products from. Add them in
 | --- | --- | --- |
 | Product feed (CSV or JSON) | Official and affiliate feeds | Most reliable. Columns are recognised automatically; override them with lines like `price=cost.gbp`. |
 | Shop website (sitemap + product pages) | Shops whose terms and robots.txt allow it | Reads the sitemap, then product pages one at a time using the product data (JSON-LD or Open Graph) each page publishes. |
+| eBay (official API) | Real UK listings with photos | Free developer keys (Admin > Integrations > Catalogue APIs), then list your searches. Only new, fixed-price, UK-located listings priced in pounds. |
 | Pasted links | One-off items | Paste up to 20 product links. Prices are re-checked automatically. |
 
 **What runs by itself:** new items go live, price, was-price and stock changes update live items, items that disappear from a
@@ -77,9 +79,6 @@ review** instead.
   It does not retry with another identity, rotate addresses or try to get past CAPTCHAs or blocks. Use the shop's official feed or add
   items by hand for shops that refuse automated reading.
 - Only prices in pounds are accepted. Images are linked from the source, so confirm your licence covers that.
-
-**Try it safely first:** your site hosts a pretend UK shop at `/demo-shop` (a feed, a sitemap and product pages), with a step-by-step guide on that page.
-Point a source at it to watch the importer work on your own server. Switch it off with `DISABLE_DEMO_SHOP=true`.
 
 The scheduler runs inside the server every ten minutes. To run it from your own scheduler instead, set `INGEST_AUTORUN=false` and call
 `/api/cron/ingest`. On the **Request an item by link** page, a shopper's pasted link is looked up the same way (obeying robots.txt)

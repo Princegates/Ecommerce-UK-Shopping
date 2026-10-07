@@ -1,13 +1,13 @@
 import type Database from "better-sqlite3";
 import { slugify } from "./slug";
 import type { RateCard, ServiceFeeRule } from "./pricing";
-import { SAMPLE_IMAGES } from "./sample-images";
 
 /**
- * Sample data so the site is usable on first run. Every shop and product here
- * is fictional: real retailers need a terms assessment before they are listed,
- * and their names, logos and photos are not ours to use. Replace this data from
- * the admin area.
+ * A new database starts with the settings, shipping rates and delivery areas, and ONE shop: eBay UK, which the eBay
+ * catalogue source fills with real listings. Nothing fictional is created.
+ *
+ * The made-up shops and products below exist only as test and development fixtures. They are created only for the
+ * automated tests, or when SEED_SAMPLE_DATA=true is set for local development. Never in production.
  */
 
 type SeedShop = {
@@ -127,7 +127,15 @@ const ZONES: [name: string, areas: string, feeMinor: number, eta: string][] = [
   ["Other regions", "Kumasi, Takoradi, Tamale and elsewhere in Ghana", 12000, "3 to 6 days"],
 ];
 
-export function seedIfEmpty(db: Database.Database): void {
+export const EBAY_SHOP = {
+  name: "eBay UK",
+  tagline: "New items from UK sellers",
+  category: "Marketplace",
+  accent: "#1f4e79",
+  description: "New items from UK sellers on eBay, brought in through eBay's official API.",
+};
+
+export function seedIfEmpty(db: Database.Database, opts: { sample?: boolean } = { sample: true }): void {
   const hasShops = db.prepare("SELECT COUNT(*) AS n FROM shops").get() as { n: number };
   if (hasShops.n > 0) return;
 
@@ -143,11 +151,12 @@ export function seedIfEmpty(db: Database.Database): void {
 
   const run = db.transaction(() => {
     const ids = new Map<string, number>();
-    SHOPS.forEach((s, i) => {
+    const shops = opts.sample ? SHOPS : [EBAY_SHOP];
+    shops.forEach((s, i) => {
       const r = insertShop.run({ ...s, slug: slugify(s.name), sort: i });
       ids.set(s.name, Number(r.lastInsertRowid));
     });
-    for (const [shop, name, brand, category, pounds, grams, options, description] of PRODUCTS) {
+    for (const [shop, name, brand, category, pounds, grams, options, description] of opts.sample ? PRODUCTS : []) {
       insertProduct.run({
         shop_id: ids.get(shop),
         slug: slugify(`${shop}-${name}`),
@@ -163,7 +172,7 @@ export function seedIfEmpty(db: Database.Database): void {
 
     // Sample "was" prices so the deals shelf has something to show. Replace them in the admin area.
     const setDeal = db.prepare("UPDATE products SET compare_at_minor = ?, deal_ends_at = datetime('now', '+3 days') WHERE name = ?");
-    for (const [name, was] of DEALS) setDeal.run(Math.round(was * 100), name);
+    if (opts.sample) for (const [name, was] of DEALS) setDeal.run(Math.round(was * 100), name);
 
     const insertMethod = db.prepare(
       "INSERT INTO shipping_methods (code, name, eta, rate_card, sort) VALUES (?, ?, ?, ?, ?)",
@@ -187,19 +196,33 @@ export function seedIfEmpty(db: Database.Database): void {
 }
 
 /**
- * Gives the fictional sample products their illustrated pictures. It runs once per database (so an admin who later removes or
- * replaces a picture is not overruled) and only touches products of the sample shops that have no picture yet.
+ * Removes the made-up shops and products that earlier versions created, once per database. Orders already placed keep
+ * their own record of what was bought, so history is unaffected. Shops you added yourself are never touched. If no shop
+ * is left, the eBay UK shop is created so there is somewhere for eBay listings to go.
  */
-export function applySampleImages(db: Database.Database): void {
-  const done = db.prepare("SELECT value FROM settings WHERE key = 'sample_images_applied'").get();
-  if (done) return;
-  const set = db.prepare(
-    `UPDATE products SET image_url = ? WHERE name = ? AND image_url IS NULL AND source_url = ''
-       AND shop_id IN (SELECT id FROM shops WHERE description LIKE '%(sample shop)%')`,
-  );
+export function removeSampleData(db: Database.Database): { shops: number; products: number } {
+  if (db.prepare("SELECT 1 FROM settings WHERE key = 'sample_data_removed'").get()) return { shops: 0, products: 0 };
+  let shops = 0;
+  let products = 0;
   const run = db.transaction(() => {
-    for (const [name, url] of Object.entries(SAMPLE_IMAGES)) set.run(url, name);
-    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('sample_images_applied', '1')").run();
+    const sample = (db.prepare("SELECT id FROM shops WHERE description LIKE '%(sample shop)%'").all() as { id: number }[]).map((r) => r.id);
+    for (const id of sample) {
+      const ids = (db.prepare("SELECT id FROM products WHERE shop_id = ?").all(id) as { id: number }[]).map((r) => r.id);
+      for (const pid of ids) {
+        db.prepare("DELETE FROM cart_items WHERE product_id = ?").run(pid);
+        db.prepare("DELETE FROM products WHERE id = ?").run(pid); // wishlist items and reviews go with it
+        products++;
+      }
+      db.prepare("DELETE FROM shops WHERE id = ?").run(id); // its catalogue sources go with it
+      shops++;
+    }
+    if ((db.prepare("SELECT COUNT(*) AS n FROM shops").get() as { n: number }).n === 0) {
+      db.prepare(
+        "INSERT INTO shops (slug, name, tagline, category, website_url, description, accent, sort) VALUES (?, ?, ?, ?, '', ?, ?, 0)",
+      ).run(slugify(EBAY_SHOP.name), EBAY_SHOP.name, EBAY_SHOP.tagline, EBAY_SHOP.category, EBAY_SHOP.description, EBAY_SHOP.accent);
+    }
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('sample_data_removed', '1')").run();
   });
   run();
+  return { shops, products };
 }

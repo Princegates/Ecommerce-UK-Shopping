@@ -183,9 +183,11 @@ export function jsonToRecords(text: string): Record<string, unknown>[] {
 export type FieldMap = Partial<Record<"id" | "name" | "price" | "compareAt" | "currency" | "url" | "image" | "brand" | "category" | "description" | "stock" | "weight", string>> & {
   include?: string;
   exclude?: string;
+  /** eBay sources: the searches to run, one per line. */
+  queries?: string;
 };
 
-const ALIASES: Record<keyof Omit<FieldMap, "include" | "exclude">, string[]> = {
+const ALIASES: Record<keyof Omit<FieldMap, "include" | "exclude" | "queries">, string[]> = {
   id: ["id", "sku", "productid", "product_id", "merchantproductid", "merchant_product_id", "awproductid", "aw_product_id", "mpn", "gtin", "itemid"],
   name: ["name", "title", "productname", "product_name"],
   price: ["searchprice", "search_price", "price", "saleprice", "sale_price", "currentprice", "current_price", "storeprice", "store_price"],

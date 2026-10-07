@@ -21,6 +21,7 @@ import { addTracking, deleteTracking } from "@/lib/orders";
 import { setReviewStatus } from "@/lib/reviews";
 import { ORDER_STATUSES } from "@/lib/order-status";
 import { buildGateway } from "@/lib/payments";
+import { ebayConfig, ebayToken } from "@/lib/ingest/ebay";
 import { getSettings, setSetting } from "@/lib/settings";
 import { THEMES } from "@/lib/themes";
 import { db } from "@/lib/db";
@@ -109,6 +110,20 @@ export async function testIntegrationAction(f: FormData): Promise<void> {
       result = await gateway.ping();
     } catch {
       result = { ok: false, message: "Could not reach the provider." };
+    }
+    audit("integration.test", def.name, result.ok ? "ok" : "failed");
+    back("/admin/integrations", { test: result.ok ? "ok" : "fail", p: def.id, msg: result.message }, hash);
+  }
+
+  if (channel === "catalog") {
+    const cfg = ebayConfig();
+    if (!cfg) back("/admin/integrations", { test: "fail", p: def.id, msg: "Save the App ID and Cert ID first, and switch eBay on." }, hash);
+    let result: { ok: boolean; message: string };
+    try {
+      await ebayToken(cfg);
+      result = { ok: true, message: `eBay accepted the keys (${cfg.environment}).` };
+    } catch (e) {
+      result = { ok: false, message: e instanceof Error ? e.message : "Could not reach eBay." };
     }
     audit("integration.test", def.name, result.ok ? "ok" : "failed");
     back("/admin/integrations", { test: result.ok ? "ok" : "fail", p: def.id, msg: result.message }, hash);

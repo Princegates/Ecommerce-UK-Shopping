@@ -5,12 +5,13 @@ import { getSetting, setSetting } from "./settings";
 
 type Db = Database.Database;
 
-export type Channel = "payments" | "sms" | "whatsapp" | "email" | "rates";
+export type Channel = "payments" | "sms" | "whatsapp" | "email" | "rates" | "catalog";
 export type ProviderId =
   | "stripe" | "paystack" | "flutterwave"
   | "arkesel" | "twilio" | "meta_whatsapp"
   | "resend" | "postmark"
-  | "exchangerate_api" | "openexchangerates";
+  | "exchangerate_api" | "openexchangerates"
+  | "ebay";
 
 export type FieldDef = {
   key: string;
@@ -44,6 +45,7 @@ export const CHANNEL_LABEL: Record<Channel, string> = {
   whatsapp: "WhatsApp",
   email: "Email",
   rates: "Exchange rates",
+  catalog: "Catalogue",
 };
 
 export const INTEGRATIONS: IntegrationDef[] = [
@@ -172,6 +174,29 @@ export const INTEGRATIONS: IntegrationDef[] = [
     channels: ["rates"],
     fields: [{ key: "appId", label: "App ID", env: "OPENEXCHANGERATES_APP_ID", secret: true, required: ["rates"], help: "From your Open Exchange Rates dashboard. Sent in a header, never in the address." }],
     steps: ["Create an account and copy your App ID.", "Paste it here and save.", "Choose Open Exchange Rates under Exchange rate feed above, then press Test."],
+  },
+  {
+    id: "ebay",
+    name: "eBay (official API)",
+    blurb: "Real UK listings with real photos and prices, straight from eBay's free Browse API. Used by a Catalogue source of type eBay.",
+    docsUrl: "https://developer.ebay.com/api-docs/buy/browse/overview.html",
+    channels: ["catalog"],
+    fields: [
+      { key: "appId", label: "App ID (Client ID)", env: "EBAY_APP_ID", required: ["catalog"], placeholder: "YourName-ShopUKGH-PRD-…", help: "From your eBay developer account, under Application Keys." },
+      { key: "certId", label: "Cert ID (Client Secret)", env: "EBAY_CERT_ID", secret: true, required: ["catalog"], placeholder: "PRD-…", help: "From the same page. Keep it private." },
+      {
+        key: "environment", label: "Environment", env: "EBAY_ENVIRONMENT", default: "production",
+        options: [{ value: "production", label: "Production (real listings)" }, { value: "sandbox", label: "Sandbox (test data)" }],
+        help: "Use Production for real listings. Production keys need your eBay developer account to be approved.",
+      },
+    ],
+    steps: [
+      "Create a free account at developer.ebay.com and open Application Keys.",
+      "Create a Production keyset and copy the App ID and Cert ID.",
+      "Paste them here, save, then press Test connection.",
+      "Add a Catalogue source of type eBay and list the searches you want (one per line).",
+      "Read eBay's API licence. It sets how listing data and photos may be shown and requires a link back to the listing.",
+    ],
   },
 ];
 
@@ -321,7 +346,7 @@ export function setChannelProvider(channel: Channel, id: ProviderId | "", d: Db 
 
 /** The provider chosen for a messaging channel, if it is enabled and fully configured. */
 export function activeMessagingProvider(
-  channel: Exclude<Channel, "payments">,
+  channel: Exclude<Channel, "payments" | "catalog">,
   d: Db = db(),
   env: NodeJS.ProcessEnv = process.env,
 ): { def: IntegrationDef; cfg: IntegrationConfig } | null {

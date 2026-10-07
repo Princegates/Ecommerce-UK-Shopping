@@ -195,11 +195,19 @@ export default async function HomePage() {
             <Link href="/register" className="link text-center text-sm">New customer? Start here.</Link>
           </div>
         )}
+        {deals.length > 0 ? (
         <div className={`${tint} bg-[color-mix(in_srgb,var(--cta)_18%,white)]`}>
           <h2 className="text-xl font-bold">Today&rsquo;s deals</h2>
           {mini(deals)}
           <Link href="/search?deals=1&sort=discount" className="link mt-auto text-sm">See all deals ›</Link>
         </div>
+        ) : (
+          <div className={`${tint} bg-[color-mix(in_srgb,var(--cta)_18%,white)]`}>
+            <h2 className="text-xl font-bold">We&rsquo;re stocking the shelves</h2>
+            <p className="text-sm text-ink-soft">Listings from UK sellers are being added. In the meantime, you can still get anything from a UK shop.</p>
+            <Link href="/request" className="btn btn-gold mt-auto w-fit">Request an item by link</Link>
+          </div>
+        )}
         <div className={card}>
           <h2 className="text-xl font-bold">Shop by department</h2>
           <ul className="grid grid-cols-2 gap-3">
@@ -214,13 +222,16 @@ export default async function HomePage() {
           </ul>
           <Link href="/shops" className="link mt-auto text-sm">See all shops ›</Link>
         </div>
+        {arrivals.length > 0 && (
         <div className={`${tint} bg-blue-soft`}>
           <h2 className="text-xl font-bold">New arrivals</h2>
           {mini(arrivals)}
           <Link href="/search?sort=newest" className="link mt-auto text-sm">See what&rsquo;s new ›</Link>
         </div>
+        )}
       </section>
 
+      {trending.length > 0 && (
       <section aria-label="Trending now" className="mx-auto mt-4 max-w-[90rem] px-3 md:px-4">
         <Reveal>
           <div className="overflow-hidden rounded-2xl bg-white py-4 shadow-[0_1px_3px_rgba(16,20,18,0.12)]">
@@ -242,6 +253,8 @@ export default async function HomePage() {
           </div>
         </Reveal>
       </section>
+
+      )}
 
       <section aria-label="Why shop here" className="mx-auto mt-4 max-w-[90rem] px-3 md:px-4">
         <Reveal>
