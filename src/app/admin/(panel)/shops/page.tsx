@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { deleteShopAction, saveShopAction } from "@/app/admin/actions";
 import { Area, Check, Flash, PageHead, Text } from "@/components/admin/ui";
+import ShopLogo from "@/components/ShopLogo";
 import { listShops, type Shop } from "@/lib/catalog";
 
 function ShopForm({ s }: { s?: Shop }) {
@@ -18,6 +19,21 @@ function ShopForm({ s }: { s?: Shop }) {
         <Text label="Shop website (optional)" name="websiteUrl" id={`${k}-websiteUrl`} defaultValue={s?.websiteUrl} placeholder="https://" className="sm:col-span-2" />
         <Text label="Colour" name="accent" id={`${k}-accent`} defaultValue={s?.accent ?? "#0b5d3b"} hint="Hex, like #0b5d3b" />
       </div>
+      <fieldset className="grid gap-3 border border-line p-4">
+        <legend className="label px-2 text-ink">Logo</legend>
+        <div className="flex flex-wrap items-center gap-4">
+          <ShopLogo shop={{ name: s?.name || "?", accent: s?.accent ?? "#0b5d3b", logoUrl: s?.logoUrl ?? "" }} className="h-16 w-16 text-2xl" />
+          <div className="grid min-w-0 flex-1 gap-3">
+            <div className="field">
+              <label className="label" htmlFor={`${k}-logoFile`}>Upload a logo</label>
+              <input id={`${k}-logoFile`} name="logoFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="input !p-1.5" />
+              <p className="hint">JPEG, PNG, WebP or GIF, up to 4 MB. A square logo on a plain or transparent background looks best. Only upload logos you have the right to use.</p>
+            </div>
+            <Text label="Or paste a logo link" name="logoUrl" id={`${k}-logoUrl`} defaultValue={s?.logoUrl ?? ""} placeholder="https://" />
+            {s?.logoUrl && <Check label="Remove the current logo" name="removeLogo" />}
+          </div>
+        </div>
+      </fieldset>
       <Text label="Order on the page" name="sort" id={`${k}-sort`} inputMode="numeric" defaultValue={s ? 0 : 20} hint="Lower shows first." />
       <Check label="Show this shop to customers" name="active" defaultChecked={s?.active ?? true} />
       <div><button className="btn btn-primary">{s ? "Save shop" : "Add shop"}</button></div>
@@ -42,7 +58,7 @@ export default async function ShopsAdmin({ searchParams }: { searchParams: Promi
           <details key={s.id} className="box box-shadow">
             <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 p-4 text-xl font-bold">
               <span className="flex items-center gap-3">
-                <span className="h-5 w-5 border border-line" style={{ background: s.accent }} aria-hidden="true" />
+                <ShopLogo shop={s} className="h-9 w-9 text-sm" />
                 {s.name} {!s.active && <span className="tag">Hidden</span>}
               </span>
               <span className="label">{s.productCount} items</span>

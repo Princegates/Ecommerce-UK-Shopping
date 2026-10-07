@@ -14,6 +14,8 @@ export type Shop = {
   websiteUrl: string;
   description: string;
   accent: string;
+  /** the shop's logo: an uploaded file or a link, or empty */
+  logoUrl: string;
   active: boolean;
   productCount: number;
 };
@@ -35,6 +37,7 @@ export type Product = {
   shopSlug: string;
   shopName: string;
   shopAccent: string;
+  shopLogoUrl: string;
   shopCategory: string;
   compareAtMinor: number | null;
   dealEndsAt: string | null;
@@ -45,13 +48,13 @@ export type Product = {
 
 type ShopRow = {
   id: number; slug: string; name: string; tagline: string; category: string; website_url: string;
-  description: string; accent: string; active: number; product_count: number;
+  description: string; accent: string; logo_url: string; active: number; product_count: number;
 };
 
 type ProductRow = {
   id: number; slug: string; name: string; brand: string; category: string; description: string;
   price_minor: number; weight_grams: number; options: string; image_url: string | null; source_url: string;
-  active: number; shop_id: number; shop_slug: string; shop_name: string; shop_accent: string; shop_category: string;
+  active: number; shop_id: number; shop_slug: string; shop_name: string; shop_accent: string; shop_logo: string; shop_category: string;
   compare_at_minor: number | null; deal_ends_at: string | null; review_count: number; review_avg: number | null; created_at: string;
 };
 
@@ -60,14 +63,14 @@ const SHOP_SQL = `
   FROM shops s`;
 
 const PRODUCT_SQL = `
-  SELECT p.*, s.slug AS shop_slug, s.name AS shop_name, s.accent AS shop_accent, s.category AS shop_category,
+  SELECT p.*, s.slug AS shop_slug, s.name AS shop_name, s.accent AS shop_accent, s.logo_url AS shop_logo, s.category AS shop_category,
     (SELECT COUNT(*) FROM reviews r WHERE r.product_id = p.id AND r.status = 'PUBLISHED') AS review_count,
     (SELECT AVG(r.rating) FROM reviews r WHERE r.product_id = p.id AND r.status = 'PUBLISHED') AS review_avg
   FROM products p JOIN shops s ON s.id = p.shop_id`;
 
 const toShop = (r: ShopRow): Shop => ({
   id: r.id, slug: r.slug, name: r.name, tagline: r.tagline, category: r.category, websiteUrl: r.website_url,
-  description: r.description, accent: r.accent, active: r.active === 1, productCount: r.product_count,
+  description: r.description, accent: r.accent, logoUrl: r.logo_url, active: r.active === 1, productCount: r.product_count,
 });
 
 export function parseOptions(raw: string): OptionGroup[] {
@@ -86,7 +89,7 @@ const toProduct = (r: ProductRow): Product => ({
   id: r.id, slug: r.slug, name: r.name, brand: r.brand, category: r.category, description: r.description,
   priceMinor: r.price_minor, weightGrams: r.weight_grams, options: parseOptions(r.options),
   imageUrl: r.image_url, sourceUrl: r.source_url, active: r.active === 1,
-  shopId: r.shop_id, shopSlug: r.shop_slug, shopName: r.shop_name, shopAccent: r.shop_accent, shopCategory: r.shop_category,
+  shopId: r.shop_id, shopSlug: r.shop_slug, shopName: r.shop_name, shopAccent: r.shop_accent, shopLogoUrl: r.shop_logo, shopCategory: r.shop_category,
   compareAtMinor: r.compare_at_minor && r.compare_at_minor > r.price_minor ? r.compare_at_minor : null,
   dealEndsAt: r.deal_ends_at, reviewCount: r.review_count, ratingAvg: r.review_avg === null ? null : Math.round(r.review_avg * 10) / 10,
   createdAt: r.created_at,

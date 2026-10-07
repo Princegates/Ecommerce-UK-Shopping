@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ShopLogo from "@/components/ShopLogo";
 import ProductCard from "@/components/ProductCard";
 import { getShop, listProducts, productCategoriesForShop, type ProductSort } from "@/lib/catalog";
 import { getShopper } from "@/lib/shopper";
@@ -53,7 +54,10 @@ export default async function ShopPage({ params, searchParams }: Props) {
           <nav aria-label="Breadcrumb" className="label !text-white/80">
             <Link href="/shops" className="hover:underline">Shops</Link> / {shop.category}
           </nav>
-          <h1 className="mt-3 text-[clamp(2.4rem,6vw,4.4rem)]">{shop.name}</h1>
+          <div className="mt-3 flex items-center gap-4">
+            {shop.logoUrl && <ShopLogo shop={shop} className="h-16 w-16 sm:h-20 sm:w-20 text-3xl" />}
+            <h1 className="text-[clamp(2.4rem,6vw,4.4rem)]">{shop.name}</h1>
+          </div>
           <p className="mt-3 max-w-2xl text-lg text-white/90">{shop.description || shop.tagline}</p>
           <p className="mt-4 flex flex-wrap items-center gap-3 text-sm">
             <span className="tag !bg-paper-3 !text-ink">{shop.productCount} items</span>

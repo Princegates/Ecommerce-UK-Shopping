@@ -40,6 +40,7 @@ export function migrate(d: Db): void {
 
   if (!has("customers").includes("updates_seen_at")) d.exec("ALTER TABLE customers ADD COLUMN updates_seen_at TEXT");
 
+  if (!has("shops").includes("logo_url")) d.exec("ALTER TABLE shops ADD COLUMN logo_url TEXT NOT NULL DEFAULT ''");
   const productCols = has("products");
   if (!productCols.includes("compare_at_minor")) d.exec("ALTER TABLE products ADD COLUMN compare_at_minor INTEGER");
   if (!productCols.includes("deal_ends_at")) d.exec("ALTER TABLE products ADD COLUMN deal_ends_at TEXT");

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ShopLogo from "@/components/ShopLogo";
 import { removeItemAction, updateQuantityAction } from "@/app/actions/cart";
 import CartSummary from "@/components/CartSummary";
 import ProductArt from "@/components/ProductArt";
@@ -102,7 +103,10 @@ export default async function CartPage() {
                   </Link>
                   <div className="grid content-start gap-1.5">
                     <Link href={`/products/${l.product.slug}`} className="text-base font-medium leading-snug hover:text-link-hover">{l.product.name}</Link>
-                    <p className="text-xs text-ink-soft">Sold by {l.product.shopName}</p>
+                    <p className="flex items-center gap-1.5 text-xs text-ink-soft">
+                      {l.product.shopLogoUrl && <ShopLogo shop={{ name: l.product.shopName, accent: l.product.shopAccent, logoUrl: l.product.shopLogoUrl }} className="h-5 w-5 text-[10px]" />}
+                      Sold by {l.product.shopName}
+                    </p>
                     <p className="text-xs font-bold text-green">Available · we buy it from the UK shop for you</p>
                     {Object.keys(l.options).length > 0 && (
                       <p className="flex flex-wrap gap-1.5 text-xs">

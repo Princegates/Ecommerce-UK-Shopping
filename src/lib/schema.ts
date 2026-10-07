@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS shops (
   website_url TEXT NOT NULL DEFAULT '',
   description TEXT NOT NULL DEFAULT '',
   accent      TEXT NOT NULL DEFAULT '#0b5d3b',
+  logo_url    TEXT NOT NULL DEFAULT '',
   notes       TEXT NOT NULL DEFAULT '',
   active      INTEGER NOT NULL DEFAULT 1,
   sort        INTEGER NOT NULL DEFAULT 0

@@ -24,6 +24,8 @@ export type ShopInput = {
   websiteUrl: string;
   description: string;
   accent: string;
+  /** leave out to keep the saved logo; an empty string removes it */
+  logoUrl?: string;
   active: boolean;
   sort: number;
 };
@@ -57,17 +59,17 @@ export function upsertShop(s: ShopInput, d: Db = db()): number {
   if (s.id > 0) {
     d.prepare(
       `UPDATE shops SET name=@name, tagline=@tagline, category=@category, website_url=@websiteUrl,
-         description=@description, accent=@accent, active=@active, sort=@sort WHERE id=@id`,
-    ).run({ ...s, active: s.active ? 1 : 0 });
+         description=@description, accent=@accent, logo_url=COALESCE(@logoUrl, logo_url), active=@active, sort=@sort WHERE id=@id`,
+    ).run({ ...s, logoUrl: s.logoUrl ?? null, active: s.active ? 1 : 0 });
     return s.id;
   }
   const slug = uniqueSlug("shops", s.name, 0, d);
   const info = d
     .prepare(
-      `INSERT INTO shops (slug, name, tagline, category, website_url, description, accent, active, sort)
-       VALUES (@slug, @name, @tagline, @category, @websiteUrl, @description, @accent, @active, @sort)`,
+      `INSERT INTO shops (slug, name, tagline, category, website_url, description, accent, logo_url, active, sort)
+       VALUES (@slug, @name, @tagline, @category, @websiteUrl, @description, @accent, @logoUrl, @active, @sort)`,
     )
-    .run({ ...s, slug, active: s.active ? 1 : 0 });
+    .run({ ...s, logoUrl: s.logoUrl ?? "", slug, active: s.active ? 1 : 0 });
   return Number(info.lastInsertRowid);
 }
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ShopLogo from "@/components/ShopLogo";
 import { notFound } from "next/navigation";
 import BuyBox from "@/components/BuyBox";
 import Price from "@/components/Price";
@@ -102,7 +103,10 @@ export default async function ProductPage({ params }: Props) {
           </div>
 
           <div className="min-w-0">
-            <Link href={`/shops/${product.shopSlug}`} className="link text-sm">Visit the {product.shopName} shop ›</Link>
+            <Link href={`/shops/${product.shopSlug}`} className="link inline-flex items-center gap-2 text-sm">
+              {product.shopLogoUrl && <ShopLogo shop={{ name: product.shopName, accent: product.shopAccent, logoUrl: product.shopLogoUrl }} className="h-7 w-7 text-xs" />}
+              Visit the {product.shopName} shop ›
+            </Link>
             <h1 className="mt-1 text-2xl font-medium leading-snug">{product.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               {product.brand && <p className="text-ink-soft">Brand: <span className="text-link">{product.brand}</span></p>}

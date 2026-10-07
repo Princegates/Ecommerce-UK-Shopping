@@ -159,8 +159,20 @@ export async function saveShopAction(f: FormData): Promise<void> {
   if (site === null) done(path, "The shop website must start with https://");
   const accent = str(f, "accent") || "#0b5d3b";
   if (!isHexColour(accent)) done(path, "The shop colour must be a hex colour like #0b5d3b.");
+  const shopId = num(f, "id") || 0;
+  const rawLogo = str(f, "logoUrl");
+  let logo: string | null | undefined = isUploadUrl(rawLogo) ? rawLogo : safeUrl(rawLogo);
+  if (logo === null) done(path, "The logo link must start with https://");
+  if (logo === "") logo = undefined; // nothing typed: keep what is saved
+  const file = f.get("logoFile");
+  if (file instanceof File && file.size > 0) {
+    const saved = saveImage(Buffer.from(await file.arrayBuffer()));
+    if (!saved.ok) done(path, saved.error);
+    logo = saved.url;
+  }
+  if (checked(f, "removeLogo")) logo = "";
   upsertShop({
-    id: num(f, "id") || 0, name, tagline: str(f, "tagline").slice(0, 80), category, websiteUrl: site,
+    id: shopId, logoUrl: logo, name, tagline: str(f, "tagline").slice(0, 80), category, websiteUrl: site,
     description: str(f, "description").slice(0, 400), accent, active: checked(f, "active"),
     sort: Math.trunc(num(f, "sort")) || 0,
   });
