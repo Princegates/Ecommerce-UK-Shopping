@@ -93,8 +93,18 @@ export function publishItem(itemId: number, d: Db = db(), now = Date.now()): { o
   return { ok: true, productId };
 }
 
+/** Rejects an item. If it is already live (or held with a live product), the product is taken off the site too, and out of carts. */
 export function rejectItem(itemId: number, d: Db = db()): boolean {
-  return d.prepare("UPDATE import_items SET status = 'REJECTED', hold_reason = '' WHERE id = ?").run(itemId).changes > 0;
+  return d.transaction(() => {
+    const it = d.prepare("SELECT product_id FROM import_items WHERE id = ?").get(itemId) as { product_id: number | null } | undefined;
+    if (!it) return false;
+    d.prepare("UPDATE import_items SET status = 'REJECTED', hold_reason = '' WHERE id = ?").run(itemId);
+    if (it.product_id) {
+      d.prepare("UPDATE products SET active = 0 WHERE id = ?").run(it.product_id);
+      d.prepare("DELETE FROM cart_items WHERE product_id = ?").run(it.product_id);
+    }
+    return true;
+  })();
 }
 
 // ------------------------------------------------------------------ staging one item

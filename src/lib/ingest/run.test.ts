@@ -191,6 +191,21 @@ describe("feed runs", () => {
     expect(sanityProblem({ name: "x".repeat(5), productUrl: "https://a", priceMinor: 99_999_999 } as never)).toContain("too high");
   });
 
+  it("takes a live product off the site when its item is rejected, and brings it back on approval", async () => {
+    const { d, id, shop } = setup();
+    const f = fake({ [FEED]: csv([row("1", "Live thing", "20.00")]) });
+    await runSource(id, f.deps, d);
+    const [live] = products(d, shop.id, "Live thing");
+    expect(live.active).toBe(1);
+    const item = listImportItems({ status: "PUBLISHED" }, d).items[0];
+    expect(rejectItem(item.id, d)).toBe(true);
+    expect(products(d, shop.id, "Live thing")[0].active).toBe(0);
+    expect(listImportItems({ status: "REJECTED" }, d).total).toBe(1);
+    expect(rejectItem(999999, d)).toBe(false);
+    expect(publishItem(item.id, d)).toMatchObject({ ok: true });
+    expect(products(d, shop.id, "Live thing")[0].active).toBe(1);
+  });
+
   it("holds every update when auto-apply is off", async () => {
     const { d, id, shop } = setup({ autoApplyUpdates: false });
     const routes: Routes = { [FEED]: csv([row("1", "Cloud Runner", "20.00")]) };
