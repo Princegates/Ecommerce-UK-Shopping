@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import DepartmentIcon from "@/components/DepartmentIcon";
 import ShopTile from "@/components/ShopTile";
 import BrowseView from "@/components/shop/BrowseView";
 import { departmentFromSlug, listShops } from "@/lib/catalog";
@@ -31,7 +32,7 @@ export default async function DepartmentPage({ params, searchParams }: Props) {
         intro={`${dept.products} items from ${dept.shops} UK ${dept.shops === 1 ? "shop" : "shops"}. Prices include the full cost to your door.`}
       />
       <section aria-labelledby="dshops-h" className="mx-auto max-w-7xl px-4 pb-4">
-        <h2 id="dshops-h" className="text-3xl">Shops in {dept.name}</h2>
+        <h2 id="dshops-h" className="flex items-center gap-3 text-3xl"><DepartmentIcon name={dept.name} className="h-9 w-9 text-green" />Shops in {dept.name}</h2>
         <ul className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {shops.map((s) => <li key={s.id}><ShopTile shop={s} /></li>)}
         </ul>

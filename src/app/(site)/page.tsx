@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Breakdown from "@/components/Breakdown";
 import ProductArt from "@/components/ProductArt";
+import DepartmentIcon from "@/components/DepartmentIcon";
 import LinkFinder from "@/components/shop/LinkFinder";
 import Marquee from "@/components/shop/Marquee";
 import Reveal from "@/components/shop/Reveal";
@@ -236,9 +237,12 @@ export default async function HomePage() {
           <ul className="grid grid-cols-2 gap-3">
             {departments.slice(0, 4).map((d) => (
               <li key={d.slug}>
-                <Link href={`/department/${d.slug}`} className="lift flex aspect-square flex-col justify-between rounded p-2 text-white" style={{ background: d.accent }}>
+                <Link href={`/department/${d.slug}`} className="lift group relative flex aspect-square flex-col justify-between overflow-hidden rounded p-2 text-white" style={{ background: d.accent }}>
                   <span className="text-sm font-bold leading-tight">{d.name}</span>
-                  <span className="num text-xs opacity-90">{d.products} items</span>
+                  <span className="pointer-events-none absolute inset-x-0 top-[34%] flex justify-center opacity-90 transition-transform duration-300 group-hover:scale-110">
+                    <DepartmentIcon name={d.name} className="h-14 w-14" />
+                  </span>
+                  <span className="num relative text-xs opacity-90">{d.products} items</span>
                 </Link>
               </li>
             ))}

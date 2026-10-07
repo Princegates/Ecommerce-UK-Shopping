@@ -10,6 +10,7 @@ import { getSettings, getZones } from "@/lib/settings";
 import { wishlistIds } from "@/lib/wishlist";
 import BottomNav from "./shop/BottomNav";
 import CartBump from "./shop/CartBump";
+import DepartmentIcon from "./DepartmentIcon";
 import LinkAdd from "./shop/LinkAdd";
 import DeliverTo from "./shop/DeliverTo";
 import Dropdown from "./shop/Dropdown";
@@ -115,7 +116,7 @@ export default async function Header() {
               <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
                 {departments.map((d) => (
                   <div key={d.slug}>
-                    <Link href={`/department/${d.slug}`} className="text-base font-bold hover:text-link hover:underline">{d.name}</Link>
+                    <Link href={`/department/${d.slug}`} className="flex items-center gap-2 text-base font-bold hover:text-link hover:underline"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white" style={{ background: d.accent }}><DepartmentIcon name={d.name} className="h-5 w-5" /></span>{d.name}</Link>
                     <ul className="mt-1 grid gap-0.5 text-sm">
                       {shops.filter((s) => s.category === d.name).slice(0, 4).map((s) => (
                         <li key={s.id}><Link href={`/shops/${s.slug}`} className="text-ink-soft hover:text-link hover:underline">{s.name}</Link></li>
