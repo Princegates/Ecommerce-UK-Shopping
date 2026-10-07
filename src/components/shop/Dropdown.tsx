@@ -26,7 +26,9 @@ export default function Dropdown({
   }, [open]);
 
   return (
-    <div ref={root} className="relative" onBlur={(e) => { if (!root.current?.contains(e.relatedTarget as Node)) setOpen(false); }}>
+    // Close when keyboard focus moves to something outside. A blur with no target happens when a click lands on a button that
+    // browsers such as Safari and Firefox on Mac do not focus; closing then would remove the panel before the click arrives.
+    <div ref={root} className="relative" onBlur={(e) => { if (e.relatedTarget && !root.current?.contains(e.relatedTarget as Node)) setOpen(false); }}>
       <button type="button" className={className} aria-expanded={open} aria-controls={id} onClick={() => setOpen((v) => !v)}>
         {label}
       </button>
