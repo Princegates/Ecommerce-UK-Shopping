@@ -3,9 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { authenticateStaff, normalizeEmail } from "@/lib/admin-users";
+import { landingPage } from "@/lib/permissions";
+import { createLimiter } from "@/lib/throttle";
 import {
   clearLoginFailures, adminConfig, clientKey, endAdminSession, loginAllowed, passwordMatches, recordLoginFailure,
-  requireAdmin, startAdminSession,
+  requirePermission, startAdminSession,
 } from "@/lib/auth";
 import { isUploadUrl, saveImage } from "@/lib/uploads";
 import { parseBrackets, parseOptionGroups, parseTiers, safeUrl, isHexColour } from "@/lib/admin-parse";
@@ -20,7 +23,7 @@ import { setExchangeRate } from "@/lib/fx";
 import { staffSetStatus } from "@/lib/orders";
 import { serviceFeeSchema, setSetting } from "@/lib/settings";
 import { db } from "@/lib/db";
-import { audit } from "@/lib/audit";
+import { adminAudit, audit } from "@/lib/audit";
 import { kickOutbox } from "@/lib/notify/kick";
 import { getSettings } from "@/lib/settings";
 
@@ -43,18 +46,44 @@ function money(f: FormData, k: string, label: string): number | string {
 
 export type LoginState = { error?: string };
 
+const emailLimiter = createLimiter(8, 15 * 60 * 1000);
+
+/**
+ * Staff sign in with their email and password. The super admin signs in with the developer password alone, from the separate
+ * developer sign-in page, so the staff sign-in never asks for it.
+ */
 export async function loginAction(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const cfg = adminConfig();
   if (!cfg) return { error: "Admin is not configured. Set ADMIN_PASSWORD and ADMIN_SECRET on the server." };
   const key = await clientKey();
   if (!loginAllowed(key)) return { error: "Too many attempts. Try again in 15 minutes." };
-  if (!passwordMatches(String(formData.get("password") ?? ""), cfg.password)) {
+  const password = String(formData.get("password") ?? "");
+
+  if (formData.get("mode") === "developer") {
+    if (!passwordMatches(password, cfg.password)) {
+      recordLoginFailure(key);
+      return { error: "That password is not right." };
+    }
+    clearLoginFailures(key);
+    await startAdminSession({ kind: "super" });
+    audit("admin.login", "super admin", "", undefined, "super admin");
+    redirect("/admin");
+  }
+
+  const email = normalizeEmail(String(formData.get("email") ?? ""));
+  const byEmail = `admin-email:${email}`;
+  if (!emailLimiter.allowed(byEmail)) return { error: "Too many attempts for that account. Try again in 15 minutes." };
+  const user = email && password ? await authenticateStaff(email, password) : null;
+  if (!user) {
     recordLoginFailure(key);
-    return { error: "That password is not right." };
+    emailLimiter.record(byEmail);
+    return { error: "That email and password do not match an active staff account." };
   }
   clearLoginFailures(key);
-  await startAdminSession();
-  redirect("/admin");
+  emailLimiter.clear(byEmail);
+  await startAdminSession({ kind: "staff", id: user.id, sessionVersion: user.sessionVersion });
+  audit("admin.login", user.email, "", undefined, `${user.name} (${user.email})`);
+  redirect(user.mustChangePassword ? "/admin/account?must=1" : landingPage(new Set(user.permissions)));
 }
 
 export async function logoutAction(): Promise<void> {
@@ -65,7 +94,7 @@ export async function logoutAction(): Promise<void> {
 // ---------------------------------------------------------------- pricing
 
 export async function savePricingAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("pricing.manage");
   const path = "/admin/pricing";
 
   const siteName = str(f, "siteName");
@@ -103,11 +132,11 @@ export async function savePricingAction(f: FormData): Promise<void> {
   setSetting("site_name", siteName);
   if (fxRate !== before.fx.rate || markup !== before.fx.markupPct) {
     setExchangeRate(fxRate, markup, "Changed on the Pricing page");
-    audit("rate.update", "exchange rate", `GH₵${before.fx.rate} (+${before.fx.markupPct}%) to GH₵${fxRate} (+${markup}%)`);
+    adminAudit(who, "rate.update", "exchange rate", `GH₵${before.fx.rate} (+${before.fx.markupPct}%) to GH₵${fxRate} (+${markup}%)`);
   }
   setSetting("min_order_gbp_minor", minOrder);
   setSetting("service_fee", fee.data);
-  audit("pricing.update", "service charge", JSON.stringify(fee.data).slice(0, 300));
+  adminAudit(who, "pricing.update", "service charge", JSON.stringify(fee.data).slice(0, 300));
   setSetting("support_whatsapp", str(f, "whatsapp").replace(/[^\d+]/g, "").slice(0, 20));
   done(path);
 }
@@ -115,7 +144,7 @@ export async function savePricingAction(f: FormData): Promise<void> {
 // --------------------------------------------------------------- shipping
 
 export async function saveMethodAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("pricing.manage");
   const path = "/admin/shipping";
   const id = num(f, "id") || 0;
   const name = str(f, "name");
@@ -132,12 +161,12 @@ export async function saveMethodAction(f: FormData): Promise<void> {
     active: checked(f, "active"), sort: Math.trunc(num(f, "sort")) || 0,
   });
   if (!res.ok) done(path, res.error);
-  audit("shipping.save", name, `${brackets.value.length} bracket(s)`);
+  adminAudit(who, "shipping.save", name, `${brackets.value.length} bracket(s)`);
   done(path);
 }
 
 export async function saveZoneAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("pricing.manage");
   const path = "/admin/zones";
   const name = str(f, "name");
   if (name.length < 2 || name.length > 60) done(path, "Give the area a name (2 to 60 characters).");
@@ -147,24 +176,24 @@ export async function saveZoneAction(f: FormData): Promise<void> {
     id: num(f, "id") || 0, name, areas: str(f, "areas").slice(0, 200), feeMinor: fee,
     eta: str(f, "eta").slice(0, 60), active: checked(f, "active"), sort: Math.trunc(num(f, "sort")) || 0,
   });
-  audit("zone.save", name, `fee ${fee}`);
+  adminAudit(who, "zone.save", name, `fee ${fee}`);
   done(path);
 }
 
 export async function deleteZoneAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("pricing.manage");
   const path = "/admin/zones";
   if (!checked(f, "confirm")) done(path, "Tick the box to confirm you want to delete this area.");
   const r = deleteZone(num(f, "id"));
   if (!r.ok) done(path, r.error);
-  audit("zone.delete", r.name);
+  adminAudit(who, "zone.delete", r.name);
   done(path);
 }
 
 // ------------------------------------------------------------ shops, items
 
 export async function saveShopAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("shops.manage");
   const path = "/admin/shops";
   const name = str(f, "name");
   if (name.length < 2 || name.length > 60) done(path, "Give the shop a name (2 to 60 characters).");
@@ -191,24 +220,24 @@ export async function saveShopAction(f: FormData): Promise<void> {
     description: str(f, "description").slice(0, 400), accent, active: checked(f, "active"),
     sort: Math.trunc(num(f, "sort")) || 0,
   });
-  audit("shop.save", name, checked(f, "active") ? "shown" : "hidden");
+  adminAudit(who, "shop.save", name, checked(f, "active") ? "shown" : "hidden");
   done(path);
 }
 
 export async function deleteShopAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("shops.manage");
   const path = "/admin/shops";
   const id = num(f, "id");
   const name = (db().prepare("SELECT name FROM shops WHERE id = ?").get(id) as { name: string } | undefined)?.name ?? `#${id}`;
   if (!checked(f, "confirm")) done(path, "Tick the box to confirm you want to delete the shop and its items.");
   const r = deleteShop(id);
   if (!r.ok) done(path, r.error);
-  audit("shop.delete", name, `with ${r.products} item(s) and ${r.sources} source(s)`);
+  adminAudit(who, "shop.delete", name, `with ${r.products} item(s) and ${r.sources} source(s)`);
   done(path);
 }
 
 export async function saveProductAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("items.manage");
   const id = num(f, "id") || 0;
   const path = id ? `/admin/items/${id}` : "/admin/items/new";
   const name = str(f, "name");
@@ -253,7 +282,7 @@ export async function saveProductAction(f: FormData): Promise<void> {
     options: options.value, imageUrl: image, sourceUrl: source, active: checked(f, "active"),
     compareAtMinor: compareAt, dealEndsAt: dealEnds,
   });
-  audit("item.save", name, `price ${price}${checked(f, "active") ? "" : ", hidden"}`);
+  adminAudit(who, "item.save", name, `price ${price}${checked(f, "active") ? "" : ", hidden"}`);
   revalidatePath("/", "layout");
   redirect(`/admin/items/${savedId}?saved=1`);
 }
@@ -263,13 +292,13 @@ export async function saveProductAction(f: FormData): Promise<void> {
 const statusSchema = z.object({ orderId: z.coerce.number().int().positive(), status: z.string(), note: z.string().max(500) });
 
 export async function setOrderStatusAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("orders.manage");
   const parsed = statusSchema.safeParse({ orderId: f.get("orderId"), status: f.get("status"), note: str(f, "note") });
   if (!parsed.success) redirect("/admin/orders");
   const path = `/admin/orders/${parsed.data.orderId}`;
   const res = staffSetStatus(parsed.data.orderId, parsed.data.status, parsed.data.note);
   if (res.ok) {
-    audit("order.status", `order ${parsed.data.orderId}`, parsed.data.status);
+    adminAudit(who, "order.status", `order ${parsed.data.orderId}`, parsed.data.status);
     kickOutbox();
   }
   done(path, res.ok ? undefined : res.error);
@@ -277,7 +306,7 @@ export async function setOrderStatusAction(f: FormData): Promise<void> {
 
 /** Saves how link requests are priced automatically, and the item types with their default weights. */
 export async function saveLinkAutoAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("requests.manage");
   const path = "/admin/requests";
   const margin = num(f, "marginPct");
   if (!Number.isFinite(margin) || margin < 0 || margin > 50) done(path, "The safety margin must be between 0 and 50 percent.");
@@ -290,13 +319,13 @@ export async function saveLinkAutoAction(f: FormData): Promise<void> {
   if (!types.ok) done(path, types.error);
   const saved = saveLinkAuto({ pageEnabled: checked(f, "pageEnabled"), customerEnabled: checked(f, "customerEnabled"), marginPct: margin, ceilingMinor: ceiling, validDays: days });
   saveItemTypes(types.value);
-  audit("request.auto_settings", "automatic quotes", `page ${saved.pageEnabled ? "on" : "off"}, customer price ${saved.customerEnabled ? "on" : "off"}, margin ${saved.marginPct}%, limit £${(saved.ceilingMinor / 100).toFixed(0)}`);
+  adminAudit(who, "request.auto_settings", "automatic quotes", `page ${saved.pageEnabled ? "on" : "off"}, customer price ${saved.customerEnabled ? "on" : "off"}, margin ${saved.marginPct}%, limit £${(saved.ceilingMinor / 100).toFixed(0)}`);
   done(path);
 }
 
 /** Records the UK price the team checked, opens the customer's pay link and tells the customer. */
 export async function quoteRequestAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("requests.manage");
   const id = num(f, "id");
   const price = money(f, "unitPrice", "The UK price");
   if (typeof price === "string") done("/admin/requests", price);
@@ -311,14 +340,14 @@ export async function quoteRequestAction(f: FormData): Promise<void> {
     sent = enqueueDirect({ phone: req.phone, email: req.email }, rendered, "link_quote") ?? "";
     if (sent) kickOutbox();
   }
-  audit("request.quote", `request ${id}`, `£${(price / 100).toFixed(2)} each${sent ? `, sent by ${sent}` : ", not sent"}`);
+  adminAudit(who, "request.quote", `request ${id}`, `£${(price / 100).toFixed(2)} each${sent ? `, sent by ${sent}` : ", not sent"}`);
   revalidatePath("/", "layout");
   redirect(`/admin/requests?quoted=${id}&via=${encodeURIComponent(sent)}`);
 }
 
 export async function updateRequestAction(f: FormData): Promise<void> {
-  await requireAdmin();
+  const who = await requirePermission("requests.manage");
   updateLinkRequest(num(f, "id"), str(f, "status"), str(f, "adminNote"));
-  audit("request.update", `request ${num(f, "id")}`, str(f, "status"));
+  adminAudit(who, "request.update", `request ${num(f, "id")}`, str(f, "status"));
   done("/admin/requests");
 }

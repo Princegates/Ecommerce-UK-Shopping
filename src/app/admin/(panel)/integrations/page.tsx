@@ -3,7 +3,7 @@ import { PageHead } from "@/components/admin/ui";
 import IntegrationCard from "@/components/admin/IntegrationCard";
 import { appUrl } from "@/lib/app-url";
 import { getFxPolicy, getMarketRate } from "@/lib/fx-api";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import {
   CHANNEL_LABEL, getChannelProviderId, isConfigured, providersFor, readConfig, type Channel, type IntegrationDef,
 } from "@/lib/integrations";
@@ -18,7 +18,7 @@ export default async function IntegrationsPage({
 }: {
   searchParams: Promise<{ saved?: string; error?: string; test?: string; msg?: string; p?: string }>;
 }) {
-  await requireAdmin();
+  await requirePermission("integrations.manage");
   const flash = await searchParams;
   const base = appUrl();
   const payments = providersFor("payments");

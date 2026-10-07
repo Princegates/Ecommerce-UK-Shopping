@@ -4,7 +4,7 @@ import { setCustomerStatusAction } from "@/app/admin/ops-actions";
 import { Flash, PageHead } from "@/components/admin/ui";
 import ResetLinkForm from "@/components/admin/ResetLinkForm";
 import StatusChip from "@/components/StatusChip";
-import { requireAdmin } from "@/lib/auth";
+import { can, requirePermission } from "@/lib/auth";
 import { getCustomerById, listAddresses, sessionCount } from "@/lib/customers";
 import { ghs } from "@/lib/money";
 import { listOrdersForCustomer } from "@/lib/orders";
@@ -16,7 +16,8 @@ export default async function CustomerPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
-  await requireAdmin();
+  const who = await requirePermission("customers.view");
+  const canManage = can(who, "customers.manage");
   const { id } = await params;
   const sp = await searchParams;
   const c = getCustomerById(Number(id));
@@ -80,6 +81,8 @@ export default async function CustomerPage({
               <div><dt className="label">Total paid</dt><dd className="num font-semibold">{ghs(spent)}</dd></div>
             </dl>
           </section>
+          {canManage && (
+          <>
           <section className="box p-5">
             <h2 className="text-xl">Help with sign-in</h2>
             <p className="mb-3 mt-1 text-sm text-ink-soft">If they cannot receive the automatic reset message, create a link and send it to them yourself.</p>
@@ -95,6 +98,8 @@ export default async function CustomerPage({
                 : <button name="status" value="ACTIVE" className="btn btn-primary btn-small">Enable this account</button>}
             </form>
           </section>
+          </>
+          )}
         </div>
       </div>
     </>

@@ -8,7 +8,9 @@ import {
 } from "@/lib/analytics";
 import { appUrl } from "@/lib/app-url";
 import { recentAudit } from "@/lib/audit";
-import { adminConfig, requireAdmin } from "@/lib/auth";
+import { adminConfig, can, requireAdmin } from "@/lib/auth";
+import { landingPage } from "@/lib/permissions";
+import { redirect } from "next/navigation";
 import { STALE_AFTER_DAYS, rateAgeDays, rateHistory } from "@/lib/fx";
 import { drift, getFxPolicy, getMarketRate } from "@/lib/fx-api";
 import { CHANNEL_LABEL, getChannelProviderId, getIntegration, isConfigured, providersFor, readConfig } from "@/lib/integrations";
@@ -24,7 +26,9 @@ import { getSettings } from "@/lib/settings";
 const pct = (n: number | null) => (n === null ? "n/a" : `${(n * 100).toFixed(1)}%`);
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ range?: string; saved?: string; error?: string }> }) {
-  await requireAdmin();
+  const who = await requireAdmin();
+  // someone without the dashboard goes straight to the first page they can use
+  if (!can(who, "dashboard.view")) redirect(landingPage(who.permissions));
   const sp = await searchParams;
   const range = parseRange(sp.range);
   const settings = getSettings();
@@ -88,7 +92,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               <Link key={r} href={`/admin?range=${r}`} aria-current={r === range ? "page" : undefined} className={`tag !px-3 !py-1.5 ${r === range ? "!bg-ink !text-paper" : ""}`}>{r} days</Link>
             ))}
           </nav>
-          <a href="/admin/export/orders" className="btn btn-small">Export orders (CSV)</a>
+          {can(who, "orders.export") && <a href="/admin/export/orders" className="btn btn-small">Export orders (CSV)</a>}
         </div>
       </PageHead>
 

@@ -17,7 +17,7 @@ Required (the admin and cron endpoints stay locked until these are set):
 | Variable | What to put |
 | --- | --- |
 | `APP_URL` | Your public address, e.g. `https://shop.example.com` (https, no trailing slash). Used for payment returns and webhooks. |
-| `ADMIN_PASSWORD` | A long passphrase for the admin sign-in. |
+| `ADMIN_PASSWORD` | A long passphrase for the **super admin**. Only the developer should know it. It signs in at `/admin/login?developer=1` and can do everything, including creating staff accounts. |
 | `ADMIN_SECRET` | 16+ random characters. Signs admin sessions. `openssl rand -base64 32` |
 | `SETTINGS_ENCRYPTION_KEY` | 16+ random characters. Encrypts keys saved in the admin. Keep it safe: lose it and saved keys become unreadable. |
 | `CRON_SECRET` | 16+ random characters, if you call the cron endpoints. |

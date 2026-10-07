@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { savePricingAction } from "@/app/admin/actions";
 import { Area, Flash, PageHead, Text } from "@/components/admin/ui";
 import { tiersToText } from "@/lib/admin-parse";
@@ -7,7 +7,7 @@ import { effectiveRate, gbpToGhsMinor, serviceFeeMinor } from "@/lib/pricing";
 import { getSettings } from "@/lib/settings";
 
 export default async function PricingPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
-  await requireAdmin();
+  await requirePermission("pricing.manage");
   const sp = await searchParams;
   const s = getSettings();
   const fee = s.serviceFee;

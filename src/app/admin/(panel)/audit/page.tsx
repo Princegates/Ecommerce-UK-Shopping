@@ -1,9 +1,9 @@
 import { PageHead } from "@/components/admin/ui";
 import { recentAudit } from "@/lib/audit";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  await requireAdmin();
+  await requirePermission("audit.view");
   const { q } = await searchParams;
   const rows = recentAudit(300, q);
   return (

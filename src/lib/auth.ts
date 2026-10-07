@@ -2,6 +2,9 @@ import "server-only";
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
+import { getAdminUser, type AdminUser } from "./admin-users";
+import { PERMISSION_KEYS, type Permission } from "./permissions";
 import { createLimiter } from "./throttle";
 
 const COOKIE = "admin_session";
@@ -53,23 +56,97 @@ export function verifyToken(token: string | undefined, secret: string, now = Dat
   return Number(expires) > Math.floor(now / 1000);
 }
 
-export async function isAdmin(): Promise<boolean> {
+// --- staff sessions ---------------------------------------------------------------
+// A staff token is "u.<id>.<session version>.<expires>.<nonce>.<signature>". The session version lives on the account, so
+// disabling someone, changing their rights or resetting their password ends their open sessions at once.
+
+export function makeStaffToken(secret: string, id: number, sessionVersion: number, now = Date.now()): string {
+  const expires = Math.floor(now / 1000) + TTL_SECONDS;
+  const payload = `u.${id}.${sessionVersion}.${expires}.${randomBytes(8).toString("base64url")}`;
+  return `${payload}.${sign(payload, secret)}`;
+}
+
+export function verifyStaffToken(token: string | undefined, secret: string, now = Date.now()): { id: number; sessionVersion: number } | null {
+  if (!token) return null;
+  const parts = token.split(".");
+  if (parts.length !== 6 || parts[0] !== "u") return null;
+  const [, id, sv, expires, nonce, sig] = parts;
+  const expected = sign(`u.${id}.${sv}.${expires}.${nonce}`, secret);
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  if (!(Number(expires) > Math.floor(now / 1000))) return null;
+  const idN = Number(id);
+  const svN = Number(sv);
+  return Number.isInteger(idN) && idN > 0 && Number.isInteger(svN) ? { id: idN, sessionVersion: svN } : null;
+}
+
+/** Who is signed in. The super admin can do everything; a staff member can do what their account allows. */
+export type AdminIdentity = {
+  kind: "super" | "staff";
+  isSuper: boolean;
+  /** shown in the activity log */
+  label: string;
+  name: string;
+  user: AdminUser | null;
+  permissions: ReadonlySet<Permission>;
+};
+
+export const can = (who: AdminIdentity, p: Permission): boolean => who.isSuper || who.permissions.has(p);
+
+export const SUPER_IDENTITY: AdminIdentity = { kind: "super", isSuper: true, label: "super admin", name: "Super admin", user: null, permissions: new Set(PERMISSION_KEYS) };
+
+export function staffIdentity(user: AdminUser): AdminIdentity {
+  return { kind: "staff", isSuper: false, label: `${user.name} (${user.email})`, name: user.name, user, permissions: new Set(user.permissions) };
+}
+
+/** Looks at the cookie once per request and checks the account is still active and its session version still matches. */
+export const getAdmin = cache(async (): Promise<AdminIdentity | null> => {
   const cfg = adminConfig();
-  if (!cfg) return false;
-  const jar = await cookies();
-  return verifyToken(jar.get(COOKIE)?.value, cfg.secret);
+  if (!cfg) return null;
+  const token = (await cookies()).get(COOKIE)?.value;
+  if (verifyToken(token, cfg.secret)) return SUPER_IDENTITY;
+  const staff = verifyStaffToken(token, cfg.secret);
+  if (!staff) return null;
+  const user = getAdminUser(staff.id);
+  if (!user || user.status !== "ACTIVE" || user.sessionVersion !== staff.sessionVersion) return null;
+  return staffIdentity(user);
+});
+
+export async function isAdmin(): Promise<boolean> {
+  return (await getAdmin()) !== null;
 }
 
-/** Call at the top of every admin page and every admin server action. */
-export async function requireAdmin(): Promise<void> {
-  if (!(await isAdmin())) redirect("/admin/login");
+/**
+ * Call at the top of every admin page and every admin server action that needs no particular right (it signs the person in, and
+ * sends a staff member whose password was set by someone else to choose their own first).
+ */
+export async function requireAdmin(opts: { allowPasswordChange?: boolean } = {}): Promise<AdminIdentity> {
+  const who = await getAdmin();
+  if (!who) redirect("/admin/login");
+  if (who.user?.mustChangePassword && !opts.allowPasswordChange) redirect("/admin/account?must=1");
+  return who;
 }
 
-export async function startAdminSession(): Promise<void> {
+/** Call at the top of every admin page and action that needs a specific right. Returns who is acting, for the activity log. */
+export async function requirePermission(p: Permission): Promise<AdminIdentity> {
+  const who = await requireAdmin();
+  if (!can(who, p)) redirect("/admin/no-access");
+  return who;
+}
+
+/** For staff management: only the super admin, never a staff account. */
+export async function requireSuper(): Promise<AdminIdentity> {
+  const who = await requireAdmin();
+  if (!who.isSuper) redirect("/admin/no-access");
+  return who;
+}
+
+export async function startAdminSession(who: { kind: "super" } | { kind: "staff"; id: number; sessionVersion: number } = { kind: "super" }): Promise<void> {
   const cfg = adminConfig();
   if (!cfg) throw new Error("Admin is not configured");
   const jar = await cookies();
-  jar.set(COOKIE, makeToken(cfg.secret), {
+  jar.set(COOKIE, who.kind === "super" ? makeToken(cfg.secret) : makeStaffToken(cfg.secret, who.id, who.sessionVersion), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

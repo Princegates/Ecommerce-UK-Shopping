@@ -6,7 +6,7 @@ import { addTrackingAction, deleteTrackingAction, saveCostsAction } from "@/app/
 import { Flash, PageHead } from "@/components/admin/ui";
 import Breakdown from "@/components/Breakdown";
 import StatusChip from "@/components/StatusChip";
-import { requireAdmin } from "@/lib/auth";
+import { can, requirePermission } from "@/lib/auth";
 import { getCustomerById } from "@/lib/customers";
 import { EMPTY_COSTS, getCosts, orderMargin } from "@/lib/margin";
 import { ghs, minorToInput } from "@/lib/money";
@@ -34,7 +34,9 @@ export default async function AdminOrder({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
-  await requireAdmin();
+  const who = await requirePermission("orders.view");
+  const canManage = can(who, "orders.manage");
+  const canCosts = can(who, "orders.costs");
   const { id } = await params;
   const sp = await searchParams;
   const order = getOrderById(Number(id));
@@ -87,7 +89,7 @@ export default async function AdminOrder({
             {order.status === "CANCELLED" && order.paymentStatus === "PAID" && (
               <p className="box mt-3 border-red bg-red/10 p-3 font-semibold text-red">This order was paid and then cancelled. Refund the customer, then mark it refunded.</p>
             )}
-            {next.length > 0 ? (
+            {canManage && next.length > 0 ? (
               <form action={setOrderStatusAction} className="mt-4 grid gap-3">
                 <input type="hidden" name="orderId" value={order.id} />
                 <div className="field">
@@ -102,7 +104,7 @@ export default async function AdminOrder({
                 <p className="hint">The customer is told by SMS, email or WhatsApp according to your rules and their choices.</p>
               </form>
             ) : (
-              order.status !== "AWAITING_PAYMENT" && <p className="mt-3 text-ink-soft">No further changes are possible.</p>
+              !canManage ? <p className="mt-3 text-ink-soft">You can look at this order but not change it.</p> : order.status !== "AWAITING_PAYMENT" && <p className="mt-3 text-ink-soft">No further changes are possible.</p>
             )}
           </section>
 
@@ -139,15 +141,18 @@ export default async function AdminOrder({
                       <span className="font-semibold">{t.carrier}</span> <span className="mono">{t.reference}</span>
                       {t.note && <span className="block text-ink-soft">{t.note}</span>}
                     </span>
-                    <form action={deleteTrackingAction}>
-                      <input type="hidden" name="orderId" value={order.id} />
-                      <input type="hidden" name="trackingId" value={t.id} />
-                      <button className="link text-red">Remove</button>
-                    </form>
+                    {canManage && (
+                      <form action={deleteTrackingAction}>
+                        <input type="hidden" name="orderId" value={order.id} />
+                        <input type="hidden" name="trackingId" value={t.id} />
+                        <button className="link text-red">Remove</button>
+                      </form>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
+            {canManage && (
             <form action={addTrackingAction} className="box mt-4 grid gap-3 p-4">
               <input type="hidden" name="orderId" value={order.id} />
               <div className="grid gap-3 sm:grid-cols-2">
@@ -176,6 +181,7 @@ export default async function AdminOrder({
               </div>
               <div><button className="btn btn-small btn-primary">Add tracking</button></div>
             </form>
+            )}
           </section>
 
           <section>
@@ -200,6 +206,7 @@ export default async function AdminOrder({
             <p className="text-xs">Rate £1 = GH₵{(order.fxRate * (1 + order.fxMarkupPct / 100)).toFixed(4)} · {order.chargeableGrams} g chargeable · {order.shippingName}</p>
           </section>
 
+          {canCosts && (
           <section id="costs" className="box p-5 scroll-mt-24">
             <h2 className="text-xl">What it cost us</h2>
             <p className="mb-3 mt-1 text-sm text-ink-soft">Enter real costs as you pay them to see the margin on this order.</p>
@@ -235,6 +242,7 @@ export default async function AdminOrder({
               </dl>
             )}
           </section>
+          )}
 
           <section className="box p-5">
             <h2 className="text-xl">Payments</h2>

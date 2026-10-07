@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { deleteSourceAction, importFileAction, runSourceNowAction, toggleSourceAction } from "@/app/admin/ingest-actions";
 import SourceForm, { type SourceFormValues } from "@/components/admin/SourceForm";
 import { Flash, PageHead } from "@/components/admin/ui";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { listShops } from "@/lib/catalog";
 import { formatFieldMap } from "@/lib/ingest/field-map";
 import { SOURCE_KINDS, getSource, listRuns } from "@/lib/ingest/store";
@@ -11,7 +11,7 @@ import { SOURCE_KINDS, getSource, listRuns } from "@/lib/ingest/store";
 export const dynamic = "force-dynamic";
 
 export default async function SourceDetail({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string; started?: string; imported?: string }> }) {
-  await requireAdmin();
+  await requirePermission("sources.manage");
   const { id } = await params;
   const sp = await searchParams;
   const shops = listShops({ includeInactive: true }).map((s) => ({ id: s.id, name: s.name }));

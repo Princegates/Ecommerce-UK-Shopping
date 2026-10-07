@@ -29,3 +29,23 @@ describe("password and throttle", () => {
     expect(loginAllowed("test-ip-2")).toBe(true);
   });
 });
+
+import { makeStaffToken, verifyStaffToken } from "./auth";
+
+describe("staff token", () => {
+  it("carries the account and its session version, and rejects tampering and expiry", () => {
+    const t = makeStaffToken(secret, 12, 3);
+    expect(verifyStaffToken(t, secret)).toEqual({ id: 12, sessionVersion: 3 });
+    expect(verifyStaffToken(t.replace(".12.", ".13."), secret)).toBeNull(); // cannot be turned into someone else's
+    expect(verifyStaffToken(t.replace(".3.", ".4."), secret)).toBeNull();
+    expect(verifyStaffToken(t, "another-secret-that-is-long-enough")).toBeNull();
+    expect(verifyStaffToken(t, secret, Date.now() + 9 * 3600 * 1000)).toBeNull();
+    expect(verifyStaffToken(undefined, secret)).toBeNull();
+    expect(verifyStaffToken("junk", secret)).toBeNull();
+  });
+
+  it("keeps the super admin token and staff tokens apart", () => {
+    expect(verifyToken(makeStaffToken(secret, 1, 1), secret)).toBe(false);
+    expect(verifyStaffToken(makeToken(secret), secret)).toBeNull();
+  });
+});

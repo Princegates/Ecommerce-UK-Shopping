@@ -2,7 +2,7 @@ import Link from "next/link";
 import { toggleSourceAction } from "@/app/admin/ingest-actions";
 import AddLinks from "@/components/admin/AddLinks";
 import { Flash, PageHead } from "@/components/admin/ui";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { listShops } from "@/lib/catalog";
 import { SOURCE_KINDS, listSources, type Source } from "@/lib/ingest/store";
 
@@ -18,7 +18,7 @@ function state(s: Source): { label: string; tone: string } {
 }
 
 export default async function SourcesAdmin({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
-  await requireAdmin();
+  await requirePermission("sources.manage");
   const sp = await searchParams;
   const sources = listSources();
   const shops = listShops({ includeInactive: true }).map((s) => ({ id: s.id, name: s.name }));

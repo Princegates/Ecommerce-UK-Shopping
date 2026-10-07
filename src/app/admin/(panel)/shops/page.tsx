@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { deleteShopAction, saveShopAction } from "@/app/admin/actions";
 import { Area, Check, Flash, PageHead, Text } from "@/components/admin/ui";
 import ShopLogo from "@/components/ShopLogo";
@@ -42,7 +42,7 @@ function ShopForm({ s }: { s?: Shop }) {
 }
 
 export default async function ShopsAdmin({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
-  await requireAdmin();
+  await requirePermission("shops.manage");
   const sp = await searchParams;
   const shops = listShops({ includeInactive: true });
   return (

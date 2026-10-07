@@ -7,7 +7,7 @@ import { useEffect, useState, type ReactNode } from "react";
 export type NavGroup = { heading: string; items: { href: string; label: string; badge?: number }[] };
 
 /** The admin menu on phones: a bar with a Menu button that opens the full list, and closes again after a page is chosen. */
-export default function MobileNav({ siteName, groups, signOut }: { siteName: string; groups: NavGroup[]; signOut: ReactNode }) {
+export default function MobileNav({ siteName, groups, who, signOut }: { siteName: string; groups: NavGroup[]; who: string; signOut: ReactNode }) {
   const path = usePathname();
   // the menu is open for one page only, so choosing a link (which changes the page) closes it
   const [openFor, setOpenFor] = useState<string | null>(null);
@@ -58,6 +58,7 @@ export default function MobileNav({ siteName, groups, signOut }: { siteName: str
             </div>
           ))}
           <div className="mt-4 grid gap-2 border-t border-paper/20 px-1 pt-4">
+            <p className="text-sm text-paper/70">Signed in as {who}</p>
             <Link href="/" className="flex min-h-11 items-center text-sm font-semibold text-gold hover:underline">View the site ↗</Link>
             {signOut}
           </div>

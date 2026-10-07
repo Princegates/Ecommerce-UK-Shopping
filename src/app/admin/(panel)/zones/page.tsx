@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { deleteZoneAction, saveZoneAction } from "@/app/admin/actions";
 import { Check, Flash, PageHead, Text } from "@/components/admin/ui";
 import { minorToInput } from "@/lib/money";
@@ -25,7 +25,7 @@ function ZoneForm({ z }: { z?: ReturnType<typeof getZones>[number] }) {
 }
 
 export default async function ZonesPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
-  await requireAdmin();
+  await requirePermission("pricing.manage");
   const sp = await searchParams;
   const zones = getZones(false);
   return (

@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import Link from "next/link";
 import { PageHead } from "@/components/admin/ui";
 import { ghs } from "@/lib/money";
@@ -6,7 +6,7 @@ import { listOrders } from "@/lib/orders";
 import { ORDER_STATUSES, STATUS_LABEL, type OrderStatus } from "@/lib/order-status";
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
-  await requireAdmin();
+  await requirePermission("orders.view");
   const { status, q } = await searchParams;
   const orders = listOrders({ status, q });
   return (

@@ -1,11 +1,11 @@
 import { setReviewStatusAction } from "@/app/admin/ops-actions";
 import { Flash, PageHead } from "@/components/admin/ui";
 import Stars from "@/components/shop/Stars";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { adminReviews } from "@/lib/reviews";
 
 export default async function ReviewsAdmin({ searchParams }: { searchParams: Promise<{ status?: string; saved?: string }> }) {
-  await requireAdmin();
+  await requirePermission("reviews.manage");
   const sp = await searchParams;
   const status = sp.status === "PUBLISHED" || sp.status === "HIDDEN" ? sp.status : undefined;
   const reviews = adminReviews(status);

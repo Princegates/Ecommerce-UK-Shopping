@@ -13,7 +13,7 @@ Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind 4 and SQLite 
 
 ```bash
 npm install
-npm run dev          # http://localhost:3000, admin at /admin (dev password: admin)
+npm run dev          # http://localhost:3000, admin at /admin (developer sign-in: /admin/login?developer=1, dev password: admin)
 ```
 
 On first start the database is created with the settings, shipping rates, delivery areas and one shop, **eBay UK**.
@@ -85,6 +85,20 @@ review** instead.
 The scheduler runs inside the server every ten minutes. To run it from your own scheduler instead, set `INGEST_AUTORUN=false` and call
 `/api/cron/ingest`. On the **Request an item by link** page, a shopper's pasted link is looked up the same way (obeying robots.txt)
 to fill in the name and price, or to point them at the item if it is already listed.
+
+### Admin roles and access
+
+There are two kinds of admin sign-in:
+
+- **Super admin**: the developer's `ADMIN_PASSWORD`, used at `/admin/login?developer=1`. It can do everything and is the only way to manage staff. It is not stored in the
+  database and cannot be edited or switched off from the admin, so keep the password to yourself.
+- **Staff accounts**: created by the super admin under **Admin > Staff accounts**. Each person signs in at `/admin/login` with their email. Pick a role (Manager,
+  Operations, Customer support, Catalogue editor, Finance, Read-only) or tick exactly the rights they need. A new account has a first password set by the super
+  admin and must choose its own before anything else opens. The super admin can change a person's access, reset their password, switch them off (which signs them out
+  at once) or delete them. Staff cannot create or change accounts, and cannot give themselves more access.
+
+Every admin page and action checks a specific right, the menu shows only what a person can open, and the activity log records who did what. A test fails if a new admin page or
+action forgets its check.
 
 ### Link orders
 

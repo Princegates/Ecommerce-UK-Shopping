@@ -1,11 +1,11 @@
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import Link from "next/link";
 import { Flash, PageHead } from "@/components/admin/ui";
 import ProductForm from "@/components/admin/ProductForm";
 import { listShops } from "@/lib/catalog";
 
 export default async function NewItem({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  await requireAdmin();
+  await requirePermission("items.manage");
   const sp = await searchParams;
   return (
     <>

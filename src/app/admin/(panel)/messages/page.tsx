@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { retryMessageAction, sendQueuedNowAction } from "@/app/admin/ops-actions";
 import { PageHead } from "@/components/admin/ui";
-import { requireAdmin } from "@/lib/auth";
+import { can, requirePermission } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { messageStats, recentMessages } from "@/lib/notify/outbox";
 
 const STATUSES = ["PENDING", "SENT", "FAILED"] as const;
 
 export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ status?: string; saved?: string; ran?: string }> }) {
-  await requireAdmin();
+  const who = await requirePermission("messages.view");
+  const canManage = can(who, "messages.manage");
   const sp = await searchParams;
   const filter = STATUSES.find((s) => s === sp.status);
   const all = recentMessages(200);
@@ -19,7 +20,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageHead title="Messages">
-        <form action={sendQueuedNowAction}><button className="btn btn-primary">Send queued messages now</button></form>
+        {canManage && <form action={sendQueuedNowAction}><button className="btn btn-primary">Send queued messages now</button></form>}
       </PageHead>
       <p className="mb-6 max-w-3xl text-ink-soft">
         Every SMS, WhatsApp message and email the shop sends to customers. Failed messages are tried three times, then wait
@@ -61,7 +62,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                     {m.error && <p className="mt-1 max-w-xs text-xs text-red">{m.error}</p>}
                   </td>
                   <td>
-                    {m.status === "FAILED" && (
+                    {canManage && m.status === "FAILED" && (
                       <form action={retryMessageAction}>
                         <input type="hidden" name="id" value={m.id} />
                         <button className="btn btn-small">Retry</button>

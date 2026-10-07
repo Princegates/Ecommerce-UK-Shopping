@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import Link from "next/link";
 import { PageHead } from "@/components/admin/ui";
 import ProductArt from "@/components/ProductArt";
@@ -6,7 +6,7 @@ import { allProductsAdmin } from "@/lib/catalog";
 import { gbp } from "@/lib/money";
 
 export default async function ItemsAdmin() {
-  await requireAdmin();
+  await requirePermission("items.manage");
   const items = allProductsAdmin();
   return (
     <>

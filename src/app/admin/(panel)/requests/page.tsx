@@ -3,7 +3,7 @@ import { quoteRequestAction, saveLinkAutoAction, updateRequestAction } from "@/a
 import { Check, Flash, PageHead, Text, Area } from "@/components/admin/ui";
 import { REQUEST_STATUSES } from "@/lib/admin";
 import { appUrl } from "@/lib/app-url";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { getItemTypes, getLinkAuto, itemTypesToText } from "@/lib/link-auto";
 import { hostOf, listAllLinkRequests, quoteState } from "@/lib/link-orders";
 import { minorToInput } from "@/lib/money";
@@ -11,7 +11,7 @@ import { minorToInput } from "@/lib/money";
 export const dynamic = "force-dynamic";
 
 export default async function RequestsAdmin({ searchParams }: { searchParams: Promise<{ quoted?: string; via?: string; error?: string; saved?: string }> }) {
-  await requireAdmin();
+  await requirePermission("requests.manage");
   const sp = await searchParams;
   const requests = listAllLinkRequests();
   const base = appUrl() ?? "";

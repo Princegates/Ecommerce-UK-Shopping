@@ -1,6 +1,6 @@
 import { setThemeAction } from "@/app/admin/ops-actions";
 import { Flash, PageHead } from "@/components/admin/ui";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { THEMES, type Theme } from "@/lib/themes";
 
@@ -40,7 +40,7 @@ function Mini({ t }: { t: Theme }) {
 }
 
 export default async function AppearanceAdmin({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
-  await requireAdmin();
+  await requirePermission("appearance.manage");
   const sp = await searchParams;
   const active = getSettings().theme;
   return (

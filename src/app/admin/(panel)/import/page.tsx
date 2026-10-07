@@ -2,7 +2,7 @@ import Link from "next/link";
 import { approveItemAction, approveManyAction, rejectItemAction } from "@/app/admin/ingest-actions";
 import { Flash, PageHead } from "@/components/admin/ui";
 import PhotoImg from "@/components/PhotoImg";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { listImportItems, listSources, type ImportItem } from "@/lib/ingest/store";
 import { gbp } from "@/lib/money";
 
@@ -14,7 +14,7 @@ const PAGE = 50;
 const noImage = <span className="grid h-20 w-20 place-items-center rounded-lg border border-dashed border-line text-xs text-ink-soft">No photo</span>;
 
 export default async function ImportReview({ searchParams }: { searchParams: Promise<{ status?: string; source?: string; page?: string; saved?: string; error?: string }> }) {
-  await requireAdmin();
+  await requirePermission("import.review");
   const sp = await searchParams;
   const status = (TABS.find(([, v]) => v === sp.status)?.[1] ?? "REVIEW") as ImportItem["status"] | "REVIEW";
   const sourceId = Number(sp.source) || undefined;

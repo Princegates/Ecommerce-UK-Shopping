@@ -15,6 +15,11 @@ export function audit(action: string, target = "", detail = "", d: Db = db(), ac
   }
 }
 
+/** Records an action by a signed-in admin, under their name, so the log shows who did it. */
+export function adminAudit(who: { label: string }, action: string, target = "", detail = "", d: Db = db()): void {
+  audit(action, target, detail, d, who.label);
+}
+
 export type AuditRow = { id: number; at: string; actor: string; action: string; target: string; detail: string };
 
 export function recentAudit(limit = 100, q?: string, d: Db = db()): AuditRow[] {

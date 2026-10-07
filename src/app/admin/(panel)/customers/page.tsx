@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { PageHead } from "@/components/admin/ui";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { listCustomers } from "@/lib/customers";
 import { ghs } from "@/lib/money";
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  await requireAdmin();
+  await requirePermission("customers.view");
   const { q } = await searchParams;
   const customers = listCustomers(q);
   return (

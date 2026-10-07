@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { saveMethodAction } from "@/app/admin/actions";
 import { Area, Check, Flash, PageHead, Text } from "@/components/admin/ui";
 import { bracketsToText } from "@/lib/admin-parse";
@@ -33,7 +33,7 @@ function MethodForm({ m }: { m?: ReturnType<typeof getShippingMethods>[number] }
 }
 
 export default async function ShippingPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
-  await requireAdmin();
+  await requirePermission("pricing.manage");
   const sp = await searchParams;
   const methods = getShippingMethods(false);
   return (

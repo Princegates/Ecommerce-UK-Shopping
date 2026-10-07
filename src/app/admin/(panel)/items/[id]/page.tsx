@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Flash, PageHead } from "@/components/admin/ui";
@@ -12,7 +12,7 @@ export default async function EditItem({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
-  await requireAdmin();
+  await requirePermission("items.manage");
   const { id } = await params;
   const sp = await searchParams;
   const product = allProductsAdmin().find((p) => p.id === Number(id));

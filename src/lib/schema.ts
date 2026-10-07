@@ -268,6 +268,22 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 CREATE INDEX IF NOT EXISTS reviews_product_idx ON reviews (product_id, status);
 
+-- Staff accounts. The super admin is not stored here: it is the developer's ADMIN_PASSWORD and can do everything.
+CREATE TABLE IF NOT EXISTS admin_users (
+  id                   INTEGER PRIMARY KEY,
+  email                TEXT NOT NULL UNIQUE,
+  name                 TEXT NOT NULL,
+  password_hash        TEXT NOT NULL,
+  role                 TEXT NOT NULL DEFAULT 'custom',
+  permissions          TEXT NOT NULL DEFAULT '[]',
+  status               TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'DISABLED')),
+  must_change_password INTEGER NOT NULL DEFAULT 1,
+  session_version      INTEGER NOT NULL DEFAULT 1,
+  created_by           TEXT NOT NULL DEFAULT '',
+  created_at           TEXT NOT NULL DEFAULT (datetime('now')),
+  last_login_at        TEXT
+);
+
 CREATE TABLE IF NOT EXISTS audit_log (
   id     INTEGER PRIMARY KEY,
   at     TEXT NOT NULL DEFAULT (datetime('now')),

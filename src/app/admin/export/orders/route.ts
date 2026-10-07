@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { isAdmin } from "@/lib/auth";
-import { audit } from "@/lib/audit";
+import { can, getAdmin } from "@/lib/auth";
+import { adminAudit } from "@/lib/audit";
 import { csvCell } from "@/lib/csv";
 import { listOrders } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  if (!(await isAdmin())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const who = await getAdmin();
+  if (!who) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (who.user?.mustChangePassword || !can(who, "orders.export")) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const url = new URL(req.url);
   const orders = listOrders({ status: url.searchParams.get("status") ?? undefined, q: url.searchParams.get("q") ?? undefined });
   const money = (m: number) => (m / 100).toFixed(2);
@@ -22,7 +24,7 @@ export async function GET(req: Request) {
       ].map(csvCell).join(","),
     );
   }
-  audit("orders.export", "orders", `${orders.length} row(s)`);
+  adminAudit(who, "orders.export", "orders", `${orders.length} row(s)`);
   return new NextResponse(`﻿${lines.join("\r\n")}\r\n`, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
