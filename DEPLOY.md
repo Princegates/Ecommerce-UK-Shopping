@@ -52,7 +52,8 @@ fly certs add <your-domain>                   # then add the DNS records it show
 ### Render
 
 Push the repository to GitHub, then in Render choose **New > Blueprint** and select it. `render.yaml` creates the service and a disk.
-Fill in `ADMIN_PASSWORD` and `APP_URL` when asked. A disk needs a paid instance.
+Fill in `ADMIN_PASSWORD` and `APP_URL` when asked. A disk needs a paid instance. The blueprint uses the Frankfurt region (closest to
+Ghana and the UK); a region cannot be changed after the service exists, so pick it before you add real data.
 
 ## 3. After the first deploy
 
