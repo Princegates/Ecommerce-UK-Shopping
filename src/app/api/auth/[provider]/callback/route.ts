@@ -4,6 +4,9 @@ import { clientKey } from "@/lib/auth";
 import { getCustomer, startCustomerSession } from "@/lib/customer-session";
 import { consumeState, resolveSocialLogin, SIGNUP_MINUTES } from "@/lib/social/flow";
 import { exchangeCode, isSocialProvider, redirectUri, SocialError, socialConfig, type SocialProviderId } from "@/lib/social/providers";
+
+/** Query-string text is the visitor's to write, so it is cut down to plain words before it goes in a log line. */
+const plain = (v: string) => v.replace(/[^\w .,:;()'-]/g, "").slice(0, 120);
 import { bindCookieName, expiredBindCookie, signupCookieName, signupCookieOptions, type SocialErrorCode } from "@/lib/social/cookies";
 import { createLimiter } from "@/lib/throttle";
 
@@ -38,12 +41,18 @@ async function handle(req: Request, provider: string, params: Params): Promise<N
   const linking = Boolean(consumed?.linkCustomerId);
   const fail = (code: SocialErrorCode) => finish(go(`${linking ? "/account/security" : "/login"}?social_error=${code}`));
   if (!consumed) return fail("expired");
-  if (field(params, "error")) return fail(field(params, "error") === "access_denied" || field(params, "error") === "user_cancelled_authorize" ? "cancelled" : "failed");
+  if (field(params, "error")) {
+    console.error(`[social:${id}] the provider sent the person back with an error: ${plain(field(params, "error"))} ${plain(field(params, "error_reason"))} ${plain(field(params, "error_description"))}`.trim());
+    return fail(field(params, "error") === "access_denied" || field(params, "error") === "user_cancelled_authorize" ? "cancelled" : "failed");
+  }
 
   const cfg = socialConfig(id);
   const redirect = redirectUri(id);
   const code = field(params, "code");
-  if (!cfg || !redirect || !code || code.length > 2000) return fail("failed");
+  if (!cfg || !redirect || !code || code.length > 2000) {
+    console.error(`[social:${id}] the return had no usable code, or this provider is no longer set up (keys saved: ${cfg ? "yes" : "no"}, https APP_URL: ${redirect ? "yes" : "no"})`);
+    return fail("failed");
+  }
 
   if (consumed.linkCustomerId && (await getCustomer())?.id !== consumed.linkCustomerId) return fail("expired");
 
@@ -51,7 +60,7 @@ async function handle(req: Request, provider: string, params: Params): Promise<N
   try {
     profile = await exchangeCode(id, cfg, { code, verifier: consumed.verifier, nonce: consumed.nonce, redirectUri: redirect, appleUser: field(params, "user") });
   } catch (e) {
-    console.error(`[social:${id}] sign-in failed`, e instanceof SocialError ? e.message : "unexpected error");
+    console.error(`[social:${id}] sign-in failed: ${e instanceof SocialError ? `${e.message}${e.detail ? ` (${e.detail})` : ""}` : "unexpected error"}`);
     return fail("failed");
   }
 

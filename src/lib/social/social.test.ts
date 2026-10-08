@@ -6,7 +6,7 @@ import { getIntegration, readConfig, saveFields, setEnabled } from "../integrati
 import { beginAuth, completeSocialSignup, consumeState, getPendingSignup, listIdentities, resolveSocialLogin } from "./flow";
 import { pemBody, toPem } from "./pem";
 import {
-  activeSocialProviders, appleClientSecret, authorizeUrl, checkIdToken, decodeJwtPayload, exchangeCode, pkceChallenge, redirectUri, SocialError,
+  activeSocialProviders, appleClientSecret, authorizeUrl, checkIdToken, decodeJwtPayload, exchangeCode, pkceChallenge, providerReason, redirectUri, SocialError,
   socialConfig, type SocialProfile,
 } from "./providers";
 
@@ -140,6 +140,26 @@ describe("exchanging the code for a profile", () => {
     const noEmail = await exchangeCode("facebook", FB, input, (async (u: unknown) => (String(u).includes("/oauth/access_token") ? reply(200, { access_token: "t" }) : reply(200, { id: "fb-78", name: "No Email" }))) as unknown as typeof fetch, NOW);
     expect(noEmail.email).toBeNull();
     await expect(exchangeCode("facebook", FB, input, (async () => reply(400, { error: {} })) as unknown as typeof fetch, NOW)).rejects.toThrow(/Facebook did not accept/);
+  });
+});
+
+describe("saying why a provider refused, for the server log only", () => {
+  it("reads Facebook's, Google's and Apple's error shapes", () => {
+    expect(providerReason(400, { error: { message: "Error validating client secret.", type: "OAuthException", code: 1, fbtrace_id: "abc" } })).toBe("HTTP 400, Error validating client secret., code 1, OAuthException");
+    expect(providerReason(400, { error: "invalid_grant", error_description: "Bad Request" })).toBe("HTTP 400, invalid_grant, Bad Request");
+    expect(providerReason(500, {})).toBe("HTTP 500");
+    expect(providerReason(400, { error: "x\nforged log line <script>" })).not.toMatch(/[\n<>]/);
+  });
+  it("puts it in the detail of the error, never in the message shown to a customer", async () => {
+    const f = (async () => reply(400, { error: { message: "Error validating client secret.", type: "OAuthException", code: 1 } })) as unknown as typeof fetch;
+    const err = (await exchangeCode("facebook", FB, { code: "c", verifier: "v", nonce: "n", redirectUri: "https://shop.example/api/auth/facebook/callback" }, f, NOW).catch((e) => e)) as SocialError;
+    expect(err).toBeInstanceOf(SocialError);
+    expect(err.message).toBe("Facebook did not accept the sign-in. Please try again.");
+    expect(err.detail).toBe("token exchange: HTTP 400, Error validating client secret., code 1, OAuthException");
+    expect(JSON.stringify([err.message, err.detail])).not.toContain(FB.appSecret);
+    const g = (await exchangeCode("google", GOOGLE, { code: "c", verifier: "v", nonce: "n", redirectUri: "https://shop.example/api/auth/google/callback" }, (async () => reply(401, { error: "invalid_client", error_description: "Unauthorized" })) as unknown as typeof fetch, NOW).catch((e) => e)) as SocialError;
+    expect(g.detail).toBe("HTTP 401, invalid_client, Unauthorized");
+    expect(g.detail).not.toContain(GOOGLE.clientSecret);
   });
 });
 

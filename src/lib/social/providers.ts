@@ -110,7 +110,27 @@ export function checkIdToken(payload: Record<string, unknown> | null, expect: { 
   return null;
 }
 
-export class SocialError extends Error {}
+/** `message` is safe to show a customer; `detail` is for the server log only (what the provider said). Neither contains a key, code or token. */
+export class SocialError extends Error {
+  constructor(message: string, readonly detail = "") {
+    super(message);
+  }
+}
+
+const clean = (v: unknown) => (typeof v === "string" || typeof v === "number" ? String(v).replace(/[^\w .,:;()'/-]/g, "").slice(0, 160) : "");
+
+/** What the provider said went wrong, from the usual places (Facebook: error.message; Google and Apple: error, error_description). */
+export function providerReason(status: number, body: Record<string, unknown>): string {
+  const e = body.error;
+  const parts = [`HTTP ${status}`];
+  if (e && typeof e === "object") {
+    const o = e as Record<string, unknown>;
+    parts.push(clean(o.message), o.code !== undefined ? `code ${clean(o.code)}` : "", clean(o.type));
+  } else {
+    parts.push(clean(e), clean(body.error_description));
+  }
+  return parts.filter(Boolean).join(", ");
+}
 
 async function json(res: Response): Promise<Record<string, unknown>> {
   return ((await res.json().catch(() => ({}))) as Record<string, unknown>) ?? {};
@@ -131,11 +151,11 @@ export async function exchangeCode(id: SocialProviderId, cfg: Cfg, i: ExchangeIn
     res = await f(google ? "https://oauth2.googleapis.com/token" : "https://appleid.apple.com/auth/token", {
       method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" }, body: form, signal: AbortSignal.timeout(15_000),
     });
-  } catch {
-    throw new SocialError(`Could not reach ${SOCIAL_LABEL[id]}. Please try again.`);
+  } catch (e) {
+    throw new SocialError(`Could not reach ${SOCIAL_LABEL[id]}. Please try again.`, e instanceof Error ? clean(e.message) : "");
   }
   const body = await json(res);
-  if (!res.ok || typeof body.id_token !== "string") throw new SocialError(`${SOCIAL_LABEL[id]} did not accept the sign-in. Please try again.`);
+  if (!res.ok || typeof body.id_token !== "string") throw new SocialError(`${SOCIAL_LABEL[id]} did not accept the sign-in. Please try again.`, providerReason(res.status, body));
   const payload = decodeJwtPayload(body.id_token);
   const problem = checkIdToken(payload, {
     issuers: google ? ["https://accounts.google.com", "accounts.google.com"] : ["https://appleid.apple.com"], audience: cfg.clientId, nonce: i.nonce,
@@ -163,18 +183,18 @@ async function facebookProfile(cfg: Cfg, i: ExchangeInput, f: FetchLike): Promis
       { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(15_000) },
     );
     const tb = await json(t);
-    if (!t.ok || typeof tb.access_token !== "string") throw new SocialError("Facebook did not accept the sign-in. Please try again.");
+    if (!t.ok || typeof tb.access_token !== "string") throw new SocialError("Facebook did not accept the sign-in. Please try again.", `token exchange: ${providerReason(t.status, tb)}`);
     const proof = createHmac("sha256", cfg.appSecret).update(tb.access_token).digest("hex");
     const p = await f(`https://graph.facebook.com/v21.0/me?${new URLSearchParams({ fields: "id,name,email", access_token: tb.access_token, appsecret_proof: proof })}`, {
       headers: { Accept: "application/json" }, signal: AbortSignal.timeout(15_000),
     });
     const pb = await json(p);
-    if (!p.ok || typeof pb.id !== "string" || !pb.id) throw new SocialError("Facebook did not share your profile. Please try again.");
+    if (!p.ok || typeof pb.id !== "string" || !pb.id) throw new SocialError("Facebook did not share your profile. Please try again.", `profile: ${providerReason(p.status, pb)}`);
     const email = text(pb.email, 200).toLowerCase();
     // Facebook does not say whether an address is verified, so it is never trusted to match an existing account.
     return { provider: "facebook", subject: pb.id, email: email || null, emailVerified: false, name: text(pb.name, 80) };
   } catch (e) {
     if (e instanceof SocialError) throw e;
-    throw new SocialError("Could not reach Facebook. Please try again.");
+    throw new SocialError("Could not reach Facebook. Please try again.", e instanceof Error ? clean(e.message) : "");
   }
 }

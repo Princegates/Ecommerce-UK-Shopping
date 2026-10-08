@@ -35,6 +35,14 @@ Enter the App ID and Cert ID in **Integrations → Catalogue APIs**, switch eBay
 ### The Diffbot source reads nothing, or says "the shop's robots.txt does not allow it"
 The shop's `robots.txt` disallows that page (or the shop refused even the request for `robots.txt`), so nothing was sent to Diffbot. That is deliberate and is not a Diffbot fault. Use the shop's affiliate feed instead. If instead the run stops with "did not accept the token" or "credits have run out", fix the token under Integrations or add credits at Diffbot.
 
+### "We could not complete that sign-in" after Google, Facebook or Apple
+The person reached the provider and came back, so the shop's own check failed. Open the server log (Render: your service, **Logs**) and search for `[social:`. The line names the cause, for example:
+- `token exchange: HTTP 400, Error validating client secret` (Facebook) or `invalid_client` (Google): the App secret or Client secret saved under **Integrations → Customer sign-in** is wrong or was regenerated. Paste it again.
+- `Error validating application` or `Invalid app id`: the App ID is wrong, or the keys are for another app.
+- `redirect_uri` problems (`Redirect URI` / `redirect_uri_mismatch`): the address registered with the provider differs from the one on the card. Compare character by character (https, www, no trailing slash) and check `APP_URL`.
+- `the provider sent the person back with an error`: the provider refused before returning a code (for example the app is not Live and the person has no role on it).
+- `no usable code, or this provider is no longer set up`: the keys were removed or switched off, or `APP_URL` is not https.
+
 ### The WooCommerce source says "does not look like a WooCommerce shop"
 Open `theirshop/wp-json/wc/store/v1/products`. If it is not a block of text starting with `[{"id":`, the shop is not on WooCommerce or has switched its public list off, and it cannot be read. Ask the owner for a product feed instead. If the text shows a currency other than `GBP`, the shop cannot be used.
 
