@@ -48,7 +48,7 @@ Rules the system enforces:
 
 ## Where products come from
 
-You decide which UK shops to show and fill them with products from **catalogue sources**: eBay's official API, Shopify shops, product feeds, file imports and pasted links. The importer keeps prices and stock fresh and follows strict rules (it obeys `robots.txt` and stops when a shop refuses). See [Catalogue sources](04-catalogue-sources.md).
+You decide which UK shops to show and fill them with products from **catalogue sources**: eBay's official API, Shopify and WooCommerce shops, product feeds, file imports and pasted links. The importer keeps prices and stock fresh and follows strict rules (it obeys `robots.txt` and stops when a shop refuses). See [Catalogue sources](04-catalogue-sources.md).
 
 Shops that **block** automated reading (many large retailers do) are served by **link orders**: the customer pastes the product link, the system or your team prices it, and the customer pays through normal checkout. See [Admin guide → Link requests](02-admin-guide.md#link-requests).
 

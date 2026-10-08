@@ -154,7 +154,7 @@ None. The system is a web application and uses no special hardware.
 | IR-EX-06 | **Resend**, **Postmark** | out | Send transactional email (text and HTML). | Implemented |
 | IR-EX-07 | **ExchangeRate-API**, **Open Exchange Rates** | out | Fetch the GBP to GHS market rate. | Implemented |
 | IR-EX-08 | **eBay Browse API** | out | OAuth client-credentials, search UK fixed-price listings in GBP. | Implemented |
-| IR-EX-09 | **Shop websites and feeds** | out | Fetch feeds, sitemaps, Shopify `/meta.json` and `/products.json`, and product pages, subject to FR-CAT-30 to FR-CAT-33. | Implemented |
+| IR-EX-09 | **Shop websites and feeds** | out | Fetch feeds, sitemaps, Shopify `/meta.json` and `/products.json`, WooCommerce `/wp-json/wc/store/v1/products`, and product pages, subject to FR-CAT-30 to FR-CAT-33. | Implemented |
 | IR-EX-10 | **Inbound endpoints** | in | `/api/webhooks/{stripe,paystack,flutterwave}`; `/api/cron/{messages,fx,ingest}` (bearer secret); `/api/health`. | Implemented |
 | IR-EX-11 | **All outbound calls** | out | Shall use HTTPS where the provider offers it and shall have time and size limits (verified by inspection and `net.test.ts`). | Implemented |
 
@@ -304,7 +304,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-CAT-02 | Staff shall be able to create and edit items (name, brand, category, description, UK price, was-price and deal end, weight, size/colour options, source link, photo upload or link, shown/hidden). | M | Implemented | `admin.test.ts`; E2E |
 | FR-CAT-03 | Uploaded images shall be accepted by file content (JPEG, PNG, WebP, GIF), up to 4 MB, stored under random names, and served with a fixed type, `nosniff` and a sandbox policy. | M | Implemented | `uploads.test.ts`; E2E "fake images are refused" |
 | FR-CAT-04 | A new database shall contain only the shop **eBay UK**; made-up sample data shall be created only for tests or when explicitly enabled. | M | Implemented | `seed.test.ts` |
-| FR-CAT-10 | The system shall support catalogue sources of these kinds: product feed (CSV/JSON), eBay API, Shopify shop, shop website (sitemap and product pages), file import, pasted links. | M | Implemented | `run.test.ts`, `ebay.test.ts`, `shopify.test.ts`, `file-import.test.ts` |
+| FR-CAT-10 | The system shall support catalogue sources of these kinds: product feed (CSV/JSON), eBay API, Shopify shop, WooCommerce shop, shop website (sitemap and product pages), file import, pasted links. | M | Implemented | `run.test.ts`, `ebay.test.ts`, `shopify.test.ts`, `woocommerce.test.ts`, `file-import.test.ts` |
 | FR-CAT-11 | A source shall not be switched on until staff confirm they have checked the shop's terms or hold a licence. | M | Implemented | `run.test.ts`; E2E "sources need confirmed permission" |
 | FR-CAT-12 | Staff shall be able to preview a source without saving, run it now, switch it on or off, set its schedule and rules, and remove it keeping or removing its products. | M | Implemented | `run.test.ts`; E2E |
 | FR-CAT-13 | The system shall run due sources automatically (built-in scheduler, 10-minute tick; each source default every 24 hours) or via an external cron endpoint. | M | Implemented | `run.test.ts` (due sources); inspection |
@@ -312,7 +312,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-CAT-15 | Items with a price under 50p or over £10,000, a name under 3 characters, no link back, or a price move above the source's limit (default 40%) shall be held for staff review; staff shall be able to approve or reject singly or in bulk. | M | Implemented | `run.test.ts` |
 | FR-CAT-16 | Only prices in pounds shall be accepted. | M | Implemented | `parse.test.ts`; `shopify.test.ts` |
 | FR-CAT-17 | Feed addresses (which often hold keys) shall be stored encrypted and shown truncated. | M | Implemented | `run.test.ts`; `secrets.test.ts` |
-| FR-CAT-18 | A Shopify source shall read the shop's public product list only if `robots.txt` allows, the shop's currency is GBP, and the shop is a Shopify shop; sizes and colours shall become item options; products whose variants differ in price shall be skipped. | M | Implemented | `shopify.test.ts` |
+| FR-CAT-18 | A Shopify or WooCommerce source shall read the shop's public product list only if `robots.txt` allows, the shop's currency is GBP, and the shop is a Shopify (or, for WooCommerce, a Store API) shop; sizes and colours shall become item options; products whose variants differ in price shall be skipped. | M | Implemented | `shopify.test.ts`, `woocommerce.test.ts` |
 | FR-CAT-19 | A file-import source shall accept an uploaded CSV or JSON, apply the same checks as a feed, update on re-upload, and never remove products. | S | Implemented | `file-import.test.ts`; E2E |
 | FR-CAT-20 | An eBay source shall sign in with the admin's keys, search each listed query, accept only new, fixed-price, UK-located GBP listings, and never treat a missing result as removal. | M | Implemented | `ebay.test.ts` |
 | FR-CAT-30 | The importer shall identify itself honestly (`ShopCatalogBot`, with a public explanation page) and obey `robots.txt` and any `Crawl-delay`, with at least 2 seconds between requests to one shop. | M | Implemented | `net.test.ts` |
@@ -391,7 +391,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | Notifications | FR-MSG | `outbox.test.ts`, `templates.test.ts`, `phone.test.ts` |
 | Reviews and wishlist | FR-REV | `discovery.test.ts`, `account-orders.test.ts`, E2E (wishlist) |
 | Link orders | FR-LNK | `link-orders.test.ts`, `link-auto.test.ts`, `link-submit.test.ts`, E2E (link request to order, automatic quotes, found-link flow) |
-| Catalogue | FR-CAT | `ingest/net.test.ts`, `parse.test.ts`, `field-map.test.ts`, `run.test.ts`, `ebay.test.ts`, `shopify.test.ts`, `file-import.test.ts`, `source-kinds-migration.test.ts`, `seed.test.ts`, `shop-delete.test.ts`, `shop-logo.test.ts`, `uploads.test.ts`, `secrets.test.ts`, E2E (sources, shops, uploads) |
+| Catalogue | FR-CAT | `ingest/net.test.ts`, `parse.test.ts`, `field-map.test.ts`, `run.test.ts`, `ebay.test.ts`, `shopify.test.ts`, `woocommerce.test.ts`, `file-import.test.ts`, `source-kinds-migration.test.ts`, `seed.test.ts`, `shop-delete.test.ts`, `shop-logo.test.ts`, `uploads.test.ts`, `secrets.test.ts`, E2E (sources, shops, uploads) |
 | Administration | FR-ADM | `admin-logic.test.ts`, `admin.test.ts`, `integrations.test.ts`, `fx-api.test.ts`, `themes.test.ts`, `csv.test.ts`, E2E (every admin page, themes, delivery areas) |
 | Staff and access | FR-STF | `admin-users.test.ts`, `permissions.test.ts`, `auth.test.ts`, `admin-guards.test.ts`, E2E (staff account journey) |
 | System | FR-SYS | `source-kinds-migration.test.ts`, `shop-delete.test.ts`, E2E (health, cron, webhooks) |

@@ -14,10 +14,14 @@ A new database starts with one shop, **eBay UK**, and nothing else. Nothing fict
 | --- | --- | --- | --- |
 | **Product feed (CSV or JSON)** | Official and affiliate feeds (Awin, CJ, Rakuten, Impact…) | The feed address | The most reliable: prices, stock and images come from the shop. Columns are recognised automatically; override with lines like `price=cost.gbp`. |
 | **eBay (official API)** | Real UK listings with photos | Free eBay developer keys (Admin → Integrations → Catalogue APIs) and your searches, one per line (up to 10) | Only new, fixed-price, UK-located listings priced in pounds. Search results vary, so a missing listing is never treated as removed. |
+| **WooCommerce shop** | Small UK shops on WooCommerce | The shop's main address, for example `https://shop.co.uk` | Reads the public product list (`/wp-json/wc/store/v1/products`) only if the shop's `robots.txt` allows it and the shop prices in pounds. Brings sizes and colours across as choices. Products sold on another website, grouped products, and products whose sizes cost different amounts are skipped. Weight is not published, so the source's default weight is used. Get the owner's agreement first. |
 | **Shopify shop** | Small UK brands on Shopify | The shop's main address, for example `https://brand.co.uk` | Reads the public product list only if the shop's `robots.txt` allows it and the shop prices in pounds. Brings sizes and colours across as choices. Products whose sizes cost different amounts are skipped (the site holds one price per product). Get the owner's agreement first. |
 | **Shop website (sitemap + pages)** | Shops whose terms and `robots.txt` allow it | The sitemap address | Reads product data (JSON-LD or Open Graph) from each page, one at a time, slowly. |
 | **File import (CSV or JSON)** | Data you collected yourself, for example a spreadsheet | Create the source, then upload the file on its page | Nothing is fetched from any shop. Prices must be in pounds. Re-uploading the same file updates prices and stock. A file never removes products. Items disappear after the "hide items not refreshed" days unless you upload again. |
 | **Pasted links** | One-off items | Up to 20 links at a time | Prices are re-checked automatically. |
+
+### How to tell if a shop's list is readable on WooCommerce
+Open `theirshop/wp-json/wc/store/v1/products` in a browser. A readable shop shows a long block of text starting with `[{"id":` and containing `"currency_code":"GBP"`. A login page, an error, or `rest_no_route` means the list is switched off or the shop is not on WooCommerce, so it cannot be used.
 
 ### How to tell if a shop is on Shopify
 Open `theirshop/meta.json` in a browser. A Shopify shop shows text containing `"currency":"GBP"`; any other site shows an error page.
@@ -82,6 +86,7 @@ Open the source → **Remove this source**. Choose **keep its products** (they s
 | --- | --- | --- |
 | "Blocked by the shop… HTTP 403" | The shop refuses automated reading | Do not retry. Use an affiliate feed, or link orders. Remove or switch off the source. |
 | "Add your eBay App ID and Cert ID…" | eBay keys are missing or eBay is off | Enter them under Integrations → Catalogue APIs and switch eBay on. |
+| "That address does not look like a WooCommerce shop, or its product list is switched off" | Not WooCommerce, or the shop turned the public list off | Try the `/wp-json/wc/store/v1/products` test above. |
 | "That address does not look like a Shopify shop" | Not a Shopify shop (no `/meta.json`) | Check the address; try the `/meta.json` test above. |
 | "This shop prices in USD, not pounds…" | The shop's currency is not GBP | It cannot be used. |
 | Many items "skipped: variants have different prices" | Sizes cost different amounts | Those products are skipped by design. |

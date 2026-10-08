@@ -38,7 +38,7 @@ export default function SourceForm({
   const editing = v.id > 0;
   const [kind, setKind] = useState(v.kind);
   const isEbay = kind === "ebay";
-  const isShopify = kind === "shopify";
+  const isShopify = kind === "shopify" || kind === "woocommerce";
   const isUpload = kind === "upload";
 
   return (
@@ -132,7 +132,7 @@ export default function SourceForm({
         <details>
           <summary className="cursor-pointer font-semibold">More settings</summary>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <Text label={isEbay ? "Items per search" : isShopify ? "Products read per run (up to 500)" : "Pages read per run (website and link sources)"} name="maxItems" inputMode="numeric" defaultValue={v.maxItems} hint={isEbay ? "Up to 200. eBay returns its best matches for each search." : isShopify ? "The product list is read 250 at a time, slowly." : "Pages are read slowly, so a big shop is covered over several runs."} />
+            <Text label={isEbay ? "Items per search" : isShopify ? "Products read per run (up to 500)" : "Pages read per run (website and link sources)"} name="maxItems" inputMode="numeric" defaultValue={v.maxItems} hint={isEbay ? "Up to 200. eBay returns its best matches for each search." : isShopify ? kind === "woocommerce" ? "The product list is read 100 at a time, slowly." : "The product list is read 250 at a time, slowly." : "Pages are read slowly, so a big shop is covered over several runs."} />
             <Text label="Seconds between page requests (at least 2)" name="delaySeconds" inputMode="decimal" defaultValue={v.delaySeconds} hint="A longer Crawl-delay in the shop's robots.txt always wins." />
             <Text label="Category for items that have none" name="defaultCategory" defaultValue={v.defaultCategory} />
             <Text label="Weight when the shop gives none (grams)" name="defaultWeightGrams" inputMode="numeric" defaultValue={v.defaultWeightGrams} hint="Used for shipping. Check heavy categories." />

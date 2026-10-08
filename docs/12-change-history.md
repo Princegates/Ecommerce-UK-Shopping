@@ -26,6 +26,7 @@ What was built and in what order. Every change below is a commit on the `claude/
 - **eBay** official-API source.
 - **Remove source** (keep or remove its products).
 - **Shopify** shop source with sizes and colours.
+- **WooCommerce** shop source (public Store API product list) with sizes and colours.
 - **File import** (CSV or JSON you upload).
 - Page titles tidied (shop's own tail removed).
 

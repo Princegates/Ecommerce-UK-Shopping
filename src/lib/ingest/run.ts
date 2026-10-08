@@ -12,6 +12,7 @@ import {
 } from "./parse";
 import { parseOptions } from "../catalog";
 import { gatherShopify } from "./shopify";
+import { gatherWooCommerce } from "./woocommerce";
 import { ebayConfig, ebayToken, mapEbayItem, parseQueries, searchEbay } from "./ebay";
 import { getSource, getSourceUrl, linksSourceFor, type ImportItem, type Source, type SourceKind } from "./store";
 
@@ -358,6 +359,9 @@ export async function runSource(id: number, o: IngestDeps = {}, d: Db = db(), op
     } else if (source.kind === "shopify") {
       if (!url) throw new Error("This source has no shop address.");
       gathered = await gatherShopify(url, source.maxItems, dp);
+    } else if (source.kind === "woocommerce") {
+      if (!url) throw new Error("This source has no shop address.");
+      gathered = await gatherWooCommerce(url, source.maxItems, dp);
     } else {
       const robots = new RobotsCache(dp);
       let urls: string[];
@@ -605,6 +609,10 @@ export async function previewSource(
     assertFetchableUrl(i.url);
     if (i.kind === "shopify") {
       const g = await gatherShopify(i.url, 60, dp);
+      return { ok: g.items.length > 0, message: g.items.length ? `The shop's public product list is readable. ${g.items.length} usable product${g.items.length === 1 ? "" : "s"} in the first part of it.` : "The shop's product list had nothing we could use.", sample: g.items.slice(0, 5), skipNote: summarise(g.skips), totalRows: g.items.length };
+    }
+    if (i.kind === "woocommerce") {
+      const g = await gatherWooCommerce(i.url, 60, dp);
       return { ok: g.items.length > 0, message: g.items.length ? `The shop's public product list is readable. ${g.items.length} usable product${g.items.length === 1 ? "" : "s"} in the first part of it.` : "The shop's product list had nothing we could use.", sample: g.items.slice(0, 5), skipNote: summarise(g.skips), totalRows: g.items.length };
     }
     if (i.kind === "feed_csv" || i.kind === "feed_json") {

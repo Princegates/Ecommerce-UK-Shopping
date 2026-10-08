@@ -164,7 +164,7 @@ Check Render's status and **Logs**, and `/api/health`. A full disk is a common c
 | Payment gateway fees | Charged by Stripe, Paystack or Flutterwave per transaction. |
 | SMS / WhatsApp / email | Per message, depending on the provider. |
 | Domain name | Yearly, optional at first. |
-| eBay, Shopify reads | Free (eBay developer keys are free). |
+| eBay, Shopify, WooCommerce reads | Free (eBay developer keys are free). |
 
 Do not switch to a free plan or remove the disk: you would lose the database.
 
