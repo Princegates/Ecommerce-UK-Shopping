@@ -39,6 +39,8 @@ It reads the source and **fails if any admin page or admin action lacks an acces
 
 `e2e/e2e.mjs` uses a real headless Chromium and checks, in order: protected pages and unsigned webhooks refused; search; adding to cart; sign-up; checkout and payment; account and tracking; admin sign-in; every admin page loads; order status changes; exchange rate and pricing changes; catalogue sources (permission, internal addresses refused, create and remove, eBay and Shopify forms, file import); shops (logo upload, delete) and delivery areas (add, delete); themes; photo uploads (including refusing a fake image); the Add-by-link button and the home-page link box; link requests, quotes, payment and automatic quotes; one-click found-link flow; **staff accounts** (create, forced password change, limited menu, "No access", no change buttons, no export, switch off signs out); phone layouts for the admin and the shop; wishlist.
 
+`run.sh` also starts a second throwaway shop whose `APP_URL` is an https address, because the Google, Facebook and Apple buttons only show on https; the "social sign-in" step uses it to check the button appears once Google is set up, the redirect to Google carries state, nonce and PKCE, and a stray return is refused. Nothing is ever sent to that address.
+
 It fails if the browser console shows errors.
 
 ## What is deliberately *not* tested automatically

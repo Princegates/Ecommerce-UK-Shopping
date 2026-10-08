@@ -51,6 +51,9 @@ Important choices:
 | `link_requests` | Links customers sent: item, quantity, details, who sent it, status, and the quote (price, weight, note, expiry, private token, how the price was found) and the order it became. |
 | `customers` | Shopper accounts: name, phone (international form), optional email, password hash, status, notification preferences, default area. |
 | `customer_sessions` | Signed-in sessions (the cookie value is stored hashed). |
+| `customer_identities` | Which Google, Facebook or Apple account is connected to which customer (the provider's own id, and the email it shared). |
+| `oauth_states` | Sign-in attempts in progress: single use, 10 minutes, only hashes of the state and browser tie are kept. |
+| `social_signups` | A first-time provider sign-in waiting for a phone number (30 minutes). |
 | `customer_addresses` | Saved delivery addresses (up to 10 each). |
 | `password_resets` | One-time reset links (stored hashed, valid 60 minutes). |
 | `wishlist_items` | Saved items per customer. |
@@ -325,6 +328,41 @@ Generated from the database definition.
 | `expires_at` | TEXT | required |
 | `created_at` | TEXT | required; default datetime('now') |
 | `user_agent` | TEXT | required; default '' |
+
+### customer_identities
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | INTEGER | primary key |
+| `customer_id` | INTEGER | required; → customers (on delete cascade) |
+| `provider` | TEXT | required; google, facebook or apple |
+| `subject` | TEXT | required; the provider's own id for the person. Unique with provider. |
+| `email` | TEXT | required; default ''. The email the provider shared. |
+| `created_at` | TEXT | required; default datetime('now') |
+
+### oauth_states
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `state_hash` | TEXT | primary key (hash of the state sent to the provider) |
+| `provider` | TEXT | required |
+| `binding_hash` | TEXT | required (hash of the cookie value that ties the attempt to one browser) |
+| `nonce` | TEXT | required |
+| `verifier` | TEXT | required (PKCE verifier, Google) |
+| `next_path` | TEXT | required; default '/account' |
+| `link_customer_id` | INTEGER | set when a signed-in customer is connecting a provider |
+| `expires_at` | TEXT | required |
+
+### social_signups
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `token_hash` | TEXT | primary key (hash of the cookie value) |
+| `provider`, `subject` | TEXT | required |
+| `name`, `email` | TEXT | required; default '' |
+| `email_verified` | INTEGER | required; default 0 |
+| `next_path` | TEXT | required; default '/account' |
+| `expires_at` | TEXT | required |
 
 ### customer_addresses
 

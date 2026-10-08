@@ -40,7 +40,7 @@ Set these as **environment variables** on the host (Render → service → **Env
 ### Required in production
 | Variable | Purpose |
 | --- | --- |
-| `APP_URL` | The public address, `https://…`, no trailing slash. Used for payment return links, webhook addresses and the links in messages. It is **never** read from request headers. Without an `https` value, customers cannot be messaged their link-order pay links. |
+| `APP_URL` | The public address, `https://…`, no trailing slash. Used for payment return links, webhook addresses and the links in messages. It is **never** read from request headers. Without an `https` value, customers cannot be messaged their link-order pay links, and the Google, Facebook and Apple sign-in buttons stay hidden. |
 | `ADMIN_PASSWORD` | The **super admin** password. A long passphrase. **Only the developer should know it.** |
 | `ADMIN_SECRET` | 16 or more random characters. Signs admin sessions. Changing it signs everyone out of the admin. **If you have not set `SETTINGS_ENCRYPTION_KEY`, the saved keys are encrypted with this value, so changing it would also make them unreadable. Always set a separate `SETTINGS_ENCRYPTION_KEY`.** |
 | `SETTINGS_ENCRYPTION_KEY` | 16 or more random characters. Encrypts provider keys and feed addresses saved in the database. **If you lose or change it, saved keys become unreadable** and must be entered again. Falls back to `ADMIN_SECRET` if unset. |
@@ -70,6 +70,9 @@ Generate random values with `openssl rand -base64 32`.
 | Postmark (email) | `POSTMARK_SERVER_TOKEN`, `POSTMARK_FROM`, `POSTMARK_MESSAGE_STREAM` (default outbound) |
 | eBay | `EBAY_APP_ID`, `EBAY_CERT_ID`, `EBAY_ENVIRONMENT` (production or sandbox) |
 | Diffbot | `DIFFBOT_TOKEN` |
+| Sign in with Google | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| Sign in with Facebook | `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET` |
+| Sign in with Apple | `APPLE_CLIENT_ID` (the Services ID), `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the .p8 contents; `\n` or one line is fine) |
 | ExchangeRate-API | `EXCHANGERATE_API_KEY` |
 | Open Exchange Rates | `OPENEXCHANGERATES_APP_ID` |
 
@@ -90,7 +93,7 @@ Details of each provider are in [Integrations](09-integrations.md).
 - **Fly.io:** `fly launch --no-deploy --copy-config`, `fly volumes create shopdata --size 1 --region lhr`, set the secrets, `fly deploy`, `fly certs add <domain>`. `fly.toml` keeps one machine always on.
 
 ### Your own domain
-Add the domain in the host (Render → service → **Settings → Custom Domains**), create the DNS records it shows, wait for the certificate, then change `APP_URL` to the new address and **update every gateway's webhook and return address** to match.
+Add the domain in the host (Render → service → **Settings → Custom Domains**), create the DNS records it shows, wait for the certificate, then change `APP_URL` to the new address and **update every gateway's webhook and return address** to match, and the redirect address of Google, Facebook and Apple sign-in.
 
 ## 5.5 Scheduled jobs
 

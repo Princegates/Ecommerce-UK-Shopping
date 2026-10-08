@@ -8,12 +8,20 @@ What protects the system, what personal data it holds, and what is not covered. 
 | --- | --- | --- |
 | **Super admin** | `ADMIN_PASSWORD` (a server setting) at `/admin/login?developer=1` | Not stored in the database. Compared in constant time. Cannot be edited or switched off from the admin. |
 | **Staff** | Email and password at `/admin/login` | Passwords hashed with **scrypt** (N=2¹⁵, r=8, p=3, random salt). Minimum **10 characters**, common passwords refused. New accounts must choose their own password before anything else opens. |
-| **Customers** | Phone (or email) and password | Same scrypt hashing, minimum 8 characters, common passwords and a password containing the phone or email refused. |
+| **Customers** | Phone (or email) and password, or Google, Facebook or Apple | Passwords: same scrypt hashing, minimum 8 characters, common passwords and a password containing the phone or email refused. Provider sign-in: see below. |
 
 ### Sessions
 - **Admin:** a signed cookie (`admin_session`), HMAC-SHA256 with `ADMIN_SECRET`, `HttpOnly`, `SameSite=Lax`, `Secure` in production, limited to `/admin`, valid **8 hours**. A **staff** session also carries the account's **session version**, which is re-checked against the database on **every request**. Switching an account off, changing its rights or resetting its password raises the version, so open sessions end **at once**.
 - **Customers:** a random token in a `HttpOnly`, `SameSite=Lax`, `Secure`, `__Host-` prefixed cookie, valid **30 days**; only a **hash** of the token is stored. Customers can sign out other devices.
 - **Password resets:** a random one-time token valid **60 minutes**, stored hashed; a successful reset signs the customer in and ends other sessions.
+
+### Sign in with Google, Facebook or Apple
+- The standard authorisation-code flow over HTTPS. Each attempt carries a random **state**, a **nonce** and (Google) a **PKCE** challenge, lasts **10 minutes**, can be used **once**, and is tied to the browser that began it by a `HttpOnly`, `Secure`, `__Host-` cookie (`SameSite=None` in production, because Apple returns the person with a cross-site form post). Only hashes of the state and the cookie value are stored.
+- Google and Apple identify the person by an **ID token** received straight from the provider's token endpoint over TLS; its issuer, audience (our app), expiry and nonce are checked. Facebook's access token is exchanged for the profile with an app-secret proof.
+- **Account matching:** by the provider's own id, or by an email address the provider says it has **verified** (Google, Apple). Facebook does not say, so its email never connects to an existing account; a phone number or name never does either. Such a person is told to sign in another way and connect the provider from **Account → Security**.
+- Switched-off accounts cannot sign in this way. Provider secrets (and the Apple private key) are saved **encrypted**, like other integration keys. Provider sign-in is **only offered when `APP_URL` is an https address**.
+- A first-time sign-in must add a phone number before the account exists. The account gets a random password nobody knows; the customer can choose one through "Forgot your password".
+- Start and return addresses are rate-limited per connection.
 
 ### Throttles (kept in memory, per server)
 | What | Limit |

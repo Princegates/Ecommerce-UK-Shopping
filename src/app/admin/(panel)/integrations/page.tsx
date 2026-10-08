@@ -133,6 +133,20 @@ export default async function IntegrationsPage({
         </div>
       </section>
 
+      <section id="customer-login" aria-labelledby="login-h" className="mb-12 scroll-mt-24">
+        <h2 id="login-h" className="text-3xl">Customer sign-in</h2>
+        <p className="mt-1 max-w-3xl text-ink-soft">
+          Let customers sign in or sign up with Google, Facebook or Apple. Each needs an app registered with that company, and its redirect address added there.
+          The buttons show on the sign-in and sign-up pages once a provider is complete and switched on.
+          {!base && <span className="error-text"> Set APP_URL on the server first: without a fixed address the buttons stay hidden.</span>}
+        </p>
+        <div className="mt-6 grid gap-8">
+          {providersFor("login").map((def) => (
+            <IntegrationCard key={def.id} def={def} cfg={readConfig(def)} flash={flash} baseUrl={base} testChannels={[]} />
+          ))}
+        </div>
+      </section>
+
       <section id="rates-feed" aria-labelledby="rates-h" className="mb-12 scroll-mt-24">
         <h2 id="rates-h" className="text-3xl">Exchange rate feed</h2>
         <p className="mt-1 max-w-3xl text-ink-soft">

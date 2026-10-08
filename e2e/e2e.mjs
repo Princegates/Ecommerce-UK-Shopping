@@ -546,6 +546,83 @@ try {
   await shopPhone.close();
   step("the shop fits a phone: no page wider than the screen, fields at 16px");
 
+  // 9k. social sign-in. Without an https APP_URL there are no buttons (providers need a fixed secure return address). On a second shop whose
+  // APP_URL is https: saving Google's keys in the admin makes the button appear; it sends the browser to Google with state, nonce and PKCE and
+  // keeps a cookie tying the attempt to this browser; a stray return, or one with the wrong state, is refused; the first-time form is only
+  // reachable after a real sign-in
+  const socialBase = process.env.E2E_SOCIAL_BASE;
+  const loginAs = async (root) => {
+    const c = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const p = await c.newPage();
+    p.setDefaultTimeout(8000);
+    await p.goto(root + "/admin/login?developer=1");
+    await p.getByLabel("Developer password").fill(DEV_PASSWORD);
+    await p.getByRole("button", { name: "Sign in" }).click();
+    await p.waitForURL("**/admin");
+    return p;
+  };
+  const saveGoogle = async (root, p) => {
+    await p.goto(root + "/admin/integrations");
+    await p.getByRole("heading", { name: "Customer sign-in" }).waitFor();
+    for (const name of ["Sign in with Google", "Sign in with Facebook", "Sign in with Apple"]) await p.getByRole("heading", { name }).first().waitFor();
+    must((await p.locator("#google input[readonly]").inputValue()).endsWith("/api/auth/google/callback"), "the Google card shows the redirect address to register");
+    await p.locator("#google").getByLabel(/Client ID/).fill("e2e-client.apps.googleusercontent.com");
+    await p.locator("#google").getByLabel(/Client secret/).fill("e2e-google-secret");
+    await p.locator("#google").getByRole("button", { name: /Save Sign in with Google/ }).click();
+    await p.locator("#google").getByText("Saved.").waitFor();
+  };
+  {
+    const sa = await loginAs(base);
+    await saveGoogle(base, sa);
+    const g0 = await (await browser.newContext()).newPage();
+    await g0.goto(base + "/login");
+    await g0.getByRole("heading", { name: "Sign in" }).first().waitFor();
+    must((await g0.getByRole("link", { name: /Continue with/ }).count()) === 0, "no social buttons while APP_URL is not https, even with keys saved");
+    await sa.context().close();
+    await g0.context().close();
+  }
+  if (socialBase) {
+    const gctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const gp = await gctx.newPage();
+    gp.setDefaultTimeout(8000);
+    await gp.goto(socialBase + "/login");
+    must((await gp.getByRole("link", { name: /Continue with/ }).count()) === 0, "no social buttons before any provider is set up");
+    const sa2 = await loginAs(socialBase);
+    await saveGoogle(socialBase, sa2);
+    await gp.goto(socialBase + "/login?next=%2Fcheckout");
+    const gbtn = gp.getByRole("link", { name: "Continue with Google" });
+    await gbtn.waitFor();
+    must((await gp.getByRole("link", { name: "Continue with Facebook" }).count()) === 0, "only providers that are set up get a button");
+    must((await gbtn.getAttribute("href")) === "/api/auth/google/start?next=%2Fcheckout", "the button carries the page to return to");
+    const start = await gp.request.get(socialBase + "/api/auth/google/start?next=%2Fcheckout", { maxRedirects: 0 });
+    must(start.status() === 303, "the start address redirects, got " + start.status());
+    const loc = new URL(start.headers()["location"]);
+    must(loc.origin + loc.pathname === "https://accounts.google.com/o/oauth2/v2/auth", "it sends the browser to Google, got " + loc.origin + loc.pathname);
+    must(loc.searchParams.get("client_id") === "e2e-client.apps.googleusercontent.com" && loc.searchParams.get("redirect_uri") === "https://shop.example.test/api/auth/google/callback", "the Google address carries the client and our return address");
+    must(loc.searchParams.get("code_challenge_method") === "S256" && (loc.searchParams.get("state") ?? "").length > 20 && (loc.searchParams.get("nonce") ?? "").length > 10, "state, nonce and PKCE are set");
+    const bind = start.headersArray().find((h) => h.name.toLowerCase() === "set-cookie")?.value ?? "";
+    must(/^__Host-oauth_bind=/.test(bind) && /httponly/i.test(bind) && /secure/i.test(bind) && /samesite=none/i.test(bind), "a HttpOnly, Secure, SameSite=None cookie ties the attempt to this browser, saw: " + bind.slice(0, 60));
+    const off = await gp.request.get(socialBase + "/api/auth/facebook/start", { maxRedirects: 0 });
+    must(off.status() === 303 && (off.headers()["location"] ?? "").includes("social_error=unavailable"), "a provider that is not set up is refused");
+    const bogus = await gp.request.get(socialBase + "/api/auth/google/callback?code=abc&state=not-a-real-state", { maxRedirects: 0 });
+    must(bogus.status() === 303 && (bogus.headers()["location"] ?? "").includes("social_error=expired"), "a return with an unknown state is refused");
+    const post = await gp.request.post(socialBase + "/api/auth/apple/callback", { form: { code: "x", state: "y" }, maxRedirects: 0 });
+    must(post.status() === 303, "a form post to a provider that is not set up is refused politely, got " + post.status());
+    await gp.goto(socialBase + "/login?social_error=expired");
+    await gp.getByText(/took too long or came from a different browser/).waitFor();
+    await gp.goto(socialBase + "/register/social");
+    await gp.waitForURL("**/login?social_error=expired");
+    const direct = await gp.request.get(socialBase + "/api/auth/google/start?link=1", { maxRedirects: 0 });
+    must(direct.status() === 303 && (direct.headers()["location"] ?? "").includes("/login"), "connecting a method needs a signed-in customer");
+    await gp.goto(socialBase + "/register");
+    await gp.getByRole("link", { name: "Sign up with Google" }).waitFor();
+    await sa2.context().close();
+    await gctx.close();
+    step("social sign-in: the button appears once Google is set up (https), the start sends the browser to Google with state, nonce and PKCE, and a stray return is refused");
+  } else {
+    step("social sign-in: no buttons without an https APP_URL (set E2E_SOCIAL_BASE to also run the https checks)");
+  }
+
   // 10. wishlist + sign out
   await page.goto(base + PRODUCT);
   await page.getByRole("button", { name: /Save|wishlist/i }).first().click();

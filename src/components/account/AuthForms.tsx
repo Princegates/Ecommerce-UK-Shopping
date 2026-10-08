@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import {
   forgotPasswordAction, loginAction, registerAction, resetPasswordAction, type FormState,
 } from "@/app/actions/account";
+import { completeSocialSignupAction } from "@/app/actions/social";
 import { Field, FormStatus } from "./Field";
 
 const idle: FormState = {};
@@ -70,6 +71,21 @@ export function ResetForm({ token }: { token: string }) {
       <Field label="Confirm new password" name="confirm" type="password" autoComplete="new-password" required />
       <FormStatus error={s.error} />
       <button className="btn btn-primary w-full" disabled={pending}>{pending ? "Saving…" : "Set new password"}</button>
+    </form>
+  );
+}
+
+export function SocialSignupForm({ provider, name, email }: { provider: string; name: string; email: string }) {
+  const [s, action, pending] = useActionState(completeSocialSignupAction, idle);
+  const v = s.values ?? {};
+  return (
+    <form action={action} className="grid gap-4">
+      <Field label="Full name" name="name" autoComplete="name" required defaultValue={v.name ?? name} />
+      <Field label="Phone number" name="phone" type="tel" autoComplete="tel" required defaultValue={v.phone} placeholder="024 123 4567" hint="We call or text this number about deliveries." />
+      {email && <p className="text-sm text-ink-soft">{provider} shared this email address: <span className="font-semibold">{email}</span></p>}
+      <FormStatus error={s.error} />
+      <button className="btn btn-primary w-full" disabled={pending}>{pending ? "Creating account…" : "Finish creating my account"}</button>
+      <p className="hint">By creating an account you agree to receive order updates by SMS and email. You can change this any time.</p>
     </form>
   );
 }

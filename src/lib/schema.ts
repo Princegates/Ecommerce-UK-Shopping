@@ -226,6 +226,42 @@ CREATE TABLE IF NOT EXISTS customer_sessions (
 );
 CREATE INDEX IF NOT EXISTS customer_sessions_customer_idx ON customer_sessions (customer_id);
 
+-- Sign in with Google, Facebook or Apple. One row ties a provider's own id for a person to one customer.
+CREATE TABLE IF NOT EXISTS customer_identities (
+  id          INTEGER PRIMARY KEY,
+  customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+  provider    TEXT NOT NULL,
+  subject     TEXT NOT NULL,
+  email       TEXT NOT NULL DEFAULT '',
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (provider, subject)
+);
+CREATE INDEX IF NOT EXISTS customer_identities_customer_idx ON customer_identities (customer_id);
+
+-- One row per sign-in attempt in progress (single use, short lived). Only hashes of the state and the browser binding are kept.
+CREATE TABLE IF NOT EXISTS oauth_states (
+  state_hash       TEXT PRIMARY KEY,
+  provider         TEXT NOT NULL,
+  binding_hash     TEXT NOT NULL,
+  nonce            TEXT NOT NULL,
+  verifier         TEXT NOT NULL,
+  next_path        TEXT NOT NULL DEFAULT '/account',
+  link_customer_id INTEGER,
+  expires_at       TEXT NOT NULL
+);
+
+-- A first-time social sign-in that still needs a phone number before the account exists.
+CREATE TABLE IF NOT EXISTS social_signups (
+  token_hash     TEXT PRIMARY KEY,
+  provider       TEXT NOT NULL,
+  subject        TEXT NOT NULL,
+  name           TEXT NOT NULL DEFAULT '',
+  email          TEXT NOT NULL DEFAULT '',
+  email_verified INTEGER NOT NULL DEFAULT 0,
+  next_path      TEXT NOT NULL DEFAULT '/account',
+  expires_at     TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS customer_addresses (
   id          INTEGER PRIMARY KEY,
   customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,

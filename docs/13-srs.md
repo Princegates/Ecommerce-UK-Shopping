@@ -153,10 +153,11 @@ None. The system is a web application and uses no special hardware.
 | IR-EX-05 | **Meta WhatsApp Cloud API**, **Twilio** | out | Send approved template messages. | Implemented |
 | IR-EX-06 | **Resend**, **Postmark** | out | Send transactional email (text and HTML). | Implemented |
 | IR-EX-07 | **ExchangeRate-API**, **Open Exchange Rates** | out | Fetch the GBP to GHS market rate. | Implemented |
-| IR-EX-10 | **Diffbot Product API** | out | Read each listed product page by token; only prices in GBP; stop on bad token, no credits or rate limit. | Implemented |
+| IR-EX-12 | **Diffbot Product API** | out | Read each listed product page by token; only prices in GBP; stop on bad token, no credits or rate limit. | Implemented |
 | IR-EX-08 | **eBay Browse API** | out | OAuth client-credentials, search UK fixed-price listings in GBP. | Implemented |
 | IR-EX-09 | **Shop websites and feeds** | out | Fetch feeds, sitemaps, Shopify `/meta.json` and `/products.json`, WooCommerce `/wp-json/wc/store/v1/products`, and product pages, subject to FR-CAT-30 to FR-CAT-33. | Implemented |
 | IR-EX-10 | **Inbound endpoints** | in | `/api/webhooks/{stripe,paystack,flutterwave}`; `/api/cron/{messages,fx,ingest}` (bearer secret); `/api/health`. | Implemented |
+| IR-EX-13 | **Sign in with Google, Facebook and Apple** | out | OpenID Connect and OAuth 2.0 authorisation-code flows over HTTPS; Google and Apple identify the person by an ID token from the token endpoint, Facebook by its Graph profile. | Implemented |
 | IR-EX-11 | **All outbound calls** | out | Shall use HTTPS where the provider offers it and shall have time and size limits (verified by inspection and `net.test.ts`). | Implemented |
 
 ---
@@ -221,6 +222,10 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-ACC-07 | A customer shall have a wishlist and see their order history, per-order tracking, an updates feed (with unread marking), live tracking of the latest order, and "buy again". | S | Implemented | `account-orders.test.ts`; E2E "wishlist", "order appears in the account" |
 | FR-ACC-08 | A customer shall be able to delete their account. Reviews shall remain shown as "Former customer", link requests shall be detached, orders shall be kept without an account link. | S | Implemented | `customers.test.ts` |
 | FR-ACC-09 | Staff shall be able to disable and re-enable a customer account (signing the customer out everywhere) and create a one-time reset link, without affecting orders. | S | Implemented | E2E "every admin page loads"; `customers.test.ts` |
+| FR-ACC-12 | A customer shall be able to sign in or sign up with Google, Facebook or Apple when the shop owner has set that provider up and switched it on, and to connect further providers to an existing account. | S | Implemented | `social.test.ts`; E2E "social sign-in" |
+| FR-ACC-13 | An existing account shall be matched to a provider sign-in only by the provider's own id, or by an email address the provider itself reports as verified (Google, Apple). An unverified email (Facebook), a phone number or a name shall never connect or take over an account. | M | Implemented | `social.test.ts` |
+| FR-ACC-14 | Each provider sign-in attempt shall be single-use, expire in 10 minutes, be tied to the browser that began it by a cookie (SameSite=None where Apple's cross-site form post requires it), carry a state value, a nonce and, for Google, a PKCE challenge, and refuse an ID token of another issuer, audience, expiry or nonce. | M | Implemented | `social.test.ts`; E2E "social sign-in" |
+| FR-ACC-15 | A first-time provider sign-in shall ask for a phone number before the account is created, because deliveries are arranged by phone; a phone number already on an account shall not be linked automatically. | M | Implemented | `social.test.ts` |
 | FR-ACC-10 | Registration shall verify the phone number or email (for example with a one-time code). | S | **Not implemented** | – |
 | FR-ACC-11 | Sign-in, sign-up and reset attempts shall be rate-limited (sign-in 15 per place and 6 per account per 15 minutes; sign-up 10 per hour; reset 6 per place and 3 per account per hour). | M | Implemented | `throttle.test.ts` |
 

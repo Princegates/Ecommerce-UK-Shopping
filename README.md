@@ -52,6 +52,8 @@ that go stale. See [Catalogue sources](#catalogue-sources) below.
 
 **Themes (Admin > Appearance):** 15 colour themes, applied to the whole shop at once. Ghana green and gold is the default.
 
+**Customer sign-in:** besides phone or email and a password, customers can sign in with **Google, Facebook or Apple**. You register an app with each (Admin > Integrations > Customer sign-in shows the redirect address to give them); the buttons show once a provider is set up and `APP_URL` is https. A first-time person adds a phone number; accounts are matched only by the provider's id or an email the provider has verified. See [Integrations](docs/09-integrations.md).
+
 **Exchange rate:** set by you. An optional feed (ExchangeRate-API, Open Exchange Rates) can suggest or apply
 rates inside guardrails; your markup always applies on top.
 

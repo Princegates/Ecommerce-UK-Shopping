@@ -11,6 +11,7 @@ The **Readiness** section at the top lists what is still missing, for example "n
 - **Payment gateways:** you can switch on more than one. Customers choose between those that are on and fully configured.
 - **Messaging channels** (SMS, WhatsApp, email): for each channel, **choose which provider is used** (where two are available) and switch it on. A channel only sends if its chosen provider is on and complete.
 - **Catalogue APIs:** eBay, Diffbot.
+- **Customer sign-in:** Google, Facebook, Apple.
 - **Exchange rate feed:** choose a provider and a policy (below).
 - **Which updates are sent:** for each order status, tick the channels used. A customer's own choices at checkout apply as well (a customer who turned off SMS gets none).
 
@@ -83,6 +84,18 @@ Needs a **token** from your Diffbot dashboard (there is a free trial; after that
 - The site checks each shop's `robots.txt` before asking Diffbot, and sends nothing for a page the shop disallows or when the shop refuses the `robots.txt` request.
 - A bad token, no credits left or a rate limit stops the run with a clear message. A page Diffbot cannot read is skipped and counted.
 - Cost control: each run reads up to *Products read per run* pages, so credits used per day are roughly that number times the runs per day. A list is never treated as complete, so removing an address does not hide its product at once; it is hidden by the stale rule.
+
+## Customer sign-in: Google, Facebook and Apple
+
+These let customers press **Continue with Google / Facebook / Apple** on the sign-in and sign-up pages. Each one needs an app that **you** register with that company; it costs nothing except Apple, which needs a paid Apple Developer Program membership. Set `APP_URL` to your live **https** address first: without it the buttons stay hidden. Under **Admin → Integrations → Customer sign-in** each card shows the **redirect address** to register with the provider. There is nothing to test with a button here: open the sign-in page in a private window and try it. A button shows only while its provider is complete and switched on.
+
+**Google:** in Google Cloud Console, create an OAuth client of type *Web application*. Add the redirect address (`…/api/auth/google/callback`) as an *Authorised redirect URI*. Paste the **Client ID** and **Client secret**. Publish the consent screen so people outside your own account can use it.
+
+**Facebook:** at developers.facebook.com create an app and add *Facebook Login*. Add `…/api/auth/facebook/callback` as a *Valid OAuth Redirect URI* and put your domain under *App settings → Basic*. Paste the **App ID** and **App secret**. Switch the app to **Live** or only people with a role on it can sign in. Facebook does not always share an email address.
+
+**Apple:** in your Apple Developer account create an App ID with *Sign in with Apple*, a **Services ID** for the web with *Sign in with Apple* configured (your domain and the Return URL `…/api/auth/apple/callback`), and a **key** with *Sign in with Apple* (download the `.p8` once). Paste the **Services ID**, **Team ID**, **Key ID** and the `.p8` contents. Apple shares a person's name only the first time, and many people use *Hide My Email*, so the email is an Apple relay address; messages still reach them.
+
+What customers see: a first-time person is asked for a phone number (we arrange deliveries by phone) and the account is created. A person whose Google or Apple email already has an account is signed in to it. A Facebook email is never matched to an existing account (Facebook does not say it is verified), so that person is asked to sign in another way and connect Facebook from **Account → Security**. Signed-in customers can connect more providers there.
 
 ## Webhooks and scheduled jobs: addresses
 

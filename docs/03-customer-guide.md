@@ -69,6 +69,8 @@ You can ask us to cancel **before we have bought your items** (up to the *Buying
 
 ## Your account
 
+**Sign in with Google, Facebook or Apple.** If the shop offers it, you will see these buttons on the sign-in and sign-up pages. The first time, we ask for your phone number (we arrange deliveries by phone) and then your account is ready. If you already have an account with the same email, Google or Apple signs you in to it. If it is Facebook, or the details do not match, sign in with your password first, then connect it from **Account → Security → Connected sign-in**. If you used one of these buttons you do not have a password; choose one with **Forgot your password** if you want to sign in the other way too.
+
 | Page | What it is for |
 | --- | --- |
 | **Overview** | Your latest order and its tracking, quick counts, your link requests and "Buy again". |

@@ -1,17 +1,19 @@
 import type Database from "better-sqlite3";
 import { db } from "./db";
 import { decrypt, encrypt, encryptionPassphrase } from "./secrets";
+import { pemBody } from "./social/pem";
 import { getSetting, setSetting } from "./settings";
 
 type Db = Database.Database;
 
-export type Channel = "payments" | "sms" | "whatsapp" | "email" | "rates" | "catalog";
+export type Channel = "payments" | "sms" | "whatsapp" | "email" | "rates" | "catalog" | "login";
 export type ProviderId =
   | "stripe" | "paystack" | "flutterwave"
   | "arkesel" | "twilio" | "meta_whatsapp"
   | "resend" | "postmark"
   | "exchangerate_api" | "openexchangerates"
-  | "ebay" | "diffbot";
+  | "ebay" | "diffbot"
+  | "google" | "facebook" | "apple";
 
 export type FieldDef = {
   key: string;
@@ -24,6 +26,8 @@ export type FieldDef = {
   help?: string;
   placeholder?: string;
   default?: string;
+  /** A pasted private key: line breaks, spaces and the BEGIN/END lines are removed before saving. */
+  normalize?: "pem";
   options?: { value: string; label: string }[];
 };
 
@@ -46,6 +50,7 @@ export const CHANNEL_LABEL: Record<Channel, string> = {
   email: "Email",
   rates: "Exchange rates",
   catalog: "Catalogue",
+  login: "Customer sign-in",
 };
 
 export const INTEGRATIONS: IntegrationDef[] = [
@@ -215,6 +220,63 @@ export const INTEGRATIONS: IntegrationDef[] = [
       "Diffbot downloads the pages for you, so the shop's own terms still apply. Only list pages you are allowed to use, and tick the permission box on the source.",
     ],
   },
+  {
+    id: "google",
+    name: "Sign in with Google",
+    blurb: "Lets customers sign in or create an account with their Google account. Free.",
+    docsUrl: "https://developers.google.com/identity/protocols/oauth2/openid-connect",
+    channels: ["login"],
+    fields: [
+      { key: "clientId", label: "Client ID", env: "GOOGLE_CLIENT_ID", required: ["login"], placeholder: "1234567890-abc.apps.googleusercontent.com", help: "From Google Cloud Console, APIs and Services, Credentials, OAuth client ID (type Web application)." },
+      { key: "clientSecret", label: "Client secret", env: "GOOGLE_CLIENT_SECRET", secret: true, required: ["login"], placeholder: "GOCSPX-…", help: "Shown next to the Client ID. Keep it private." },
+    ],
+    webhook: { path: "/api/auth/google/callback", help: "Add this under Authorised redirect URIs on the OAuth client, exactly as shown." },
+    steps: [
+      "In Google Cloud Console create a project, set up the OAuth consent screen, then create an OAuth client ID of type Web application.",
+      "Add the redirect address below as an Authorised redirect URI, and your site address as an Authorised JavaScript origin.",
+      "Paste the Client ID and Client secret here, save, and make sure the provider is switched on.",
+      "Open the sign-in page in a private window and try it. Publish the consent screen so people outside your own Google account can use it.",
+    ],
+  },
+  {
+    id: "facebook",
+    name: "Sign in with Facebook",
+    blurb: "Lets customers sign in or create an account with Facebook. Free.",
+    docsUrl: "https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow",
+    channels: ["login"],
+    fields: [
+      { key: "appId", label: "App ID", env: "FACEBOOK_APP_ID", required: ["login"], placeholder: "1234567890123456", help: "From developers.facebook.com, your app, App settings, Basic." },
+      { key: "appSecret", label: "App secret", env: "FACEBOOK_APP_SECRET", secret: true, required: ["login"], help: "On the same page (press Show). Keep it private." },
+    ],
+    webhook: { path: "/api/auth/facebook/callback", help: "Add this under Facebook Login, Settings, Valid OAuth Redirect URIs, exactly as shown." },
+    steps: [
+      "At developers.facebook.com create an app (use case: Authenticate and request data from users with Facebook Login) and add the Facebook Login product.",
+      "Add the redirect address below as a Valid OAuth Redirect URI, and put your site's domain under App settings, Basic.",
+      "Paste the App ID and App secret here, save, and make sure the provider is switched on.",
+      "Switch the app from Development to Live mode, or only people with a role on the app can sign in. Facebook does not always share an email address; people without one are asked for a phone number only.",
+    ],
+  },
+  {
+    id: "apple",
+    name: "Sign in with Apple",
+    blurb: "Lets customers sign in or create an account with their Apple ID. Needs an Apple Developer Program membership (paid).",
+    docsUrl: "https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_rest_api",
+    channels: ["login"],
+    fields: [
+      { key: "clientId", label: "Services ID", env: "APPLE_CLIENT_ID", required: ["login"], placeholder: "com.yourcompany.shop.web", help: "The Services ID (not the App ID) you created for web sign-in, under Certificates, Identifiers & Profiles." },
+      { key: "teamId", label: "Team ID", env: "APPLE_TEAM_ID", required: ["login"], placeholder: "ABCDE12345", help: "Shown at the top right of your Apple Developer account, and under Membership." },
+      { key: "keyId", label: "Key ID", env: "APPLE_KEY_ID", required: ["login"], placeholder: "ABC123DEFG", help: "From the Sign in with Apple key you created under Keys." },
+      { key: "privateKey", label: "Private key (.p8 file contents)", env: "APPLE_PRIVATE_KEY", secret: true, normalize: "pem", required: ["login"], placeholder: "-----BEGIN PRIVATE KEY-----…", help: "Open the downloaded .p8 file in a text editor and paste everything. Line breaks are fixed for you. Apple lets you download it only once." },
+    ],
+    webhook: { path: "/api/auth/apple/callback", help: "Add this as a Return URL on the Services ID (Configure next to Sign in with Apple), and add your site's domain there too. Apple needs https and a real domain." },
+    steps: [
+      "In your Apple Developer account create an App ID with Sign in with Apple enabled, then a Services ID for the web and tick Sign in with Apple on it.",
+      "Under Configure, add your site's domain and the Return URL shown below.",
+      "Under Keys create a key with Sign in with Apple enabled, and download the .p8 file. Note the Key ID.",
+      "Paste the Services ID, Team ID, Key ID and the .p8 contents here, save, and make sure the provider is switched on.",
+      "Apple shares a person's name only the first time they sign in. Many people use Hide My Email, so their email is an Apple relay address; that is normal and messages still reach them.",
+    ],
+  },
 ];
 
 export function getIntegration(id: string): IntegrationDef | undefined {
@@ -306,7 +368,8 @@ export function saveFields(
   for (const f of def.fields) {
     if (env[f.env]?.trim()) continue;
     if (!(f.key in submitted)) continue; // only touch fields that were actually submitted
-    const raw = (submitted[f.key] ?? "").trim();
+    let raw = (submitted[f.key] ?? "").trim();
+    if (f.normalize === "pem" && raw) raw = pemBody(raw);
     if (raw.length > 500) return { ok: false, error: `${f.label} is too long.` };
     if (f.options && raw && !f.options.some((o) => o.value === raw)) return { ok: false, error: `${f.label} has an unknown choice.` };
     if (f.secret) {
@@ -363,7 +426,7 @@ export function setChannelProvider(channel: Channel, id: ProviderId | "", d: Db 
 
 /** The provider chosen for a messaging channel, if it is enabled and fully configured. */
 export function activeMessagingProvider(
-  channel: Exclude<Channel, "payments" | "catalog">,
+  channel: Exclude<Channel, "payments" | "catalog" | "login">,
   d: Db = db(),
   env: NodeJS.ProcessEnv = process.env,
 ): { def: IntegrationDef; cfg: IntegrationConfig } | null {

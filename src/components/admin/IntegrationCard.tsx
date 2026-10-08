@@ -32,6 +32,7 @@ export default function IntegrationCard({
   const isPayment = def.channels.includes("payments");
   const isRates = def.channels.includes("rates");
   const isCatalog = def.channels.includes("catalog");
+  const isLogin = def.channels.includes("login");
   const checkChannel = isPayment ? "payments" : isCatalog ? "catalog" : "rates";
   const savedSecrets = def.fields.filter((f) => f.secret && cfg.sources[f.key] === "admin");
 
@@ -117,8 +118,8 @@ export default function IntegrationCard({
 
         {webhookUrl && (
           <div className="grid gap-2 border-t-2 border-solid border-line pt-5">
-            <p className="label">Webhook URL</p>
-            <input readOnly value={webhookUrl} className="input mono text-sm" aria-label={`${def.name} webhook URL`} />
+            <p className="label">{isLogin ? "Redirect (callback) URL" : "Webhook URL"}</p>
+            <input readOnly value={webhookUrl} className="input mono text-sm" aria-label={`${def.name} ${isLogin ? "redirect URL" : "webhook URL"}`} />
             <p className="hint">{def.webhook!.help}</p>
             {!baseUrl && <p className="error-text text-sm">Set APP_URL on the server so this shows your real address.</p>}
             {isPayment && <p className="hint">Last event received: {lastWebhook ? `${lastWebhook} UTC` : "none yet"}</p>}
@@ -127,7 +128,12 @@ export default function IntegrationCard({
 
         <div className="grid gap-3 border-t-2 border-solid border-line pt-5">
           <p className="label">Check it works</p>
-          {isPayment || isRates || isCatalog ? (
+          {isLogin ? (
+            <p className="text-sm">
+              This one is checked by using it: open <a className="link" href="/login" target="_blank" rel="noopener noreferrer">the sign-in page ↗</a> in a private window and press the {def.name.replace("Sign in with ", "")} button.
+              {isConfigured(def, cfg, "login") && cfg.enabled ? " The button shows for customers while it is ready and switched on." : " The button appears once it is complete and switched on."}
+            </p>
+          ) : isPayment || isRates || isCatalog ? (
             <form action={testIntegrationAction} className="flex flex-wrap items-center gap-3">
               <input type="hidden" name="provider" value={def.id} />
               <input type="hidden" name="channel" value={checkChannel} />

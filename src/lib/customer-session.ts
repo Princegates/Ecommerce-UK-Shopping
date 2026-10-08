@@ -37,7 +37,8 @@ export async function endCustomerSession(): Promise<void> {
   const jar = await cookies();
   const raw = jar.get(cookieName())?.value;
   if (raw) deleteSession(raw);
-  jar.delete({ name: cookieName(), path: "/" });
+  // set again with the same attributes and an immediate expiry: browsers ignore the removal of a Secure __Host- cookie that lacks them
+  jar.set(cookieName(), "", { httpOnly: true, sameSite: "lax", secure: secure(), path: "/", maxAge: 0 });
 }
 
 /** Only same-site relative paths, so a login link can never send someone to another website. */
