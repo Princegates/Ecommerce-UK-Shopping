@@ -76,6 +76,8 @@ Every change is recorded in the rate history and the activity log. To update on 
 
 Needs free keys from developer.ebay.com: **App ID** and **Cert ID**, and an **environment** (Production for real listings, Sandbox for test data). Press **Test connection**. Then create a **Catalogue source** of type eBay with your searches. eBay's API licence sets how listing data and photos may be shown and requires a link back to the listing. Read it and check your product pages meet it.
 
+**Marketplace Account Deletion.** eBay will not enable Production keys until you either subscribe to its account-deletion notifications or attest that you do not keep eBay member data. The importer keeps only public listing facts (title, price, photo, link, category, condition) and deliberately does **not** store the seller's username, so the exemption is accurate: in the developer portal open the keyset's **Alerts & Notifications**, choose **Marketplace Account Deletion**, switch on **Exempted**, and pick **I do not persist eBay data**. If you ever change the importer to keep member data (usernames, user IDs), you must stop using the exemption and implement the notifications.
+
 ## Diffbot (Product API, paid)
 
 Needs a **token** from your Diffbot dashboard (there is a free trial; after that each product read uses credits). Save it, switch Diffbot on and press **Test connection**, which reads one example page and so uses one credit. Then create a **Catalogue source** of type Diffbot and list the product page addresses, one per line.

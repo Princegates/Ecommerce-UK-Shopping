@@ -19,10 +19,15 @@ describe("eBay listings", () => {
     expect(r).toEqual({
       item: {
         externalId: "ebay-v1|1234567890|0", productUrl: "https://www.ebay.co.uk/itm/1234567890?hash=x", name: "Acme Kettle 1.7L Stainless Steel", brand: "",
-        category: "Kettles", description: "Condition: New. Sold by acme_store on eBay.", priceMinor: 2499, compareAtMinor: 3499,
+        category: "Kettles", description: "Condition: New. Sold on eBay.", priceMinor: 2499, compareAtMinor: 3499,
         imageUrl: "https://i.ebayimg.com/images/g/AbC/s-l500.jpg", inStock: true, weightGrams: null,
       },
     });
+  });
+
+  it("keeps no eBay member data: the seller's username is never stored", () => {
+    const r = mapEbayItem(listing({ seller: { username: "acme_store", feedbackScore: 99, feedbackPercentage: "100" } }));
+    expect(JSON.stringify(r)).not.toContain("acme_store");
   });
 
   it("skips listings it cannot trust", () => {

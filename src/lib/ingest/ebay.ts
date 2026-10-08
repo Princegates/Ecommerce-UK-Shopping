@@ -67,7 +67,6 @@ export function mapEbayItem(raw: Json): ParseResult {
   const wasPrice = was && String(was.currency ?? "").toUpperCase() === "GBP" ? parsePrice(was.value) : null;
   const imageRaw = raw.image?.imageUrl ?? raw.thumbnailImages?.[0]?.imageUrl;
   const image = cleanUrl(imageRaw);
-  const seller = cleanText(raw.seller?.username, 60);
   return {
     item: {
       externalId: `ebay-${idRaw}`,
@@ -75,7 +74,9 @@ export function mapEbayItem(raw: Json): ParseResult {
       name: title,
       brand: "",
       category: cleanText(raw.categories?.[0]?.categoryName, 60),
-      description: cleanText([raw.condition ? `Condition: ${raw.condition}.` : "", seller ? `Sold by ${seller} on eBay.` : ""].filter(Boolean).join(" "), 500),
+      // Only public listing facts are kept. The seller's username is eBay member data, so it is deliberately not stored (this is what lets the
+      // app claim eBay's Marketplace Account Deletion exemption: it persists no eBay user data).
+      description: cleanText([raw.condition ? `Condition: ${raw.condition}.` : "", "Sold on eBay."].filter(Boolean).join(" "), 500),
       priceMinor: price.minor,
       compareAtMinor: wasPrice && wasPrice.minor > price.minor ? wasPrice.minor : null,
       imageUrl: image ? biggerEbayImage(image) : "",
