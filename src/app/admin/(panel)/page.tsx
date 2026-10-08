@@ -82,6 +82,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     { label: "Service charge earned", value: ghs(k.serviceFeeMinor), now: k.serviceFeeMinor, before: 0, note: "before costs" },
     { label: "New customers", value: String(k.newCustomers), now: k.newCustomers, before: k.previous.newCustomers },
   ];
+  const longest = Math.max(...tiles.map((t) => t.value.length));
 
   return (
     <>
@@ -127,9 +128,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <h2 id="kpi-h" className="sr-only">Key figures, last {range} days</h2>
         <ul className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           {tiles.map((t) => (
-            <li key={t.label} className="box box-shadow p-4">
+            <li key={t.label} className="box box-shadow min-w-0 p-4 [container-type:inline-size]">
               <p className="label">{t.label}</p>
-              <p className="display num mt-1 text-2xl sm:text-3xl">{t.value}</p>
+              {/* All five figures share one size: the usual one, shrunk (about 0.68em per character) until the longest fits its card. */}
+              <p className="display num mt-1 whitespace-nowrap text-2xl leading-tight sm:text-3xl" style={{ fontSize: `min(1.875rem, ${(100 / (longest * 0.68)).toFixed(2)}cqw)` }}>{t.value}</p>
               <p className="mt-1 flex items-center gap-2">
                 {t.label === "Service charge earned" ? <span className="label">{t.note}</span> : <Delta value={change(t.now, t.before)} />}
               </p>

@@ -82,7 +82,7 @@ export function RankBars({ rows, format }: { rows: { name: string; value: number
 
 /** Up or down against the previous period. "up" is good for every figure shown with it. */
 export function Delta({ value }: { value: number | null }) {
-  if (value === null) return <span className="label">new</span>;
+  if (value === null) return <span className="label" title="The previous period had no figure to compare with">no earlier data</span>;
   if (Math.abs(value) < 0.0005) return <span className="label">no change</span>;
   const up = value > 0;
   return (
