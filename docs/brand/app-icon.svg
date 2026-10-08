@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- The shop's logo mark in the default Ghana green and gold theme: a gold diamond with a dark centre on solid green. -->
+  <rect width="1024" height="1024" fill="#0b3d2e"/>
+  <g transform="translate(512 512) rotate(45)">
+    <rect x="-230" y="-230" width="460" height="460" rx="84" fill="#f5b800"/>
+    <circle r="84" fill="#0b3d2e"/>
+  </g>
+</svg>
