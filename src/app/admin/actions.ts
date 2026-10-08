@@ -25,6 +25,7 @@ import { serviceFeeSchema, setSetting } from "@/lib/settings";
 import { db } from "@/lib/db";
 import { adminAudit, audit } from "@/lib/audit";
 import { kickOutbox } from "@/lib/notify/kick";
+import { confirmPaymentManually } from "@/lib/payments/manual";
 import { getSettings } from "@/lib/settings";
 
 function done(path: string, error?: string): never {
@@ -299,6 +300,25 @@ export async function setOrderStatusAction(f: FormData): Promise<void> {
   const res = staffSetStatus(parsed.data.orderId, parsed.data.status, parsed.data.note);
   if (res.ok) {
     adminAudit(who, "order.status", `order ${parsed.data.orderId}`, parsed.data.status);
+    kickOutbox();
+  }
+  done(path, res.ok ? undefined : res.error);
+}
+
+const manualPaySchema = z.object({
+  orderId: z.coerce.number().int().positive(), method: z.string(), reference: z.string().max(120), reason: z.string().max(300),
+});
+
+/** The by-hand override for money that arrived outside the payment flow. Needs its own right and leaves a full record. */
+export async function confirmPaymentManuallyAction(f: FormData): Promise<void> {
+  const who = await requirePermission("orders.confirm_payment");
+  const parsed = manualPaySchema.safeParse({ orderId: f.get("orderId"), method: str(f, "method"), reference: str(f, "reference"), reason: str(f, "reason") });
+  if (!parsed.success) redirect("/admin/orders");
+  const path = `/admin/orders/${parsed.data.orderId}`;
+  if (!checked(f, "sawMoney")) done(path, "Tick the box to confirm you have seen the money arrive.");
+  const res = confirmPaymentManually(parsed.data.orderId, { ...parsed.data, by: who.label });
+  if (res.ok) {
+    adminAudit(who, "order.manual_payment", `order ${parsed.data.orderId}`, res.detail);
     kickOutbox();
   }
   done(path, res.ok ? undefined : res.error);

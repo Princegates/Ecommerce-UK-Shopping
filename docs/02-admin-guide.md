@@ -160,6 +160,13 @@ For each request the system saves the link, the quantity, the size/colour notes,
 ### What the customer does
 They open their private link (or **See price and pay** in their account), sign in if needed, see the **full cost in cedis**, choose delivery and shipping, and pay through the normal checkout. The quote expires after the days you set; an expired link asks them to contact you.
 
+### Confirming a payment by hand
+If money has really arrived but the order still says **Awaiting payment** (no gateway is set up yet, a gateway message was missed, or the customer paid by bank transfer), open the order and use **Confirm payment by hand**. It needs the *Confirm a payment by hand* right, which only the super admin and **Manager** have unless you give it to someone.
+- Pick how it was paid, enter the **reference** (bank, Mobile Money or gateway transaction ID) and **why** you are doing it, and tick that you have seen the money arrive.
+- The order becomes **Payment received** and the customer is messaged, exactly as with a gateway payment. Customers see only "Payment received"; the reference and reason are kept in the **Payments** box on the order and the **Activity log**, with your name.
+- It works only on an order still awaiting payment, only once, and the same reference cannot release two orders. Any waiting gateway attempt on the order is retired.
+- It cannot be undone from this page. If you confirmed the wrong order, cancel it and refund as usual.
+
 ### After payment
 It is an **ordinary order**: same statuses, tracking, messages, refunds and costs. A **yellow banner** on the order tells you how the price was found:
 - *read from the shop's page by the system*,
@@ -202,6 +209,7 @@ Picking a role ticks its rights. Changing any tick switches the role to **Custom
 | Moderate reviews (reviews.manage) | Publish or hide customer reviews. | ✔ |  |  | ✔ |  |  |
 | Change prices and delivery (pricing.manage) | Service charge, exchange rate, shipping rates and delivery areas. | ✔ |  |  |  |  |  |
 | Change the look of the site (appearance.manage) | Colour themes. | ✔ |  |  |  |  |  |
+| Confirm a payment by hand (orders.confirm_payment) | Mark an unpaid order as paid when the money arrived outside the payment flow. Sensitive: it starts the buying. | ✔ |  |  |  |  |  |
 | Manage integrations and keys (integrations.manage) | Payment, SMS, email and other service keys. Very sensitive. | ✔ |  |  |  |  |  |
 | See messages sent (messages.view) | The log of messages sent to customers. | ✔ | ✔ | ✔ |  |  |  |
 | Manage messages (messages.manage) | Retry failed messages and choose which updates are sent. | ✔ |  |  |  |  |  |

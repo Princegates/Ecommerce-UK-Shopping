@@ -7,6 +7,7 @@ export const PERMISSIONS = [
   { key: "dashboard.view", group: "Overview", label: "See the dashboard", help: "Sales, revenue and customer figures." },
   { key: "orders.view", group: "Sales", label: "See orders", help: "Order list and details, including customer names, phones and addresses." },
   { key: "orders.manage", group: "Sales", label: "Update orders", help: "Change order status, add tracking, cancel and refund." },
+  { key: "orders.confirm_payment", group: "Sales", label: "Confirm a payment by hand", help: "Mark an unpaid order as paid when the money arrived outside the payment flow (bank transfer, a missed gateway message). Sensitive: it starts the buying." },
   { key: "orders.costs", group: "Sales", label: "Record costs and see margins", help: "What the team paid to buy and ship items, and the profit on each order." },
   { key: "orders.export", group: "Sales", label: "Download the orders file", help: "Export orders with customer details as a spreadsheet." },
   { key: "customers.view", group: "Sales", label: "See customers", help: "Customer accounts, contact details and order history." },
@@ -31,7 +32,7 @@ export const isPermission = (v: unknown): v is Permission => typeof v === "strin
 
 /** Granting a change right also grants the matching view right, so nobody can edit what they cannot see. */
 const IMPLIES: Partial<Record<Permission, Permission[]>> = {
-  "orders.manage": ["orders.view"], "orders.costs": ["orders.view"], "orders.export": ["orders.view"],
+  "orders.manage": ["orders.view"], "orders.confirm_payment": ["orders.view"], "orders.costs": ["orders.view"], "orders.export": ["orders.view"],
   "customers.manage": ["customers.view"], "messages.manage": ["messages.view"],
 };
 

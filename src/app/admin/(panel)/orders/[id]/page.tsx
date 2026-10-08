@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getRequestForOrder } from "@/lib/link-orders";
 import { notFound } from "next/navigation";
-import { setOrderStatusAction } from "@/app/admin/actions";
+import { confirmPaymentManuallyAction, setOrderStatusAction } from "@/app/admin/actions";
 import { addTrackingAction, deleteTrackingAction, saveCostsAction } from "@/app/admin/ops-actions";
 import { Flash, PageHead } from "@/components/admin/ui";
 import Breakdown from "@/components/Breakdown";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/orders";
 import { STATUS_LABEL, isOrderStatus, staffNextStatuses } from "@/lib/order-status";
 import { attemptsForOrder } from "@/lib/payments/confirm";
+import { MANUAL_METHODS } from "@/lib/payments/manual";
 import { db } from "@/lib/db";
 
 function Money({ label, name, value, hint }: { label: string; name: string; value: number; hint?: string }) {
@@ -37,6 +38,7 @@ export default async function AdminOrder({
   const who = await requirePermission("orders.view");
   const canManage = can(who, "orders.manage");
   const canCosts = can(who, "orders.costs");
+  const canConfirmPayment = can(who, "orders.confirm_payment");
   const { id } = await params;
   const sp = await searchParams;
   const order = getOrderById(Number(id));
@@ -88,6 +90,34 @@ export default async function AdminOrder({
             {order.status === "AWAITING_PAYMENT" && <p className="mt-2">Waiting for the customer to pay. Do not buy anything yet.</p>}
             {order.status === "CANCELLED" && order.paymentStatus === "PAID" && (
               <p className="box mt-3 border-red bg-red/10 p-3 font-semibold text-red">This order was paid and then cancelled. Refund the customer, then mark it refunded.</p>
+            )}
+            {canConfirmPayment && order.status === "AWAITING_PAYMENT" && order.paymentStatus !== "PAID" && (
+              <details className="box mt-4 p-4">
+                <summary className="cursor-pointer font-semibold">Money arrived but the order still says unpaid? Confirm payment by hand</summary>
+                <form action={confirmPaymentManuallyAction} className="mt-3 grid gap-3">
+                  <input type="hidden" name="orderId" value={order.id} />
+                  <p className="text-sm text-ink-soft">
+                    Use this only after you have seen {ghs(order.totalMinor)} in your own account or at the gateway. It marks the order paid and starts the buying, so it cannot be undone here.
+                    Your name, the reference and your reason are saved in the activity log.
+                  </p>
+                  <div className="field">
+                    <label className="label" htmlFor="pay-method">How was it paid?</label>
+                    <select id="pay-method" name="method" className="select" required>
+                      {MANUAL_METHODS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label className="label" htmlFor="pay-ref">Reference (transaction ID, bank reference, receipt number)</label>
+                    <input id="pay-ref" name="reference" className="input mono" required minLength={3} maxLength={120} />
+                  </div>
+                  <div className="field">
+                    <label className="label" htmlFor="pay-reason">Why is this being confirmed by hand?</label>
+                    <input id="pay-reason" name="reason" className="input" required minLength={10} maxLength={300} placeholder="e.g. Customer sent MoMo to the shop number; no gateway is set up yet" />
+                  </div>
+                  <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="sawMoney" className="mt-1" required /> I have seen {ghs(order.totalMinor)} arrive for this order.</label>
+                  <div><button className="btn btn-primary">Confirm payment received</button></div>
+                </form>
+              </details>
             )}
             {canManage && next.length > 0 ? (
               <form action={setOrderStatusAction} className="mt-4 grid gap-3">

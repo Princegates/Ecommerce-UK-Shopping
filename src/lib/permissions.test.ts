@@ -9,6 +9,7 @@ describe("permissions", () => {
 
   it("drops unknown rights and gives the matching view right with any change right", () => {
     expect(normalizePermissions(["nonsense", 5, null, "orders.manage"])).toEqual(["orders.view", "orders.manage"]);
+    expect(normalizePermissions(["orders.confirm_payment"])).toEqual(["orders.view", "orders.confirm_payment"]);
     expect(normalizePermissions(["customers.manage"])).toEqual(["customers.view", "customers.manage"]);
     expect(normalizePermissions(["messages.manage"])).toEqual(["messages.view", "messages.manage"]);
     expect(normalizePermissions("orders.view")).toEqual([]);
@@ -26,6 +27,7 @@ describe("permissions", () => {
       expect(presetFor(key)).not.toContain("integrations.manage");
       expect(presetFor(key)).not.toContain("pricing.manage");
     }
+    for (const key of ["operations", "support", "catalogue", "finance", "viewer"] as const) expect(presetFor(key)).not.toContain("orders.confirm_payment");
     expect(presetFor("support")).not.toContain("orders.manage");
     expect(presetFor("finance")).not.toContain("orders.manage");
     expect(presetFor("viewer").filter((p) => p.endsWith(".manage"))).toEqual([]);
