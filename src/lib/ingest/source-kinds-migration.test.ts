@@ -4,11 +4,11 @@ import { migrate } from "../db";
 import { SCHEMA } from "../schema";
 
 describe("widening catalogue source kinds on an existing database", () => {
-  it("keeps sources, items and runs, and then accepts the eBay, Shopify and WooCommerce kinds", () => {
+  it("keeps sources, items and runs, and then accepts the eBay, Shopify, WooCommerce and Diffbot kinds", () => {
     const d = new Database(":memory:");
     d.pragma("foreign_keys = ON");
     // a database created before eBay support: the same schema with the old, narrower rule
-    d.exec(SCHEMA.replace("'links', 'ebay', 'shopify', 'woocommerce', 'upload'))", "'links'))"));
+    d.exec(SCHEMA.replace("'links', 'ebay', 'shopify', 'woocommerce', 'diffbot', 'upload'))", "'links'))"));
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'x', 'ebay')").run()).toThrow();
     d.prepare("INSERT INTO shops (id, slug, name, category) VALUES (1, 's', 'Shop', 'Fashion')").run();
     d.prepare("INSERT INTO catalog_sources (id, shop_id, name, kind, url) VALUES (7, 1, 'Feed', 'feed_csv', 'v1:secret')").run();
@@ -23,19 +23,20 @@ describe("widening catalogue source kinds on an existing database", () => {
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'eBay', 'ebay')").run()).not.toThrow();
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'Brand', 'shopify')").run()).not.toThrow();
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'Woo', 'woocommerce')").run()).not.toThrow();
+    expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'Pages', 'diffbot')").run()).not.toThrow();
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'File', 'upload')").run()).not.toThrow();
     expect(d.prepare("SELECT options FROM import_items WHERE source_id = 7").get()).toEqual({ options: "[]" });
     // children still point at the rebuilt table
     expect(() => d.prepare("INSERT INTO import_items (source_id, external_id, name, price_minor) VALUES (999, 'b', 'Bad', 1)").run()).toThrow();
     expect(d.pragma("foreign_key_check")).toEqual([]);
     migrate(d); // running it again changes nothing
-    expect(d.prepare("SELECT COUNT(*) AS n FROM catalog_sources").get()).toEqual({ n: 5 });
+    expect(d.prepare("SELECT COUNT(*) AS n FROM catalog_sources").get()).toEqual({ n: 6 });
   });
 
   it("also widens a database that already knows eBay but not Shopify, and adds the options column", () => {
     const d = new Database(":memory:");
     d.pragma("foreign_keys = ON");
-    d.exec(SCHEMA.replace(", 'shopify', 'woocommerce', 'upload'))", "))").replace("  options        TEXT NOT NULL DEFAULT '[]',\n", ""));
+    d.exec(SCHEMA.replace(", 'shopify', 'woocommerce', 'diffbot', 'upload'))", "))").replace("  options        TEXT NOT NULL DEFAULT '[]',\n", ""));
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'x', 'shopify')").run()).toThrow();
     migrate(d);
     d.prepare("INSERT INTO shops (id, slug, name, category) VALUES (1, 's', 'Shop', 'Fashion')").run();
@@ -46,13 +47,26 @@ describe("widening catalogue source kinds on an existing database", () => {
   it("widens a database that already knows file import but not WooCommerce, keeping its sources", () => {
     const d = new Database(":memory:");
     d.pragma("foreign_keys = ON");
-    d.exec(SCHEMA.replace(", 'woocommerce', 'upload'))", ", 'upload'))"));
+    d.exec(SCHEMA.replace(", 'woocommerce', 'diffbot', 'upload'))", ", 'upload'))"));
     d.prepare("INSERT INTO shops (id, slug, name, category) VALUES (1, 's', 'Shop', 'Fashion')").run();
     d.prepare("INSERT INTO catalog_sources (id, shop_id, name, kind) VALUES (3, 1, 'Brand', 'shopify')").run();
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'Woo', 'woocommerce')").run()).toThrow();
     migrate(d);
     expect(d.prepare("SELECT kind FROM catalog_sources WHERE id = 3").get()).toEqual({ kind: "shopify" });
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'Woo', 'woocommerce')").run()).not.toThrow();
+    expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'File', 'upload')").run()).not.toThrow();
+  });
+
+  it("widens a database that knows WooCommerce but not Diffbot", () => {
+    const d = new Database(":memory:");
+    d.pragma("foreign_keys = ON");
+    d.exec(SCHEMA.replace(", 'diffbot', 'upload'))", ", 'upload'))"));
+    d.prepare("INSERT INTO shops (id, slug, name, category) VALUES (1, 's', 'Shop', 'Fashion')").run();
+    d.prepare("INSERT INTO catalog_sources (id, shop_id, name, kind) VALUES (4, 1, 'Woo', 'woocommerce')").run();
+    expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'Pages', 'diffbot')").run()).toThrow();
+    migrate(d);
+    expect(d.prepare("SELECT kind FROM catalog_sources WHERE id = 4").get()).toEqual({ kind: "woocommerce" });
+    expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'Pages', 'diffbot')").run()).not.toThrow();
     expect(() => d.prepare("INSERT INTO catalog_sources (shop_id, name, kind) VALUES (1, 'File', 'upload')").run()).not.toThrow();
   });
 });

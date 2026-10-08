@@ -32,6 +32,9 @@ The shop refuses automated reading (HTTP 403 and similar). The importer will **n
 ### The eBay source says to add keys
 Enter the App ID and Cert ID in **Integrations → Catalogue APIs**, switch eBay on, and press **Test connection**.
 
+### The Diffbot source reads nothing, or says "the shop's robots.txt does not allow it"
+The shop's `robots.txt` disallows that page (or the shop refused even the request for `robots.txt`), so nothing was sent to Diffbot. That is deliberate and is not a Diffbot fault. Use the shop's affiliate feed instead. If instead the run stops with "did not accept the token" or "credits have run out", fix the token under Integrations or add credits at Diffbot.
+
 ### The WooCommerce source says "does not look like a WooCommerce shop"
 Open `theirshop/wp-json/wc/store/v1/products`. If it is not a block of text starting with `[{"id":`, the shop is not on WooCommerce or has switched its public list off, and it cannot be read. Ask the owner for a product feed instead. If the text shows a currency other than `GBP`, the shop cannot be used.
 

@@ -124,7 +124,7 @@ export default async function IntegrationsPage({
       <section id="catalog-apis" aria-labelledby="catalog-h" className="mb-12 scroll-mt-24">
         <h2 id="catalog-h" className="text-3xl">Catalogue APIs</h2>
         <p className="mt-1 max-w-3xl text-ink-soft">
-          Official, free APIs that bring in real products with real photos. Save the keys here, then add a Catalogue source of the matching type.
+          Official APIs that bring in real products with real photos (eBay is free; Diffbot is paid). Save the keys here, then add a Catalogue source of the matching type.
         </p>
         <div className="mt-6 grid gap-8">
           {providersFor("catalog").map((def) => (

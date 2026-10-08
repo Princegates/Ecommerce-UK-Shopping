@@ -69,6 +69,7 @@ Generate random values with `openssl rand -base64 32`.
 | Resend (email) | `RESEND_API_KEY`, `RESEND_FROM` |
 | Postmark (email) | `POSTMARK_SERVER_TOKEN`, `POSTMARK_FROM`, `POSTMARK_MESSAGE_STREAM` (default outbound) |
 | eBay | `EBAY_APP_ID`, `EBAY_CERT_ID`, `EBAY_ENVIRONMENT` (production or sandbox) |
+| Diffbot | `DIFFBOT_TOKEN` |
 | ExchangeRate-API | `EXCHANGERATE_API_KEY` |
 | Open Exchange Rates | `OPENEXCHANGERATES_APP_ID` |
 
@@ -165,6 +166,7 @@ Check Render's status and **Logs**, and `/api/health`. A full disk is a common c
 | SMS / WhatsApp / email | Per message, depending on the provider. |
 | Domain name | Yearly, optional at first. |
 | eBay, Shopify, WooCommerce reads | Free (eBay developer keys are free). |
+| Diffbot reads | Paid: one Diffbot credit per product page read, on every run of the source. |
 
 Do not switch to a free plan or remove the disk: you would lose the database.
 

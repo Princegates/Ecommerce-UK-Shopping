@@ -46,7 +46,7 @@ See [Appendix C](#appendix-c-glossary). Key terms: **catalogue source**, **link 
 ### 1.4 References
 - This documentation set: [Overview](01-overview.md), [Admin guide](02-admin-guide.md), [Customer guide](03-customer-guide.md), [Catalogue sources](04-catalogue-sources.md), [Deployment and operations](05-deployment-and-operations.md), [Architecture](06-architecture.md), [Data model](07-data-model.md), [Security and privacy](08-security.md), [Integrations](09-integrations.md), [Testing](10-testing.md).
 - ISO/IEC/IEEE 29148:2018 and IEEE 830-1998 (document structure).
-- Provider documentation for Stripe, Paystack, Flutterwave, Arkesel, Twilio, Meta WhatsApp Cloud API, Resend, Postmark, ExchangeRate-API, Open Exchange Rates and the eBay Browse API (linked from the Integrations page).
+- Provider documentation for Stripe, Paystack, Flutterwave, Arkesel, Twilio, Meta WhatsApp Cloud API, Resend, Postmark, ExchangeRate-API, Open Exchange Rates the eBay Browse API and the Diffbot Product API (linked from the Integrations page).
 
 ### 1.5 Conventions
 - **shall** = mandatory; **should** = expected unless there is a stated reason; **may** = optional.
@@ -68,7 +68,7 @@ A self-contained web application with no dependency on any other system of the b
  Customer's phone/PC ──HTTPS──►  Web server (Next.js)  ◄──HTTPS── Staff / super admin
                                    │  SQLite file + uploads (persistent disk)
         ┌──────────────┬───────────┼───────────────┬───────────────────┐
-  Payment gateways   Messaging   Exchange-rate   eBay API / Shopify / feeds / shop pages
+  Payment gateways   Messaging   Exchange-rate   eBay / Diffbot / Shopify / feeds / pages
  (Stripe, Paystack,  (SMS, WA,    feeds           (catalogue sources, read politely)
   Flutterwave)        email)
 ```
@@ -153,6 +153,7 @@ None. The system is a web application and uses no special hardware.
 | IR-EX-05 | **Meta WhatsApp Cloud API**, **Twilio** | out | Send approved template messages. | Implemented |
 | IR-EX-06 | **Resend**, **Postmark** | out | Send transactional email (text and HTML). | Implemented |
 | IR-EX-07 | **ExchangeRate-API**, **Open Exchange Rates** | out | Fetch the GBP to GHS market rate. | Implemented |
+| IR-EX-10 | **Diffbot Product API** | out | Read each listed product page by token; only prices in GBP; stop on bad token, no credits or rate limit. | Implemented |
 | IR-EX-08 | **eBay Browse API** | out | OAuth client-credentials, search UK fixed-price listings in GBP. | Implemented |
 | IR-EX-09 | **Shop websites and feeds** | out | Fetch feeds, sitemaps, Shopify `/meta.json` and `/products.json`, WooCommerce `/wp-json/wc/store/v1/products`, and product pages, subject to FR-CAT-30 to FR-CAT-33. | Implemented |
 | IR-EX-10 | **Inbound endpoints** | in | `/api/webhooks/{stripe,paystack,flutterwave}`; `/api/cron/{messages,fx,ingest}` (bearer secret); `/api/health`. | Implemented |
@@ -304,7 +305,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-CAT-02 | Staff shall be able to create and edit items (name, brand, category, description, UK price, was-price and deal end, weight, size/colour options, source link, photo upload or link, shown/hidden). | M | Implemented | `admin.test.ts`; E2E |
 | FR-CAT-03 | Uploaded images shall be accepted by file content (JPEG, PNG, WebP, GIF), up to 4 MB, stored under random names, and served with a fixed type, `nosniff` and a sandbox policy. | M | Implemented | `uploads.test.ts`; E2E "fake images are refused" |
 | FR-CAT-04 | A new database shall contain only the shop **eBay UK**; made-up sample data shall be created only for tests or when explicitly enabled. | M | Implemented | `seed.test.ts` |
-| FR-CAT-10 | The system shall support catalogue sources of these kinds: product feed (CSV/JSON), eBay API, Shopify shop, WooCommerce shop, shop website (sitemap and product pages), file import, pasted links. | M | Implemented | `run.test.ts`, `ebay.test.ts`, `shopify.test.ts`, `woocommerce.test.ts`, `file-import.test.ts` |
+| FR-CAT-10 | The system shall support catalogue sources of these kinds: product feed (CSV/JSON), eBay API, Diffbot Product API, Shopify shop, WooCommerce shop, shop website (sitemap and product pages), file import, pasted links. | M | Implemented | `run.test.ts`, `ebay.test.ts`, `shopify.test.ts`, `woocommerce.test.ts`, `file-import.test.ts` |
 | FR-CAT-11 | A source shall not be switched on until staff confirm they have checked the shop's terms or hold a licence. | M | Implemented | `run.test.ts`; E2E "sources need confirmed permission" |
 | FR-CAT-12 | Staff shall be able to preview a source without saving, run it now, switch it on or off, set its schedule and rules, and remove it keeping or removing its products. | M | Implemented | `run.test.ts`; E2E |
 | FR-CAT-13 | The system shall run due sources automatically (built-in scheduler, 10-minute tick; each source default every 24 hours) or via an external cron endpoint. | M | Implemented | `run.test.ts` (due sources); inspection |
@@ -315,6 +316,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-CAT-18 | A Shopify or WooCommerce source shall read the shop's public product list only if `robots.txt` allows, the shop's currency is GBP, and the shop is a Shopify (or, for WooCommerce, a Store API) shop; sizes and colours shall become item options; products whose variants differ in price shall be skipped. | M | Implemented | `shopify.test.ts`, `woocommerce.test.ts` |
 | FR-CAT-19 | A file-import source shall accept an uploaded CSV or JSON, apply the same checks as a feed, update on re-upload, and never remove products. | S | Implemented | `file-import.test.ts`; E2E |
 | FR-CAT-20 | An eBay source shall sign in with the admin's keys, search each listed query, accept only new, fixed-price, UK-located GBP listings, and never treat a missing result as removal. | M | Implemented | `ebay.test.ts` |
+| FR-CAT-21 | A Diffbot source shall read each listed product page through Diffbot's Product API using the admin's token, check the shop's `robots.txt` first and send nothing for a disallowed page, accept only prices in GBP, stop on a bad token, exhausted credits or rate limit, and never treat the list as complete. | M | Implemented | `diffbot.test.ts` |
 | FR-CAT-30 | The importer shall identify itself honestly (`ShopCatalogBot`, with a public explanation page) and obey `robots.txt` and any `Crawl-delay`, with at least 2 seconds between requests to one shop. | M | Implemented | `net.test.ts` |
 | FR-CAT-31 | The importer shall fetch only http/https on ports 80 and 443, never reach private or internal addresses (also checked at name resolution), follow at most three redirects (each re-validated), and enforce size and time limits. | M | Implemented | `net.test.ts` |
 | FR-CAT-32 | When a shop answers 401, 403, 429 or 451, or shows a verification page, the importer shall stop, pause that source for 24 hours and tell staff. | M | Implemented | `net.test.ts`; `run.test.ts` |
@@ -391,7 +393,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | Notifications | FR-MSG | `outbox.test.ts`, `templates.test.ts`, `phone.test.ts` |
 | Reviews and wishlist | FR-REV | `discovery.test.ts`, `account-orders.test.ts`, E2E (wishlist) |
 | Link orders | FR-LNK | `link-orders.test.ts`, `link-auto.test.ts`, `link-submit.test.ts`, E2E (link request to order, automatic quotes, found-link flow) |
-| Catalogue | FR-CAT | `ingest/net.test.ts`, `parse.test.ts`, `field-map.test.ts`, `run.test.ts`, `ebay.test.ts`, `shopify.test.ts`, `woocommerce.test.ts`, `file-import.test.ts`, `source-kinds-migration.test.ts`, `seed.test.ts`, `shop-delete.test.ts`, `shop-logo.test.ts`, `uploads.test.ts`, `secrets.test.ts`, E2E (sources, shops, uploads) |
+| Catalogue | FR-CAT | `ingest/net.test.ts`, `parse.test.ts`, `field-map.test.ts`, `run.test.ts`, `ebay.test.ts`, `diffbot.test.ts`, `shopify.test.ts`, `woocommerce.test.ts`, `file-import.test.ts`, `source-kinds-migration.test.ts`, `seed.test.ts`, `shop-delete.test.ts`, `shop-logo.test.ts`, `uploads.test.ts`, `secrets.test.ts`, E2E (sources, shops, uploads) |
 | Administration | FR-ADM | `admin-logic.test.ts`, `admin.test.ts`, `integrations.test.ts`, `fx-api.test.ts`, `themes.test.ts`, `csv.test.ts`, E2E (every admin page, themes, delivery areas) |
 | Staff and access | FR-STF | `admin-users.test.ts`, `permissions.test.ts`, `auth.test.ts`, `admin-guards.test.ts`, E2E (staff account journey) |
 | System | FR-SYS | `source-kinds-migration.test.ts`, `shop-delete.test.ts`, E2E (health, cron, webhooks) |
@@ -405,7 +407,7 @@ The browser run is the system's **acceptance test**. Each step below must pass f
 4. They pay (demo payment) and the order shows in their account with an updates entry.
 5. The admin signs in (wrong password refused); every admin page loads; the admin moves the order; the customer sees the change.
 6. Changing the service charge and exchange rate reaches the storefront; an invalid tier setup is rejected clearly.
-7. Catalogue sources need permission and refuse internal addresses; a source can be created and removed; the eBay, Shopify and file-import forms work.
+7. Catalogue sources need permission and refuse internal addresses; a source can be created and removed; the eBay, Diffbot, Shopify and file-import forms work.
 8. A shop and a delivery area can be added and deleted only after confirmation; a shop logo uploads and shows; fake images are refused.
 9. A colour theme chosen in the admin reaches the storefront.
 10. A link request is quoted, paid and appears as an ordinary order; automatic quotes price an ordinary request and leave a dear one for staff; a found link goes straight to the customer's request.

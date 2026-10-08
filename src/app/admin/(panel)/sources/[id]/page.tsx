@@ -22,7 +22,7 @@ export default async function SourceDetail({ params, searchParams }: { params: P
 
   const values: SourceFormValues = source
     ? {
-        id: source.id, shopId: source.shopId, name: source.name, kind: source.kind, urlDisplay: source.urlDisplay, fieldMapText: source.kind === "ebay" ? (source.fieldMap.queries ?? "") : formatFieldMap(source.fieldMap),
+        id: source.id, shopId: source.shopId, name: source.name, kind: source.kind, urlDisplay: source.urlDisplay, fieldMapText: source.kind === "ebay" ? (source.fieldMap.queries ?? "") : source.kind === "diffbot" ? (source.fieldMap.urls ?? "") : formatFieldMap(source.fieldMap),
         termsUrl: source.termsUrl, termsNote: source.termsNote, termsConfirmedAt: source.termsConfirmedAt, enabled: source.enabled, autoPublishNew: source.autoPublishNew,
         autoApplyUpdates: source.autoApplyUpdates, maxPriceChangePct: source.maxPriceChangePct, maxItems: source.maxItems, delaySeconds: source.delayMs / 1000,
         intervalHours: source.intervalHours, staleDays: source.staleDays, defaultCategory: source.defaultCategory, defaultWeightGrams: source.defaultWeightGrams,

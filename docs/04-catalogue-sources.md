@@ -14,6 +14,7 @@ A new database starts with one shop, **eBay UK**, and nothing else. Nothing fict
 | --- | --- | --- | --- |
 | **Product feed (CSV or JSON)** | Official and affiliate feeds (Awin, CJ, Rakuten, Impact…) | The feed address | The most reliable: prices, stock and images come from the shop. Columns are recognised automatically; override with lines like `price=cost.gbp`. |
 | **eBay (official API)** | Real UK listings with photos | Free eBay developer keys (Admin → Integrations → Catalogue APIs) and your searches, one per line (up to 10) | Only new, fixed-price, UK-located listings priced in pounds. Search results vary, so a missing listing is never treated as removed. |
+| **Diffbot (Product API)** | Product pages you list, when you hold or are allowed the data | Your Diffbot token (Admin → Integrations → Catalogue APIs) and the product page addresses, one per line | Paid: one Diffbot credit per product on every run. Diffbot returns name, price, was-price, stock, brand and photo. Only prices in pounds are used. The shop's `robots.txt` is checked first and a disallowed page is skipped without calling Diffbot. The shop's terms still apply because Diffbot reads the page for you. |
 | **WooCommerce shop** | Small UK shops on WooCommerce | The shop's main address, for example `https://shop.co.uk` | Reads the public product list (`/wp-json/wc/store/v1/products`) only if the shop's `robots.txt` allows it and the shop prices in pounds. Brings sizes and colours across as choices. Products sold on another website, grouped products, and products whose sizes cost different amounts are skipped. Weight is not published, so the source's default weight is used. Get the owner's agreement first. |
 | **Shopify shop** | Small UK brands on Shopify | The shop's main address, for example `https://brand.co.uk` | Reads the public product list only if the shop's `robots.txt` allows it and the shop prices in pounds. Brings sizes and colours across as choices. Products whose sizes cost different amounts are skipped (the site holds one price per product). Get the owner's agreement first. |
 | **Shop website (sitemap + pages)** | Shops whose terms and `robots.txt` allow it | The sitemap address | Reads product data (JSON-LD or Open Graph) from each page, one at a time, slowly. |
@@ -27,7 +28,7 @@ Open `theirshop/wp-json/wc/store/v1/products` in a browser. A readable shop show
 Open `theirshop/meta.json` in a browser. A Shopify shop shows text containing `"currency":"GBP"`; any other site shows an error page.
 
 ### Large retailers
-Many large UK retailers (for example Amazon, Argos, Tesco, Asda, Currys, Next, M&S, B&Q) **forbid or block** automated reading. The importer will stop if they refuse. For them use an **affiliate feed**, or handle their products as **link orders** ([Admin guide → Link orders](02-admin-guide.md#5-link-orders-in-detail)).
+Many large UK retailers (for example Amazon, Argos, Tesco, Asda, Currys, Next, M&S, B&Q) **forbid or block** automated reading, and that includes a service such as Diffbot reading their pages for you. The importer will stop if they refuse. For them use an **affiliate feed**, or handle their products as **link orders** ([Admin guide → Link orders](02-admin-guide.md#5-link-orders-in-detail)).
 
 ## Setting up a source
 

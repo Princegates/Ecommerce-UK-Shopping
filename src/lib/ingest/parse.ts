@@ -200,9 +200,11 @@ export type FieldMap = Partial<Record<"id" | "name" | "price" | "compareAt" | "c
   exclude?: string;
   /** eBay sources: the searches to run, one per line. */
   queries?: string;
+  /** Diffbot sources: the product page addresses to read, one per line. */
+  urls?: string;
 };
 
-const ALIASES: Record<keyof Omit<FieldMap, "include" | "exclude" | "queries">, string[]> = {
+const ALIASES: Record<keyof Omit<FieldMap, "include" | "exclude" | "queries" | "urls">, string[]> = {
   id: ["id", "sku", "productid", "product_id", "merchantproductid", "merchant_product_id", "awproductid", "aw_product_id", "mpn", "gtin", "itemid"],
   name: ["name", "title", "productname", "product_name"],
   price: ["searchprice", "search_price", "price", "saleprice", "sale_price", "currentprice", "current_price", "storeprice", "store_price"],

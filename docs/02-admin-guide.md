@@ -204,7 +204,7 @@ Picking a role ticks its rights. Changing any tick switches the role to **Custom
 | Handle link requests (requests.manage) | Quote link requests, and set the automatic-quote rules. | ✔ | ✔ | ✔ |  |  |  |
 | Manage shops (shops.manage) | Add, edit and delete shops and their logos. | ✔ |  |  | ✔ |  |  |
 | Manage items (items.manage) | Add, edit and hide items, photos and deals. | ✔ |  |  | ✔ |  |  |
-| Manage catalogue sources (sources.manage) | Feeds, Shopify, WooCommerce, eBay and file imports. | ✔ |  |  | ✔ |  |  |
+| Manage catalogue sources (sources.manage) | Feeds, Shopify, WooCommerce, eBay, Diffbot and file imports. | ✔ |  |  | ✔ |  |  |
 | Review imported items (import.review) | Approve or reject items waiting in Import review. | ✔ |  |  | ✔ |  |  |
 | Moderate reviews (reviews.manage) | Publish or hide customer reviews. | ✔ |  |  | ✔ |  |  |
 | Change prices and delivery (pricing.manage) | Service charge, exchange rate, shipping rates and delivery areas. | ✔ |  |  |  |  |  |

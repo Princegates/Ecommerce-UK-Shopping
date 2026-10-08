@@ -63,6 +63,14 @@ export default async function SourcesAdmin({ searchParams }: { searchParams: Pro
             <p className="mt-1 text-ink-soft">It reads the shop&rsquo;s public product list (photos, prices, stock, sizes and colours) only when the shop&rsquo;s robots.txt allows it and the shop prices in pounds, and it stops at the first refusal. Products whose sizes cost different amounts are skipped.</p>
           </div>
           <div className="md:col-span-2">
+            <p className="font-bold">Pages you list yourself, read by Diffbot (paid)</p>
+            <ol className="mt-1 grid list-decimal gap-1 pl-5">
+              <li>Create a Diffbot account and paste its token under <a className="link" href="/admin/integrations#catalog-apis">Integrations → Catalogue APIs</a>, switch it on and press <strong>Test connection</strong>.</li>
+              <li>Here: <strong>Add a source → Diffbot (Product API)</strong>, paste the product page addresses (one per line), tick the permission box, click <strong>Check this setup first</strong>, then <strong>Create source</strong>.</li>
+            </ol>
+            <p className="mt-1 text-ink-soft">Diffbot downloads the pages for you and returns the name, price, was-price, stock, brand and photo. Each product read uses Diffbot credits on every run. Pages the shop&rsquo;s robots.txt disallows are skipped, and the shop&rsquo;s own terms still apply, so only list pages you are allowed to use.</p>
+          </div>
+          <div className="md:col-span-2">
             <p className="font-bold">Small UK shops on WooCommerce (with the owner&rsquo;s agreement)</p>
             <ol className="mt-1 grid list-decimal gap-1 pl-5">
               <li>Ask the shop if they are happy for you to list their products, or join their affiliate programme if they have one.</li>

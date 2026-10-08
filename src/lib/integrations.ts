@@ -11,7 +11,7 @@ export type ProviderId =
   | "arkesel" | "twilio" | "meta_whatsapp"
   | "resend" | "postmark"
   | "exchangerate_api" | "openexchangerates"
-  | "ebay";
+  | "ebay" | "diffbot";
 
 export type FieldDef = {
   key: string;
@@ -196,6 +196,23 @@ export const INTEGRATIONS: IntegrationDef[] = [
       "Paste them here, save, then press Test connection.",
       "Add a Catalogue source of type eBay and list the searches you want (one per line).",
       "Read eBay's API licence. It sets how listing data and photos may be shown and requires a link back to the listing.",
+    ],
+  },
+  {
+    id: "diffbot",
+    name: "Diffbot (Product API)",
+    blurb: "Reads the product pages you list and returns the name, price, was-price, stock, brand and photo. Paid (Diffbot credits). Used by a Catalogue source of type Diffbot.",
+    docsUrl: "https://docs.diffbot.com/reference/extract-product",
+    channels: ["catalog"],
+    fields: [
+      { key: "token", label: "Diffbot token", env: "DIFFBOT_TOKEN", secret: true, required: ["catalog"], placeholder: "Your Diffbot API token", help: "From your Diffbot dashboard, under API tokens. Keep it private; it is billed to your account." },
+    ],
+    steps: [
+      "Create a Diffbot account (there is a free trial) and copy your API token.",
+      "Paste it here, save, switch Diffbot on, then press Test connection (this reads one example page, which uses one credit).",
+      "Add a Catalogue source of type Diffbot and list the product page addresses you want, one per line.",
+      "Each product read uses Diffbot credits every time the source runs, so keep the list and the run frequency modest.",
+      "Diffbot downloads the pages for you, so the shop's own terms still apply. Only list pages you are allowed to use, and tick the permission box on the source.",
     ],
   },
 ];

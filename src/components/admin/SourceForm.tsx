@@ -39,6 +39,7 @@ export default function SourceForm({
   const [kind, setKind] = useState(v.kind);
   const isEbay = kind === "ebay";
   const isShopify = kind === "shopify" || kind === "woocommerce";
+  const isDiffbot = kind === "diffbot";
   const isUpload = kind === "upload";
 
   return (
@@ -60,7 +61,19 @@ export default function SourceForm({
           </select>
           <p className="hint">{kinds.find((k) => k.kind === kind)?.help}</p>
         </div>
-        {isEbay ? (
+        {isDiffbot ? (
+          <>
+            <input type="hidden" name="url" value="" />
+            <Area
+              label="Product page addresses (one per line, up to 200)"
+              name="fieldMap"
+              defaultValue={v.fieldMapText}
+              mono
+              rows={6}
+              hint="Full product page links, starting with https://. Each run reads up to 'Products read per run' of them through Diffbot and uses one credit per product, so keep the list and the run frequency modest. Add your Diffbot token first under Integrations. Pages the shop's robots.txt disallows are skipped."
+            />
+          </>
+        ) : isEbay ? (
           <>
             <input type="hidden" name="url" value="" />
             <Area
@@ -132,7 +145,7 @@ export default function SourceForm({
         <details>
           <summary className="cursor-pointer font-semibold">More settings</summary>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <Text label={isEbay ? "Items per search" : isShopify ? "Products read per run (up to 500)" : "Pages read per run (website and link sources)"} name="maxItems" inputMode="numeric" defaultValue={v.maxItems} hint={isEbay ? "Up to 200. eBay returns its best matches for each search." : isShopify ? kind === "woocommerce" ? "The product list is read 100 at a time, slowly." : "The product list is read 250 at a time, slowly." : "Pages are read slowly, so a big shop is covered over several runs."} />
+            <Text label={isEbay ? "Items per search" : isDiffbot ? "Products read per run (one Diffbot credit each)" : isShopify ? "Products read per run (up to 500)" : "Pages read per run (website and link sources)"} name="maxItems" inputMode="numeric" defaultValue={v.maxItems} hint={isEbay ? "Up to 200. eBay returns its best matches for each search." : isDiffbot ? "Pages beyond this number are not read until you raise it, and then hidden by the stale rule if never refreshed." : isShopify ? kind === "woocommerce" ? "The product list is read 100 at a time, slowly." : "The product list is read 250 at a time, slowly." : "Pages are read slowly, so a big shop is covered over several runs."} />
             <Text label="Seconds between page requests (at least 2)" name="delaySeconds" inputMode="decimal" defaultValue={v.delaySeconds} hint="A longer Crawl-delay in the shop's robots.txt always wins." />
             <Text label="Category for items that have none" name="defaultCategory" defaultValue={v.defaultCategory} />
             <Text label="Weight when the shop gives none (grams)" name="defaultWeightGrams" inputMode="numeric" defaultValue={v.defaultWeightGrams} hint="Used for shipping. Check heavy categories." />

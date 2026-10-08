@@ -63,13 +63,13 @@ export function migrate(d: Db): void {
 }
 
 /**
- * Databases made before eBay, Shopify, WooCommerce or file-upload support only allow the older kinds of catalogue source. SQLite cannot change a CHECK
+ * Databases made before eBay, Shopify, WooCommerce, Diffbot or file-upload support only allow the older kinds of catalogue source. SQLite cannot change a CHECK
  * constraint in place, so the table is rebuilt once with the wider rule (rows, and the items that point at them, are kept).
  */
 function widenSourceKinds(d: Db): void {
   const t = d.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'catalog_sources'").get() as { sql: string } | undefined;
-  if (!t || t.sql.includes("'woocommerce'")) return;
-  const widened = t.sql.replace(/'links'(, 'ebay')?(, 'shopify')?(, 'upload')?\)/, "'links', 'ebay', 'shopify', 'woocommerce', 'upload')").replace(/CREATE TABLE (IF NOT EXISTS )?"?catalog_sources"?/i, "CREATE TABLE catalog_sources_new");
+  if (!t || t.sql.includes("'diffbot'")) return;
+  const widened = t.sql.replace(/'links'(, 'ebay')?(, 'shopify')?(, 'woocommerce')?(, 'upload')?\)/, "'links', 'ebay', 'shopify', 'woocommerce', 'diffbot', 'upload')").replace(/CREATE TABLE (IF NOT EXISTS )?"?catalog_sources"?/i, "CREATE TABLE catalog_sources_new");
   d.pragma("foreign_keys = OFF");
   try {
     d.transaction(() => {

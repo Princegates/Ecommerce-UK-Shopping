@@ -2,13 +2,14 @@ import "server-only";
 import type Database from "better-sqlite3";
 import { db } from "../db";
 import { decrypt, encrypt, encryptionPassphrase } from "../secrets";
+import { parseProductUrls } from "./diffbot-urls";
 import { parseQueries } from "./ebay-queries";
 import { assertFetchableUrl } from "./net";
 import { canonicalUrl, type FieldMap, type NormalizedItem } from "./parse";
 
 type Db = Database.Database;
 
-export type SourceKind = "feed_csv" | "feed_json" | "sitemap" | "links" | "ebay" | "shopify" | "woocommerce" | "upload";
+export type SourceKind = "feed_csv" | "feed_json" | "sitemap" | "links" | "ebay" | "shopify" | "woocommerce" | "diffbot" | "upload";
 export const SOURCE_KINDS: { kind: SourceKind; label: string; help: string }[] = [
   { kind: "feed_csv", label: "Product feed (CSV)", help: "An official or affiliate feed. The most reliable source: prices, stock and images come straight from the shop." },
   { kind: "feed_json", label: "Product feed (JSON)", help: "The same, as JSON." },
@@ -16,6 +17,7 @@ export const SOURCE_KINDS: { kind: SourceKind; label: string; help: string }[] =
   { kind: "ebay", label: "eBay (official API)", help: "Real UK listings with eBay's own photos, prices and links. Needs your free eBay developer keys (Admin > Integrations)." },
   { kind: "shopify", label: "Shopify shop (public product list)", help: "Many small UK brands run on Shopify. Reads the shop's public product list: photos, prices, stock and sizes. Only for shops priced in pounds that allow it in their robots.txt, and with the owner's agreement." },
   { kind: "woocommerce", label: "WooCommerce shop (public product list)", help: "Many small UK shops run on WooCommerce. Reads the shop's public product list: photos, prices, stock and sizes. Only for shops priced in pounds that allow it in their robots.txt, and with the owner's agreement." },
+  { kind: "diffbot", label: "Diffbot (Product API)", help: "Reads the product pages you list through Diffbot's paid Product API, which returns clean name, price, was-price, stock and photo. Needs your Diffbot token (Admin > Integrations). Uses credits on every run. Only list pages you are allowed to use; pages the shop's robots.txt disallows are skipped." },
   { kind: "upload", label: "File import (CSV or JSON you upload)", help: "For data you collected yourself, for example a spreadsheet or the export from a tool such as Octoparse or ParseHub. Upload the file on this source's page after creating it. Nothing is fetched from any shop. Only upload data you are allowed to use." },
   { kind: "links", label: "Pasted product links", help: "Items added one by one from a link. Their prices are refreshed automatically." },
 ];
@@ -159,10 +161,21 @@ export function saveSource(i: SourceInput, d: Db = db()): { ok: true; id: number
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : "That address cannot be used." };
     }
-  } else if (i.kind !== "links" && i.kind !== "ebay" && i.kind !== "upload" && i.id === 0) {
+  } else if (i.kind !== "links" && i.kind !== "ebay" && i.kind !== "diffbot" && i.kind !== "upload" && i.id === 0) {
     return { ok: false, error: "Enter the feed or sitemap address." };
   }
   if (i.kind === "ebay" && parseQueries(i.fieldMap.queries ?? "").length === 0) return { ok: false, error: "List at least one eBay search, one per line (for example: men's trainers)." };
+  if (i.kind === "diffbot") {
+    const pages = parseProductUrls(i.fieldMap.urls ?? "");
+    if (pages.length === 0) return { ok: false, error: "List at least one product page address, one per line (starting with https://)." };
+    for (const p of pages) {
+      try {
+        assertFetchableUrl(p);
+      } catch (e) {
+        return { ok: false, error: `${p.slice(0, 80)}: ${e instanceof Error ? e.message : "that address cannot be used."}` };
+      }
+    }
+  }
   if (i.termsUrl.trim() && !/^https?:\/\//i.test(i.termsUrl.trim())) return { ok: false, error: "The terms link must start with http:// or https://" };
   if (i.enabled && !i.confirmTerms && !(i.id > 0 && getSource(i.id, d)?.termsConfirmedAt)) {
     return { ok: false, error: "Confirm that you have checked the shop's terms (or hold a licence for this feed) before switching the source on." };

@@ -10,7 +10,7 @@ The **Readiness** section at the top lists what is still missing, for example "n
 
 - **Payment gateways:** you can switch on more than one. Customers choose between those that are on and fully configured.
 - **Messaging channels** (SMS, WhatsApp, email): for each channel, **choose which provider is used** (where two are available) and switch it on. A channel only sends if its chosen provider is on and complete.
-- **Catalogue APIs:** eBay.
+- **Catalogue APIs:** eBay, Diffbot.
 - **Exchange rate feed:** choose a provider and a policy (below).
 - **Which updates are sent:** for each order status, tick the channels used. A customer's own choices at checkout apply as well (a customer who turned off SMS gets none).
 
@@ -74,6 +74,15 @@ Every change is recorded in the rate history and the activity log. To update on 
 ## eBay (catalogue API)
 
 Needs free keys from developer.ebay.com: **App ID** and **Cert ID**, and an **environment** (Production for real listings, Sandbox for test data). Press **Test connection**. Then create a **Catalogue source** of type eBay with your searches. eBay's API licence sets how listing data and photos may be shown and requires a link back to the listing. Read it and check your product pages meet it.
+
+## Diffbot (Product API, paid)
+
+Needs a **token** from your Diffbot dashboard (there is a free trial; after that each product read uses credits). Save it, switch Diffbot on and press **Test connection**, which reads one example page and so uses one credit. Then create a **Catalogue source** of type Diffbot and list the product page addresses, one per line.
+- Diffbot downloads the pages for you and returns the name, price, was-price, stock, brand and photo. Only prices clearly in pounds are used.
+- The shop's own terms still apply, because Diffbot reads the page on your behalf. Only list pages you are allowed to use. The permission box on the source is how you confirm that.
+- The site checks each shop's `robots.txt` before asking Diffbot, and sends nothing for a page the shop disallows or when the shop refuses the `robots.txt` request.
+- A bad token, no credits left or a rate limit stops the run with a clear message. A page Diffbot cannot read is skipped and counted.
+- Cost control: each run reads up to *Products read per run* pages, so credits used per day are roughly that number times the runs per day. A list is never treated as complete, so removing an address does not hide its product at once; it is hidden by the stale rule.
 
 ## Webhooks and scheduled jobs: addresses
 

@@ -87,7 +87,7 @@ source (catalog_sources) ─► gather items ─► stage each item (import_item
 ```
 - `net.ts`: **the only way the importer touches the network.** Validates addresses (http/https, ports 80/443, no credentials, no private hosts), resolves names safely, follows at most three redirects (re-checked each time), obeys `robots.txt`, waits between requests, and treats 401/403/429/451 or a challenge page as **stop**.
 - `parse.ts`: price parsing (pounds only), feed column mapping, sitemap and product-page reading (JSON-LD, then Open Graph), title tidying.
-- `ebay.ts`, `shopify.ts`, `woocommerce.ts`: the API-style sources.
+- `ebay.ts`, `diffbot.ts`, `shopify.ts`, `woocommerce.ts`: the API-style sources.
 - `run.ts`: staging, publishing, the price-move guard, removal rules, stale sweep, file import, link import, previews.
 - `store.ts`: sources and their settings, with encrypted addresses.
 - `scheduler.ts`: the in-process timer, started from `instrumentation.ts`.

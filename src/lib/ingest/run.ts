@@ -12,13 +12,14 @@ import {
 } from "./parse";
 import { parseOptions } from "../catalog";
 import { gatherShopify } from "./shopify";
+import { diffbotConfig, gatherDiffbot, parseProductUrls } from "./diffbot";
 import { gatherWooCommerce } from "./woocommerce";
 import { ebayConfig, ebayToken, mapEbayItem, parseQueries, searchEbay } from "./ebay";
 import { getSource, getSourceUrl, linksSourceFor, type ImportItem, type Source, type SourceKind } from "./store";
 
 type Db = Database.Database;
 
-export type IngestDeps = PoliteDeps & { now?: () => number; /** replaces fetch for eBay API calls (tests) */ ebayFetch?: typeof fetch };
+export type IngestDeps = PoliteDeps & { now?: () => number; /** replaces fetch for eBay API calls (tests) */ ebayFetch?: typeof fetch; /** replaces fetch for Diffbot API calls (tests) */ diffbotFetch?: typeof fetch };
 
 const sqlTime = (ms: number) => new Date(ms).toISOString().replace("T", " ").slice(0, 19);
 const fmtGbp = (minor: number) => `£${(minor / 100).toFixed(2)}`;
@@ -359,6 +360,10 @@ export async function runSource(id: number, o: IngestDeps = {}, d: Db = db(), op
     } else if (source.kind === "shopify") {
       if (!url) throw new Error("This source has no shop address.");
       gathered = await gatherShopify(url, source.maxItems, dp);
+    } else if (source.kind === "diffbot") {
+      const cfg = diffbotConfig(d);
+      if (!cfg) throw new Error("Add your Diffbot token in Admin > Integrations first, and switch Diffbot on.");
+      gathered = await gatherDiffbot(source.fieldMap.urls ?? "", source.maxItems, cfg, dp, o.diffbotFetch);
     } else if (source.kind === "woocommerce") {
       if (!url) throw new Error("This source has no shop address.");
       gathered = await gatherWooCommerce(url, source.maxItems, dp);
@@ -605,6 +610,12 @@ export async function previewSource(
     if (i.kind === "ebay") {
       const g = await gatherEbay(i.fieldMap.queries ?? "", 10, d, ioDeps.ebayFetch);
       return { ok: g.items.length > 0, message: g.items.length ? `eBay returned ${g.items.length} usable listing${g.items.length === 1 ? "" : "s"} for your searches.` : "eBay returned no usable listings for those searches. Try different words.", sample: g.items.slice(0, 5), skipNote: summarise(g.skips), totalRows: g.items.length };
+    }
+    if (i.kind === "diffbot") {
+      const cfg = diffbotConfig(d);
+      if (!cfg) return { ok: false, message: "Add your Diffbot token in Admin > Integrations first, and switch Diffbot on.", sample: [], skipNote: "" };
+      const g = await gatherDiffbot(i.fieldMap.urls ?? "", 3, cfg, dp, ioDeps.diffbotFetch);
+      return { ok: g.items.length > 0, message: g.items.length ? `Diffbot read ${g.items.length} of the first ${Math.min(3, parseProductUrls(i.fieldMap.urls ?? "").length)} page${g.items.length === 1 ? "" : "s"} (this check uses a few credits).` : "Diffbot could not read a usable product from the first pages.", sample: g.items, skipNote: summarise(g.skips), totalRows: parseProductUrls(i.fieldMap.urls ?? "").length };
     }
     assertFetchableUrl(i.url);
     if (i.kind === "shopify") {

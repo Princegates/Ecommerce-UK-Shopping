@@ -21,6 +21,7 @@ import { addTracking, deleteTracking } from "@/lib/orders";
 import { setReviewStatus } from "@/lib/reviews";
 import { ORDER_STATUSES } from "@/lib/order-status";
 import { buildGateway } from "@/lib/payments";
+import { diffbotConfig, diffbotProduct } from "@/lib/ingest/diffbot";
 import { ebayConfig, ebayToken } from "@/lib/ingest/ebay";
 import { getSettings, setSetting } from "@/lib/settings";
 import { THEMES } from "@/lib/themes";
@@ -110,6 +111,21 @@ export async function testIntegrationAction(f: FormData): Promise<void> {
       result = await gateway.ping();
     } catch {
       result = { ok: false, message: "Could not reach the provider." };
+    }
+    adminAudit(who, "integration.test", def.name, result.ok ? "ok" : "failed");
+    back("/admin/integrations", { test: result.ok ? "ok" : "fail", p: def.id, msg: result.message }, hash);
+  }
+
+  if (channel === "catalog" && def.id === "diffbot") {
+    const cfg = diffbotConfig();
+    if (!cfg) back("/admin/integrations", { test: "fail", p: def.id, msg: "Save the token first, and switch Diffbot on." }, hash);
+    let result: { ok: boolean; message: string };
+    try {
+      // a real call with a harmless public page: it checks the token without needing a product (a page with no product is fine)
+      await diffbotProduct(cfg, "https://example.com/");
+      result = { ok: true, message: "Diffbot accepted the token." };
+    } catch (e) {
+      result = { ok: false, message: e instanceof Error ? e.message : "Could not reach Diffbot." };
     }
     adminAudit(who, "integration.test", def.name, result.ok ? "ok" : "failed");
     back("/admin/integrations", { test: result.ok ? "ok" : "fail", p: def.id, msg: result.message }, hash);
