@@ -208,6 +208,7 @@ CREATE TABLE IF NOT EXISTS customers (
   phone            TEXT NOT NULL UNIQUE,
   email            TEXT UNIQUE,
   password_hash    TEXT NOT NULL,
+  password_set     INTEGER NOT NULL DEFAULT 1,
   status           TEXT NOT NULL DEFAULT 'ACTIVE',
   notify_sms       INTEGER NOT NULL DEFAULT 1,
   notify_email     INTEGER NOT NULL DEFAULT 1,

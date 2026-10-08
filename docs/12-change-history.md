@@ -26,6 +26,7 @@ What was built and in what order. Every change below is a commit on the `claude/
 - **eBay** official-API source.
 - **Remove source** (keep or remove its products).
 - **Shopify** shop source with sizes and colours.
+- **Privacy policy, terms of service and data-deletion pages**, linked from the footer, with contact email and business name set in Pricing → Site; accounts made with a provider can be deleted without a password.
 - **Sign in with Google, Facebook and Apple** for customers, with safe account matching, a phone-number step, and connecting providers from Account → Security.
 - **Diffbot** (Product API) source: reads product pages you list, checking `robots.txt` first; paid per product read.
 - **WooCommerce** shop source (public Store API product list) with sizes and colours.

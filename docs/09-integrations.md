@@ -95,6 +95,8 @@ These let customers press **Continue with Google / Facebook / Apple** on the sig
 
 **Apple:** in your Apple Developer account create an App ID with *Sign in with Apple*, a **Services ID** for the web with *Sign in with Apple* configured (your domain and the Return URL `…/api/auth/apple/callback`), and a **key** with *Sign in with Apple* (download the `.p8` once). Paste the **Services ID**, **Team ID**, **Key ID** and the `.p8` contents. Apple shares a person's name only the first time, and many people use *Hide My Email*, so the email is an Apple relay address; messages still reach them.
 
+Facebook, Google and Apple will ask for public policy addresses before an app can go live. Use `https://YOUR-DOMAIN/privacy` (privacy policy), `https://YOUR-DOMAIN/terms` (terms of service) and `https://YOUR-DOMAIN/data-deletion` (Facebook's *User data deletion* instructions URL). Fill in the contact email and business name under **Pricing → Site** first.
+
 What customers see: a first-time person is asked for a phone number (we arrange deliveries by phone) and the account is created. A person whose Google or Apple email already has an account is signed in to it. A Facebook email is never matched to an existing account (Facebook does not say it is verified), so that person is asked to sign in another way and connect Facebook from **Account → Security**. Signed-in customers can connect more providers there.
 
 ## Webhooks and scheduled jobs: addresses

@@ -1,7 +1,9 @@
 import { generateKeyPairSync, verify } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { openForTest } from "../db";
-import { getCustomerById, registerCustomer } from "../customers";
+import { migrate, openForTest } from "../db";
+import { SCHEMA } from "../schema";
+import Database from "better-sqlite3";
+import { createResetToken, deleteAccount, getCustomerById, registerCustomer, resetPassword } from "../customers";
 import { getIntegration, readConfig, saveFields, setEnabled } from "../integrations";
 import { beginAuth, completeSocialSignup, consumeState, getPendingSignup, listIdentities, resolveSocialLogin } from "./flow";
 import { pemBody, toPem } from "./pem";
@@ -306,3 +308,53 @@ describe("matching a provider profile to an account", () => {
     expect(getCustomerById(done.customer.id, d)).toBeNull();
   });
 });
+
+describe("accounts made with a provider have no password", () => {
+  const o = { linkCustomerId: null, next: "/account" };
+  async function socialCustomer(d: ReturnType<typeof openForTest>) {
+    const out = resolveSocialLogin(profile(), o, d);
+    if (out.kind !== "needs_phone") throw new Error("expected needs_phone");
+    const done = await completeSocialSignup(out.token, { name: "Ama Mensah", phone: "0241234567" }, d);
+    if (!done.ok) throw new Error(done.error);
+    return done.customer;
+  }
+
+  it("can delete the account without a password, which removes the identity too", async () => {
+    const d = openForTest();
+    const c = await socialCustomer(d);
+    expect(c.hasPassword).toBe(false);
+    expect(await deleteAccount(c.id, "", d)).toEqual({ ok: true });
+    expect(getCustomerById(c.id, d)).toBeNull();
+    expect(d.prepare("SELECT COUNT(*) AS n FROM customer_identities").get()).toEqual({ n: 0 });
+  });
+
+  it("asks for the password once one has been chosen", async () => {
+    const d = openForTest();
+    const c = await socialCustomer(d);
+    const reset = await resetPassword(createResetToken(c.id, d), "a long unusual passphrase 481", d);
+    expect(reset.ok).toBe(true);
+    expect(getCustomerById(c.id, d)?.hasPassword).toBe(true);
+    expect(await deleteAccount(c.id, "", d)).toMatchObject({ ok: false, error: "Your password is not right." });
+    expect(await deleteAccount(c.id, "a long unusual passphrase 481", d)).toEqual({ ok: true });
+  });
+
+  it("still needs the password for an ordinary account", async () => {
+    const d = openForTest();
+    const r = await registerCustomer({ name: "Kofi Boateng", phone: "0245550100", email: "", password: "correct horse battery" }, d);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.customer.hasPassword).toBe(true);
+    expect(await deleteAccount(r.customer.id, "", d)).toMatchObject({ ok: false });
+    expect(await deleteAccount(r.customer.id, "correct horse battery", d)).toEqual({ ok: true });
+  });
+
+  it("is added to a database made before it, treating every existing account as having a password", () => {
+    const d = new Database(":memory:");
+    d.pragma("foreign_keys = ON");
+    d.exec(SCHEMA.replace("  password_set     INTEGER NOT NULL DEFAULT 1,\n", ""));
+    expect((d.prepare("PRAGMA table_info(customers)").all() as { name: string }[]).some((c) => c.name === "password_set")).toBe(false);
+    d.prepare("INSERT INTO customers (name, phone, password_hash) VALUES ('Old Customer', '+233240000000', 'x')").run();
+    migrate(d);
+    expect(d.prepare("SELECT password_set FROM customers").get()).toEqual({ password_set: 1 });
+  });
+});
+

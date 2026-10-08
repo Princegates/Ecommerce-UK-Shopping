@@ -310,6 +310,7 @@ Generated from the database definition.
 | `phone` | TEXT | required |
 | `email` | TEXT |  |
 | `password_hash` | TEXT | required |
+| `password_set` | INTEGER | required; default 1. 0 for an account made with Google, Facebook or Apple whose password is a random one nobody knows; set to 1 when the customer chooses a password. |
 | `status` | TEXT | required; default 'ACTIVE' |
 | `notify_sms` | INTEGER | required; default 1 |
 | `notify_email` | INTEGER | required; default 1 |

@@ -33,6 +33,10 @@ export type Settings = {
   serviceFee: ServiceFeeRule;
   minOrderGbpMinor: number;
   supportWhatsapp: string;
+  /** Where customers write about privacy, deletion and complaints. Shown in the privacy policy and terms. */
+  supportEmail: string;
+  /** The registered name of the business running the shop, if different from the shop name. Shown in the privacy policy and terms. */
+  legalName: string;
   theme: string;
 };
 
@@ -43,6 +47,8 @@ const DEFAULTS = {
   service_fee: { mode: "percent", percent: 10, minMinor: 0 } as ServiceFeeRule,
   min_order_gbp_minor: 0,
   support_whatsapp: "",
+  support_email: "",
+  legal_name: "",
   theme: "ghana",
 };
 
@@ -73,6 +79,8 @@ export function getSettings(d: Db = db()): Settings {
     serviceFee: fee.success ? fee.data : DEFAULTS.service_fee,
     minOrderGbpMinor: minor.catch(DEFAULTS.min_order_gbp_minor).parse(raw.min_order_gbp_minor),
     supportWhatsapp: z.string().catch("").parse(raw.support_whatsapp),
+    supportEmail: z.string().catch("").parse(raw.support_email),
+    legalName: z.string().catch("").parse(raw.legal_name),
     theme: typeof raw.theme === "string" && THEMES.some((x) => x.id === raw.theme) ? raw.theme : DEFAULTS.theme,
   };
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { isEmail } from "@/lib/notify/phone";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -100,6 +101,10 @@ export async function savePricingAction(f: FormData): Promise<void> {
 
   const siteName = str(f, "siteName");
   if (siteName.length < 2 || siteName.length > 40) done(path, "The site name must be 2 to 40 characters.");
+  const supportEmail = str(f, "supportEmail").toLowerCase();
+  if (supportEmail && !isEmail(supportEmail)) done(path, "Enter a valid contact email address, or leave it empty.");
+  const legalName = str(f, "legalName");
+  if (legalName.length > 80) done(path, "The business name must be 80 characters or fewer.");
   const fxRate = num(f, "fxRate");
   if (!Number.isFinite(fxRate) || fxRate <= 0 || fxRate > 1000) done(path, "Enter the exchange rate as GH₵ per £1, for example 15.20.");
   const markup = num(f, "fxMarkup");
@@ -139,6 +144,8 @@ export async function savePricingAction(f: FormData): Promise<void> {
   setSetting("service_fee", fee.data);
   adminAudit(who, "pricing.update", "service charge", JSON.stringify(fee.data).slice(0, 300));
   setSetting("support_whatsapp", str(f, "whatsapp").replace(/[^\d+]/g, "").slice(0, 20));
+  setSetting("support_email", supportEmail);
+  setSetting("legal_name", legalName);
   done(path);
 }
 

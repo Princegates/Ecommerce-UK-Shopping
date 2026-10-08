@@ -623,6 +623,36 @@ try {
     step("social sign-in: no buttons without an https APP_URL (set E2E_SOCIAL_BASE to also run the https checks)");
   }
 
+  // 9l. legal pages: privacy policy, terms and data-deletion instructions are public and linked from the footer; the contact details in them come from the admin's Site settings
+  {
+    const lp = await (await browser.newContext()).newPage();
+    lp.setDefaultTimeout(8000);
+    await lp.goto(base + "/");
+    for (const [name, path, heading] of [["Privacy policy", "/privacy", "Privacy policy"], ["Terms of service", "/terms", "Terms of service"], ["Delete your data", "/data-deletion", "Delete your data"]]) {
+      await lp.locator("footer").getByRole("link", { name }).click();
+      await lp.waitForURL("**" + path);
+      await lp.getByRole("heading", { level: 1, name: heading }).waitFor();
+      must((await lp.getByText(/Last updated \d+ \w+ \d{4}/).count()) === 1, path + " shows when it was last updated");
+      await lp.goto(base + "/");
+    }
+    await lp.goto(base + "/privacy");
+    must((await lp.locator("article a[href^='mailto:']").count()) === 0, "no contact email is shown until the owner sets one");
+    const pa = await loginAs(base);
+    await pa.goto(base + "/admin/pricing");
+    await pa.getByLabel("Contact email (for privacy and complaints)").fill("privacy@shop.example");
+    await pa.getByLabel("Registered business name (optional)").fill("Example Trading Ltd");
+    await pa.getByRole("button", { name: "Save pricing" }).click();
+    await pa.waitForURL("**/admin/pricing?saved=1");
+    await lp.goto(base + "/privacy");
+    must((await lp.locator("article a[href='mailto:privacy@shop.example']").count()) > 0, "the privacy policy shows the contact email the owner saved");
+    must((await lp.getByText(/is run by Example Trading Ltd/).count()) === 1, "the privacy policy names the registered business");
+    await lp.goto(base + "/terms");
+    must((await lp.locator("article a[href='mailto:privacy@shop.example']").count()) > 0, "the terms show the same contact email");
+    await pa.context().close();
+    await lp.context().close();
+    step("the privacy policy, terms and data-deletion pages are public, linked from the footer, and use the owner's contact details");
+  }
+
   // 10. wishlist + sign out
   await page.goto(base + PRODUCT);
   await page.getByRole("button", { name: /Save|wishlist/i }).first().click();

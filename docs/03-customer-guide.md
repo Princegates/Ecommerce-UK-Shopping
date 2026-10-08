@@ -83,6 +83,9 @@ You can ask us to cancel **before we have bought your items** (up to the *Buying
 
 **Forgotten password?** Use **Forgot password** on the sign-in page. We send a link that works for 60 minutes. If you cannot receive it, contact us and we can create a one-time link for you.
 
+## Your information
+Our [privacy policy](/privacy) says what we collect and why, and our [terms of service](/terms) set out how the service works. To delete your account, see [Delete your data](/data-deletion) (Account → Security → Delete my account). Orders are kept for our records after deletion, without a link to an account.
+
 ## Reviews
 
 Once an item is **delivered** you can review it, once. Your review shows your first name and the initial of your last name (for example "Ama M."). We may hide reviews that break our rules.

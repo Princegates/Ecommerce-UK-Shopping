@@ -121,7 +121,7 @@ export async function completeSocialSignup(raw: string, input: { name: string; p
     const id = d.transaction(() => {
       if (d.prepare("SELECT 1 FROM customer_identities WHERE provider = ? AND subject = ?").get(row.provider, row.subject)) throw new Error("done");
       const email = row.email && row.email_verified === 1 && !d.prepare("SELECT 1 FROM customers WHERE email = ?").get(row.email) ? row.email : null;
-      const info = d.prepare("INSERT INTO customers (name, phone, email, password_hash, last_login_at) VALUES (?, ?, ?, ?, datetime('now'))").run(name, phone, email, hash);
+      const info = d.prepare("INSERT INTO customers (name, phone, email, password_hash, password_set, last_login_at) VALUES (?, ?, ?, ?, 0, datetime('now'))").run(name, phone, email, hash);
       const customerId = Number(info.lastInsertRowid);
       d.prepare("INSERT INTO customer_identities (customer_id, provider, subject, email) VALUES (?, ?, ?, ?)").run(customerId, row.provider, row.subject, row.email);
       d.prepare("DELETE FROM social_signups WHERE token_hash = ?").run(sha(raw));

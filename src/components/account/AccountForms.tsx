@@ -74,7 +74,7 @@ export function PasswordForm() {
   );
 }
 
-export function DeleteAccountForm() {
+export function DeleteAccountForm({ needsPassword = true }: { needsPassword?: boolean }) {
   const [s, action, pending] = useActionState(deleteAccountAction, idle);
   return (
     <form action={action} className="box grid max-w-2xl gap-4 border-red p-6">
@@ -83,7 +83,7 @@ export function DeleteAccountForm() {
         This removes your profile, saved addresses and saved items. Orders you have placed are kept for our records, with the
         delivery details you gave for them, but are no longer linked to an account. This cannot be undone.
       </p>
-      <Field label="Your password" name="password" type="password" required autoComplete="current-password" />
+      {needsPassword && <Field label="Your password" name="password" type="password" required autoComplete="current-password" />}
       <Field label="Type DELETE to confirm" name="confirm" required autoComplete="off" />
       <FormStatus error={s.error} />
       <div><button className="btn btn-danger" disabled={pending}>{pending ? "Deleting…" : "Delete my account"}</button></div>

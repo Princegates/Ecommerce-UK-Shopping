@@ -52,6 +52,11 @@ export default function Footer() {
           <div className="grid gap-1">
             <p>© {new Date().getFullYear()} {siteName}. Product names, photos and prices come from the sellers listed.</p>
             <p className="font-medium text-white/80">Powered by Anknovate IT Services</p>
+            <nav aria-label="Legal" className="flex flex-wrap gap-x-4 gap-y-1">
+              <Link className="text-white/80 hover:text-white hover:underline" href="/privacy">Privacy policy</Link>
+              <Link className="text-white/80 hover:text-white hover:underline" href="/terms">Terms of service</Link>
+              <Link className="text-white/80 hover:text-white hover:underline" href="/data-deletion">Delete your data</Link>
+            </nav>
           </div>
           <Link href="/admin" rel="nofollow" className="rounded-lg border border-white/30 px-3 py-1.5 font-medium text-white/85 hover:bg-white/10 hover:text-white">Admin</Link>
         </div>

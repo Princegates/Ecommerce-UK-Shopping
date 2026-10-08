@@ -38,6 +38,8 @@ export function migrate(d: Db): void {
 
   add("customer_id", "customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL");
 
+  // 0 for an account made with Google, Facebook or Apple, whose password is a random one nobody knows
+  if (!has("customers").includes("password_set")) d.exec("ALTER TABLE customers ADD COLUMN password_set INTEGER NOT NULL DEFAULT 1");
   if (!has("customers").includes("updates_seen_at")) d.exec("ALTER TABLE customers ADD COLUMN updates_seen_at TEXT");
 
   if (!has("shops").includes("logo_url")) d.exec("ALTER TABLE shops ADD COLUMN logo_url TEXT NOT NULL DEFAULT ''");

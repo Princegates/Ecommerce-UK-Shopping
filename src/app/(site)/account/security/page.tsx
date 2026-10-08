@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { logoutOthersAction } from "@/app/actions/account";
 import { DeleteAccountForm, PasswordForm, SignInDetailsForm } from "@/components/account/AccountForms";
 import { requireCustomer } from "@/lib/customer-session";
@@ -21,7 +22,18 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
       <p className="label">Your account</p>
       <h1 className="text-3xl">Security</h1>
       <div className="mt-6 grid gap-8">
-        <SignInDetailsForm phone={c.phone} email={c.email} />
+        {c.hasPassword ? (
+          <SignInDetailsForm phone={c.phone} email={c.email} />
+        ) : (
+          <section className="box box-shadow max-w-2xl p-6">
+            <h2 className="text-2xl">Your sign-in details</h2>
+            <p className="mt-2 text-sm text-ink-soft">
+              You sign in with {identities.map((i) => SOCIAL_LABEL[i.provider]).join(" and ") || "a connected account"} and have not chosen a password. Your phone number is <span className="font-semibold">{c.phone}</span>
+              {c.email ? <> and your email is <span className="font-semibold">{c.email}</span></> : null}. To change them, or to be able to sign in with a password too,
+              choose a password with <Link className="link" href="/forgot-password">Forgot your password</Link> first.
+            </p>
+          </section>
+        )}
         {(identities.length > 0 || available.length > 0) && (
           <section className="box box-shadow max-w-2xl p-6">
             <h2 className="text-2xl">Connected sign-in</h2>
@@ -40,7 +52,7 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
             )}
           </section>
         )}
-        <PasswordForm />
+        {c.hasPassword && <PasswordForm />}
         <section className="box box-shadow max-w-2xl p-6">
           <h2 className="text-2xl">Signed-in devices</h2>
           <p className="mt-2 text-sm text-ink-soft">
@@ -50,7 +62,7 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
             <button className="btn">Sign out my other devices</button>
           </form>
         </section>
-        <DeleteAccountForm />
+        <DeleteAccountForm needsPassword={c.hasPassword} />
       </div>
     </>
   );

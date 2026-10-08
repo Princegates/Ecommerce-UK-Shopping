@@ -80,6 +80,8 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
             <div className="grid gap-4 sm:grid-cols-2">
               <Text label="Site name" name="siteName" defaultValue={s.siteName} required />
               <Text label="WhatsApp number (optional)" name="whatsapp" defaultValue={s.supportWhatsapp} hint="With country code, e.g. 233501234567" />
+              <Text label="Contact email (for privacy and complaints)" name="supportEmail" type="email" defaultValue={s.supportEmail} hint="Shown in the privacy policy and terms. Fill this in before you submit the policy links to Facebook or Google." />
+              <Text label="Registered business name (optional)" name="legalName" defaultValue={s.legalName} hint="The company that runs the shop, if different from the site name, for example Atombo Logistics Ltd." />
             </div>
           </section>
 

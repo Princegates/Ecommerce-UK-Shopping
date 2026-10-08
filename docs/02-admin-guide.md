@@ -100,7 +100,7 @@ Customer reviews, filterable by **All / Published / Hidden**. Only customers who
 ### Pricing
 - **Service charge**: percentage with a minimum, a flat amount, or tiered bands ("up to £50 pay 15%…"). Only the chosen method is used.
 - **Exchange rate and minimum order**: GH₵ per £1, the markup, and the smallest order (items only, in £).
-- **Site**: site name and the support WhatsApp number.
+- **Site**: site name, the support WhatsApp number, a **contact email** and the **registered business name**. The email and business name appear in the public [privacy policy](#legal-pages-privacy-terms-and-data-deletion) and terms, so fill them in before you submit the policy links to Facebook, Google or Apple.
 - **What customers pay now**: a live example so you can see the effect of a change before saving.
 - The **exchange-rate feed** policy (manual, suggest or automatic, with a maximum automatic move and an alert gap) is under Integrations.
 
@@ -214,6 +214,12 @@ Picking a role ticks its rights. Changing any tick switches the role to **Custom
 | See messages sent (messages.view) | The log of messages sent to customers. | ✔ | ✔ | ✔ |  |  |  |
 | Manage messages (messages.manage) | Retry failed messages and choose which updates are sent. | ✔ |  |  |  |  |  |
 | See the activity log (audit.view) | Who changed what, and when. | ✔ |  |  |  | ✔ |  |
+
+### Legal pages: privacy, terms and data deletion
+The shop has three public pages, linked from the footer: **`/privacy`** (privacy policy), **`/terms`** (terms of service) and **`/data-deletion`** (how to delete an account and what is kept). Facebook, Google and Apple ask for these addresses, for example `https://your-domain/privacy`. Facebook's "data deletion instructions URL" is `/data-deletion`.
+- They take your business name and contact details from **Pricing → Site**, so nothing about the business is written into the text.
+- The wording describes what the shop does today (what it collects, who it shares with, how deletion works). **It is a starting draft, not legal advice.** Have a lawyer in your market read it before you rely on it, check the governing law (it says Ghana), the refund wording, and whether you must register with the Data Protection Commission.
+- If you change what the shop collects or who it shares data with, change the wording in `src/app/(site)/privacy/page.tsx` and update the date in `src/components/LegalPage.tsx`.
 
 ### Managing an account
 Open it from the list to: **change name, role and rights** (this signs them out so the new rights apply at once), **switch off or on** (switching off signs them out everywhere immediately), **reset the password** (they must choose a new one; they are signed out), or **delete** (confirmation needed; their past actions stay in the activity log under their name).

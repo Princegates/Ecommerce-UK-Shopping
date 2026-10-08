@@ -20,18 +20,20 @@ export type Customer = {
   notifyEmail: boolean;
   notifyWhatsapp: boolean;
   defaultZoneId: number | null;
+  /** False for an account made with Google, Facebook or Apple that has not chosen a password. */
+  hasPassword: boolean;
   createdAt: string;
   lastLoginAt: string | null;
 };
 
 type Raw = {
   id: number; name: string; phone: string; email: string | null; status: string; notify_sms: number; notify_email: number;
-  notify_whatsapp: number; default_zone_id: number | null; created_at: string; last_login_at: string | null;
+  notify_whatsapp: number; default_zone_id: number | null; password_set?: number; created_at: string; last_login_at: string | null;
 };
 
 const toCustomer = (r: Raw): Customer => ({
   id: r.id, name: r.name, phone: r.phone, email: r.email, status: r.status, notifySms: r.notify_sms === 1,
-  notifyEmail: r.notify_email === 1, notifyWhatsapp: r.notify_whatsapp === 1, defaultZoneId: r.default_zone_id,
+  notifyEmail: r.notify_email === 1, notifyWhatsapp: r.notify_whatsapp === 1, defaultZoneId: r.default_zone_id, hasPassword: r.password_set !== 0,
   createdAt: r.created_at, lastLoginAt: r.last_login_at,
 });
 
@@ -169,7 +171,7 @@ export async function resetPassword(raw: string, newPassword: string, d: Db = db
   const run = d.transaction(() => {
     const used = d.prepare("UPDATE password_resets SET used_at = datetime('now') WHERE token_hash = ? AND used_at IS NULL").run(sha(raw));
     if (used.changes === 0) return false;
-    d.prepare("UPDATE customers SET password_hash = ? WHERE id = ?").run(hash, customer.id);
+    d.prepare("UPDATE customers SET password_hash = ?, password_set = 1 WHERE id = ?").run(hash, customer.id);
     d.prepare("DELETE FROM customer_sessions WHERE customer_id = ?").run(customer.id);
     return true;
   });
@@ -227,14 +229,15 @@ export async function changePassword(
   if (!c) return { ok: false, error: "Account not found." };
   const problem = passwordProblem(next, { phone: c.phone, email: c.email ?? "", name: c.name });
   if (problem) return { ok: false, error: problem };
-  d.prepare("UPDATE customers SET password_hash = ? WHERE id = ?").run(await hashPassword(next), id);
+  d.prepare("UPDATE customers SET password_hash = ?, password_set = 1 WHERE id = ?").run(await hashPassword(next), id);
   deleteOtherSessions(id, keepSessionRaw, d);
   return { ok: true };
 }
 
 /** Removes the profile, addresses, saved items and sessions. Orders stay for our records, unlinked from the account. */
 export async function deleteAccount(id: number, password: string, d: Db = db()): Promise<Result<object>> {
-  if (!(await passwordIs(id, password, d))) return { ok: false, error: "Your password is not right." };
+  // an account made with Google, Facebook or Apple has no password to ask for: being signed in and typing DELETE is the confirmation
+  if (getCustomerById(id, d)?.hasPassword !== false && !(await passwordIs(id, password, d))) return { ok: false, error: "Your password is not right." };
   d.transaction(() => {
     d.prepare("UPDATE reviews SET author = 'Former customer' WHERE customer_id = ?").run(id);
     d.prepare("UPDATE link_requests SET customer_id = NULL WHERE customer_id = ?").run(id);
