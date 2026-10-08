@@ -69,7 +69,7 @@ For each item it reads:
 
 ## Rules the importer follows (and will not break)
 
-- It identifies itself as **ShopCatalogBot**, with a page shops can read (`/bot`).
+- It identifies itself as **ShopCatalogBot**, with the address of this site in its user agent. (There is no explanation page; add one if you want shops to be able to read about it.)
 - It obeys **`robots.txt`** and any **`Crawl-delay`**, and waits at least two seconds between requests to one shop.
 - It never reaches private or internal addresses, and only uses ports 80 and 443.
 - When a shop answers **401, 403, 429, 451**, or shows a verification page, it **stops**, **pauses that source for 24 hours**, and tells you. It **never** retries with another identity, rotates addresses, or tries to get past CAPTCHAs or blocks. Switching the source off and on again clears the pause.

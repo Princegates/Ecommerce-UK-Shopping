@@ -32,10 +32,10 @@ try {
   must(cron2.ok(), "cron with secret works, got " + cron2.status());
   step("unsigned webhook and unauthenticated cron are refused");
 
-  // 0b. link preview refuses internal addresses; bot page is public
+  // 0b. link preview refuses internal addresses; the catalogue reader page is gone
   const lp = await page.request.get(base + "/api/link-preview?url=" + encodeURIComponent("http://127.0.0.1/admin"));
   must((await lp.json()).ok === false, "link preview refuses internal addresses");
-  must((await page.request.get(base + "/bot")).ok(), "bot information page is public");
+  must((await page.request.get(base + "/bot")).status() === 404, "the catalogue reader page is gone");
   step("link preview refuses internal addresses; bot page is public");
 
   // 1. home page basics

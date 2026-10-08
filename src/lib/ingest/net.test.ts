@@ -84,7 +84,7 @@ describe("polite fetching", () => {
     let ua = "";
     const fetcher: Fetcher = async (_u, o) => { ua = o.userAgent; return res(200, "<html></html>"); };
     await politeFetch("https://shop.example/p", { fetcher, appUrl: "https://my.site/" });
-    expect(ua).toBe("ShopCatalogBot/1.0 (+https://my.site/bot)");
+    expect(ua).toBe("ShopCatalogBot/1.0 (+https://my.site)");
     expect(userAgent(null)).toBe("ShopCatalogBot/1.0");
   });
 

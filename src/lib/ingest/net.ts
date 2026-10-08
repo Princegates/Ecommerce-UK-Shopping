@@ -18,7 +18,7 @@ import { gunzipSync } from "node:zlib";
 export const BOT_TOKEN = "ShopCatalogBot";
 
 export function userAgent(appUrl: string | null): string {
-  return `${BOT_TOKEN}/1.0${appUrl ? ` (+${appUrl.replace(/\/$/, "")}/bot)` : ""}`;
+  return `${BOT_TOKEN}/1.0${appUrl ? ` (+${appUrl.replace(/\/$/, "")})` : ""}`;
 }
 
 export class BlockedError extends Error {

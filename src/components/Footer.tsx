@@ -32,7 +32,6 @@ export default function Footer() {
             <Link className={a} href="/request">Request an item by link</Link>
             <Link className={a} href="/#how">How it works</Link>
             {wa && <a className={a} href={`https://wa.me/${wa}`}>Chat on WhatsApp</a>}
-            <Link className={a} href="/bot">About our catalogue reader</Link>
           </nav>
           <div className={col}>
             <p className="mb-1 text-base font-bold">Good to know</p>

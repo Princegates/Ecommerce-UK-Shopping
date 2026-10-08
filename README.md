@@ -83,7 +83,7 @@ review** instead.
 
 **Rules the importer follows, and will not break:**
 - A source cannot be switched on until you confirm you have checked the shop's terms or hold a licence for the feed.
-- It identifies itself as `ShopCatalogBot` with a page shops can read (`/bot`), obeys `robots.txt` and any `Crawl-delay`, and waits
+- It identifies itself as `ShopCatalogBot` with this site's address in its user agent, obeys `robots.txt` and any `Crawl-delay`, and waits
   at least two seconds between page requests.
 - It never reaches private or internal addresses, and feed addresses (which often carry keys) are stored encrypted.
 - When a shop answers 401, 403, 429 or shows a verification page, it **stops**, pauses that source for 24 hours and tells you.

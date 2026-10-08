@@ -324,7 +324,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-CAT-19 | A file-import source shall accept an uploaded CSV or JSON, apply the same checks as a feed, update on re-upload, and never remove products. | S | Implemented | `file-import.test.ts`; E2E |
 | FR-CAT-20 | An eBay source shall sign in with the admin's keys, search each listed query, accept only new, fixed-price, UK-located GBP listings, and never treat a missing result as removal. | M | Implemented | `ebay.test.ts` |
 | FR-CAT-21 | A Diffbot source shall read each listed product page through Diffbot's Product API using the admin's token, check the shop's `robots.txt` first and send nothing for a disallowed page, accept only prices in GBP, stop on a bad token, exhausted credits or rate limit, and never treat the list as complete. | M | Implemented | `diffbot.test.ts` |
-| FR-CAT-30 | The importer shall identify itself honestly (`ShopCatalogBot`, with a public explanation page) and obey `robots.txt` and any `Crawl-delay`, with at least 2 seconds between requests to one shop. | M | Implemented | `net.test.ts` |
+| FR-CAT-30 | The importer shall identify itself honestly (`ShopCatalogBot`, with this site's address in its user agent) and obey `robots.txt` and any `Crawl-delay`, with at least 2 seconds between requests to one shop. | M | Implemented | `net.test.ts` |
 | FR-CAT-31 | The importer shall fetch only http/https on ports 80 and 443, never reach private or internal addresses (also checked at name resolution), follow at most three redirects (each re-validated), and enforce size and time limits. | M | Implemented | `net.test.ts` |
 | FR-CAT-32 | When a shop answers 401, 403, 429 or 451, or shows a verification page, the importer shall stop, pause that source for 24 hours and tell staff. | M | Implemented | `net.test.ts`; `run.test.ts` |
 | FR-CAT-33 | The importer shall never evade a block: no changed identity, rotating addresses, or CAPTCHA solving. | M | Implemented (by design) | Inspection; `net.test.ts` |
@@ -374,7 +374,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-SYS-05 | The system shall serve security headers (frame denial, no-sniff, referrer policy, permissions policy, HSTS) and a `robots.txt` that disallows private areas. | M | Implemented | Inspection |
 | FR-SYS-06 | The public address shall come from configuration, never from request headers. | M | Implemented | Inspection (`app-url.ts`) |
 | FR-SYS-07 | Secrets shall never appear in logs or pages. | M | Implemented | `integrations.test.ts`; inspection |
-| FR-SYS-08 | A page shall explain the importer to shop owners (`/bot`). | S | Implemented | E2E |
+| FR-SYS-08 | A page shall explain the importer to shop owners (`/bot`). | S | **Removed** (owner's decision; the importer's user agent links to the site's home page instead) | E2E checks the page is gone |
 
 ---
 
