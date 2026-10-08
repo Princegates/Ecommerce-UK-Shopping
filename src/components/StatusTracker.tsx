@@ -1,7 +1,11 @@
 import { PROGRESS, STATUS_LABEL, type OrderStatus } from "@/lib/order-status";
 
-/** Horizontal progress strip for the happy path. Cancelled and refunded orders get a banner instead. */
-export default function StatusTracker({ status }: { status: OrderStatus }) {
+/**
+ * Progress strip for the happy path. Cancelled and refunded orders get a banner instead.
+ * The number of columns follows the width of the space it is placed in, not the width of the screen, so it still reads in a narrow card.
+ * `compact` is a slim bar with "Step 3 of 8", for small cards where the full strip would not fit at any width.
+ */
+export default function StatusTracker({ status, compact = false }: { status: OrderStatus; compact?: boolean }) {
   if (status === "CANCELLED" || status === "REFUNDED") {
     return (
       <p className={`box p-4 font-semibold ${status === "REFUNDED" ? "bg-gold/40" : "bg-red/10"}`}>
@@ -10,8 +14,21 @@ export default function StatusTracker({ status }: { status: OrderStatus }) {
     );
   }
   const current = PROGRESS.indexOf(status);
+  if (compact) {
+    return (
+      <div aria-label="Order progress">
+        <div className="flex gap-0.5" aria-hidden="true">
+          {PROGRESS.map((s, i) => <span key={s} className={`h-1.5 flex-1 ${current >= i ? "bg-green" : "bg-line"}`} />)}
+        </div>
+        <p className="mt-1.5 text-xs text-ink-soft">
+          {current >= 0 ? <><span className="font-semibold text-ink">Step {current + 1} of {PROGRESS.length}</span> · {STATUS_LABEL[status]}</> : "Waiting for payment"}
+        </p>
+      </div>
+    );
+  }
   return (
-    <ol className="grid gap-0 sm:grid-cols-4 lg:grid-cols-8" aria-label="Order progress">
+    <div className="@container">
+    <ol className="grid grid-cols-2 gap-0 @md:grid-cols-4 @4xl:grid-cols-8" aria-label="Order progress">
       {PROGRESS.map((s, i) => {
         const done = current > i;
         const here = current === i;
@@ -38,5 +55,6 @@ export default function StatusTracker({ status }: { status: OrderStatus }) {
         );
       })}
     </ol>
+    </div>
   );
 }

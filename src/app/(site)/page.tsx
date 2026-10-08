@@ -199,7 +199,7 @@ export default async function HomePage() {
             {latestOpen ? (
               <>
                 <p className="text-sm"><span className="mono font-bold">{latestOpen.number}</span><br />{STATUS_LABEL[latestOpen.status]}</p>
-                <div className="hidden xl:block"><StatusTracker status={latestOpen.status} /></div>
+                <StatusTracker status={latestOpen.status} compact />
                 <Link href={`/account/orders/${latestOpen.number}`} className="btn btn-small btn-primary mt-auto w-fit">Track this order</Link>
               </>
             ) : (
