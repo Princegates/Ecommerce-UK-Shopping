@@ -92,7 +92,7 @@ review** instead.
 - Only prices in pounds are accepted. Images are linked from the source, so confirm your licence covers that.
 
 The scheduler runs inside the server every ten minutes. To run it from your own scheduler instead, set `INGEST_AUTORUN=false` and call
-`/api/cron/ingest`. On the **Request an item by link** page, a shopper's pasted link is looked up the same way (obeying robots.txt)
+`/api/cron/ingest`. On the **Request any item** page, a shopper's pasted link is looked up the same way (obeying robots.txt)
 to fill in the name and price, or to point them at the item if it is already listed.
 
 ### Admin roles and access

@@ -24,6 +24,7 @@ export async function submitLinkRequest(
     .prepare("INSERT INTO link_requests (url, title, details, quantity, price_seen, name, phone, email, customer_id, item_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
     .run(i.url, i.title, i.details, i.quantity, i.priceSeen, i.name, i.phone, i.email, customerId, itemType);
   const id = Number(info.lastInsertRowid);
+  if (!i.url) return { id }; // described, not linked: a person finds the item and quotes it
   try {
     const page = getLinkAuto(d).pageEnabled ? await readPagePrice(i.url) : null;
     if (page !== null && !i.priceSeen) d.prepare("UPDATE link_requests SET price_seen = ? WHERE id = ?").run((page / 100).toFixed(2), id);

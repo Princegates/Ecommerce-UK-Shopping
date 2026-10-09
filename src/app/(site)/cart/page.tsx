@@ -32,7 +32,7 @@ export default async function CartPage() {
         <div className="mt-8 flex flex-wrap justify-center gap-4">
           <Link href="/shops" className="btn btn-primary">Browse the shops</Link>
           <Link href="/search?deals=1&sort=discount" className="btn btn-gold">See today&rsquo;s deals</Link>
-          <Link href="/request" className="btn">Request an item by link</Link>
+          <Link href="/request" className="btn">Request any item</Link>
         </div>
       </div>
       <ProductShelf title="Popular right now" products={featuredProducts(10)} shopper={shopper} href="/search" />

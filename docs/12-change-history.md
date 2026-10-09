@@ -51,6 +51,7 @@ What was built and in what order. Every change below is a commit on the `claude/
 ## Ordering from Amazon UK
 - Amazon UK links are recognised by their ASIN (including short links and shared text) and cleaned; other Amazon stores are refused with a pointer to the UK link. The shop never requests an Amazon page.
 - A hand-off link from the search page to Amazon UK's search, an **Order from Amazon UK** page with a one-click bookmarklet, and an installable phone app with a Share-menu entry so a customer can send an Amazon item straight into a request.
+- **Request any item**: a customer can describe what they want with no link; staff get Amazon UK / Google UK searches, attach the link they find and quote.
 - Customer-typed price stays a guide; staff verify before buying. No Amazon data feed or paid service is used.
 
 ## Staff and access

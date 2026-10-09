@@ -14,6 +14,7 @@ import {
 import { isUploadUrl, saveImage } from "@/lib/uploads";
 import { parseBrackets, parseOptionGroups, parseTiers, safeUrl, isHexColour } from "@/lib/admin-parse";
 import { quoteRequest, getLinkRequest } from "@/lib/link-orders";
+import { normalizeRequestUrl } from "@/lib/amazon-links";
 import { parseItemTypes, saveItemTypes, saveLinkAuto } from "@/lib/link-auto";
 import { appUrl } from "@/lib/app-url";
 import { enqueueDirect } from "@/lib/notify/outbox";
@@ -357,6 +358,12 @@ export async function quoteRequestAction(f: FormData): Promise<void> {
   const price = money(f, "unitPrice", "The UK price");
   if (typeof price === "string") done("/admin/requests", price);
   const validDays = Math.round(num(f, "validDays")) || 3;
+  // a request described in words has no link: staff attach the one they found (Amazon UK links are tidied) so the customer and the buyer see the exact item
+  const existing = getLinkRequest(id);
+  const found = normalizeRequestUrl(str(f, "productUrl"));
+  if (existing && !existing.url && /^https?:\/\//i.test(found.url) && !(found.amazon && (found.amazon.store === "us" || found.amazon.store === "other"))) {
+    db().prepare("UPDATE link_requests SET url = ? WHERE id = ? AND url = ''").run(found.url.slice(0, 500), id);
+  }
   const r = quoteRequest(id, { unitPriceMinor: price, weightGrams: Math.round(num(f, "weight")) || 500, validDays, note: str(f, "quoteNote") });
   if (!r.ok) done("/admin/requests", r.error);
   const req = getLinkRequest(id)!;

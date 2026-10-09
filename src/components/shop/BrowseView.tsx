@@ -137,10 +137,10 @@ export default function BrowseView({
           {items.length === 0 ? (
             <div className="box mt-8 p-8">
               <p className="display text-2xl">Nothing matches</p>
-              <p className="mt-2 text-ink-soft">Try removing a filter, or send us the link to what you want and we will quote it.</p>
+              <p className="mt-2 text-ink-soft">Try removing a filter, or tell us what you want (a link is optional) and we will find it and quote it.</p>
               <div className="mt-4 flex flex-wrap gap-3">
                 {chips.length > 0 && <Link href={fixedDepartment ? basePath : p.q ? `${basePath}?q=${encodeURIComponent(p.q)}` : basePath} className="btn">Clear filters</Link>}
-                <Link href="/request" className="btn btn-primary">Request an item by link</Link>
+                <Link href="/request" className="btn btn-primary">Request any item</Link>
               </div>
             </div>
           ) : (

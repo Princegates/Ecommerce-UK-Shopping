@@ -77,7 +77,7 @@ export default async function QuotePage({ params }: { params: Promise<{ token: s
       <section className="box box-shadow mt-4 grid gap-1 p-5">
         <p className="text-lg font-semibold">{line.product.name} × {r.quantity}</p>
         <p className="text-sm text-ink-soft">
-          From {hostOf(r.url)} · <a href={r.url} target="_blank" rel="noopener noreferrer" className="link">View on the UK shop ↗</a>
+          {r.url ? <>From {hostOf(r.url)} · <a href={r.url} target="_blank" rel="noopener noreferrer" className="link">View on the UK shop ↗</a></> : "Found for you by our team"}
           {r.details ? ` · ${r.details}` : ""}
         </p>
         <p className="num mt-1">

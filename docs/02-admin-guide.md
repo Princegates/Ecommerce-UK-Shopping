@@ -181,6 +181,9 @@ Amazon does not allow shops to read its pages, so the system never opens an Amaz
 - The link is cleaned to `amazon.co.uk/dp/<ASIN>`. Amazon.com and other Amazon stores are refused with a message pointing to the UK link.
 - The name and price in the request come from **the customer** (or their bookmarklet), not from Amazon. They are only a guide. Always open the link, confirm the real price, size/colour and stock, and quote it yourself, or let the customer-typed-price automatic quote apply if you have switched it on (it adds your safety margin).
 
+### Requests with no link
+A customer can describe an item in words instead of pasting a link. Those requests show a **No link** tag with **Search Amazon UK** and **Search Google UK** buttons that search for the customer's words. Find the exact item, paste its link into **Link to the item you found** (Amazon UK links are tidied; other Amazon stores are ignored), enter the UK price and weight and send the quote. They are never priced automatically. Always check size, colour and stock before quoting.
+
 ### Limits to be aware of
 - Amazon-style pages can show several prices (other sellers, other sizes). A single read may pick the wrong one. Check a few real items before relying on automatic quotes for a shop.
 - Item-type weights are estimates; a heavy or bulky item may cost more to ship than the rate card suggests.

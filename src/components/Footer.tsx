@@ -30,7 +30,7 @@ export default function Footer() {
           <nav aria-label="Help" className={col}>
             <p className="mb-1 text-base font-bold">Help</p>
             <Link className={a} href="/amazon">Order from Amazon UK</Link>
-            <Link className={a} href="/request">Request an item by link</Link>
+            <Link className={a} href="/request">Request any item</Link>
             <Link className={a} href="/#how">How it works</Link>
             {wa && <a className={a} href={`https://wa.me/${wa}`}>Chat on WhatsApp</a>}
           </nav>

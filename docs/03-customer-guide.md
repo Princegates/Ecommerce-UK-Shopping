@@ -28,6 +28,10 @@ You can buy from **almost any UK website**, even if it is not listed here.
 
 The price is held for a few days. After that it may have changed, so ask us for a fresh one.
 
+### No link? Just tell us what you want
+
+Open **Request any item**, type what you are looking for (for example "OnePlus 13 256GB, black") and send it. You do not need a link. Our team finds the item on Amazon UK or another UK shop, checks the price and stock, and messages you the full cost in cedis with a link to pay.
+
 ### Ordering from Amazon UK
 
 We do not show Amazon's products in our own search, but ordering from **Amazon UK** is just as easy:

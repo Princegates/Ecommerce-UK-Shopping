@@ -707,6 +707,29 @@ try {
     const prev = await (await page.request.get(base + "/api/link-preview?url=" + encodeURIComponent("https://www.amazon.co.uk/dp/B0FXFR45J7"))).json();
     must(prev.ok === false && prev.reason === "amazon", "the shop recognises an Amazon link without asking Amazon for the page");
     step("ordering from Amazon UK: hand-off search, one-click button, Share menu, short and shared links, US store refused, Amazon never contacted");
+
+  // 9n. an item described in words, with no link: the customer names it, staff find it, attach the link and quote
+  await page.goto(base + "/request");
+  await page.getByRole("button", { name: "Send request" }).click();
+  await page.locator("#title:invalid").waitFor(); // the name is required when there is no link
+  await page.locator("#title").fill("Samsung Galaxy S25 128GB");
+  await page.getByRole("button", { name: "Send request" }).click();
+  await page.getByText(/Thanks, we.ll quote it/).waitFor();
+  await ap.goto(base + "/admin/requests");
+  const descCard = ap.locator("li").filter({ hasText: "Samsung Galaxy S25 128GB" }).first();
+  await descCard.getByText("No link").waitFor();
+  must((await descCard.getByRole("link", { name: /Search Amazon UK/ }).getAttribute("href"))?.startsWith("https://www.amazon.co.uk/s?k=Samsung"), "staff get an Amazon UK search for a described item");
+  await descCard.getByLabel(/Link to the item you found/).fill("https://www.amazon.co.uk/Samsung-Galaxy/dp/B0CHX1W1XY?th=1&tag=x");
+  await descCard.getByLabel(/UK price, each/).fill("620.00");
+  await descCard.getByLabel(/Weight, each/).fill("400");
+  await descCard.getByRole("button", { name: "Send quote" }).click();
+  await ap.getByText(/Quote saved for request/).waitFor();
+  const descRaw = await ap.locator("li").filter({ hasText: "Samsung Galaxy S25 128GB" }).first().getByLabel("Customer pay link").inputValue();
+  await page.goto(base + new URL(descRaw, base).pathname);
+  await page.getByText("Samsung Galaxy S25 128GB").first().waitFor();
+  await page.getByRole("link", { name: /View on the UK shop/ }).waitFor();
+  must((await page.getByRole("link", { name: /View on the UK shop/ }).getAttribute("href")) === "https://www.amazon.co.uk/dp/B0CHX1W1XY", "staff-attached Amazon UK link is tidied");
+  step("an item described in words is found by staff, linked, quoted and priced for the customer");
   }
 
   // 10. wishlist + sign out

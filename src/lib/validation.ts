@@ -14,7 +14,9 @@ export const checkoutSchema = z.object({
 });
 
 export const linkRequestSchema = z.object({
+  // the link is optional: a customer can describe what they want instead and staff find it
   url: text(500).refine((v) => {
+    if (v === "") return true;
     try {
       const u = new URL(v);
       return u.protocol === "https:" || u.protocol === "http:";
@@ -30,7 +32,7 @@ export const linkRequestSchema = z.object({
   name: text(80).min(2, "Enter your name."),
   phone: text(25).refine((v) => v.replace(/\D/g, "").length >= 9, "Enter a phone number we can reach you on."),
   email: text(120).refine((v) => v === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email address or leave it blank."),
-});
+}).refine((v) => v.url !== "" || v.title.length >= 3, { path: ["title"], message: "Tell us what you want, for example \"OnePlus 13 256GB\", or paste a link." });
 
 export const trackSchema = z.object({
   number: text(30).min(5, "Enter your order number."),

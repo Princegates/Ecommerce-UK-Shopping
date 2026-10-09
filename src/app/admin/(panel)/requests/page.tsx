@@ -76,7 +76,15 @@ export default async function RequestsAdmin({ searchParams }: { searchParams: Pr
                 <div className="grid content-start gap-1">
                   <p className="label num">#{r.id} · {r.createdAt.slice(0, 16)} UTC{r.customerId ? " · signed-in customer" : " · guest"}</p>
                   <p className="text-lg font-semibold">{r.title || "Untitled item"} × {r.quantity}</p>
-                  <p className="break-all"><a href={r.url} target="_blank" rel="noopener noreferrer" className="link">{hostOf(r.url)} ↗</a> <span className="text-xs text-ink-soft">{r.url}</span></p>
+                  {r.url ? (
+                    <p className="break-all"><a href={r.url} target="_blank" rel="noopener noreferrer" className="link">{hostOf(r.url)} ↗</a> <span className="text-xs text-ink-soft">{r.url}</span></p>
+                  ) : (
+                    <p className="text-sm">
+                      <span className="tag mr-2">No link</span>The customer described the item.{" "}
+                      <a href={`https://www.amazon.co.uk/s?k=${encodeURIComponent(r.title)}`} target="_blank" rel="noopener noreferrer nofollow" className="link">Search Amazon UK ↗</a>{" "}
+                      <a href={`https://www.google.co.uk/search?q=${encodeURIComponent(r.title)}`} target="_blank" rel="noopener noreferrer nofollow" className="link">Search Google UK ↗</a>
+                    </p>
+                  )}
                   {r.details && <p>Details: {r.details}</p>}
                   {r.priceSeen && <p>Price they saw: £{r.priceSeen}</p>}
                   {r.itemType && <p className="text-sm text-ink-soft">Item type: {r.itemType}</p>}
@@ -103,6 +111,7 @@ export default async function RequestsAdmin({ searchParams }: { searchParams: Pr
                         <div className="field"><label className="label" htmlFor={`w${r.id}`}>Weight, each (g)</label><input id={`w${r.id}`} name="weight" className="input" inputMode="numeric" defaultValue={r.quoteWeightGrams ?? 500} required /></div>
                         <div className="field"><label className="label" htmlFor={`v${r.id}`}>Valid (days)</label><input id={`v${r.id}`} name="validDays" className="input" inputMode="numeric" defaultValue={3} /></div>
                       </div>
+                      {!r.url && <div className="field"><label className="label" htmlFor={`pu${r.id}`}>Link to the item you found (recommended)</label><input id={`pu${r.id}`} name="productUrl" className="input" placeholder="https://www.amazon.co.uk/…" /></div>}
                       <div className="field"><label className="label" htmlFor={`qn${r.id}`}>Note to the customer (optional)</label><input id={`qn${r.id}`} name="quoteNote" className="input" defaultValue={r.quoteNote} maxLength={300} placeholder="e.g. UK size 9 in black confirmed in stock" /></div>
                       <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" name="notify" defaultChecked className="h-5 w-5 accent-[var(--green)]" /> Message the customer the pay link</label>
                       <button className="btn btn-primary w-fit">{r.quotePriceMinor === null ? "Send quote" : "Save and resend"}</button>

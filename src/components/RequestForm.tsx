@@ -94,9 +94,9 @@ export default function RequestForm({ initial = {}, signedIn = false, itemTypes 
     <div className="mx-auto grid max-w-5xl gap-10 px-4 py-14 md:grid-cols-[1fr_1.1fr]">
       <div>
         <p className="label">Not in our shops?</p>
-        <h1 className="text-3xl">Request an item by link</h1>
+        <h1 className="text-3xl">Request any item from the UK</h1>
         <ol className="mt-6 grid gap-4">
-          {["Find the item on the UK shop's website and choose your size and colour.", "Copy the link and paste it here with the details you see.", "We check the price and stock, then send you the full cost in cedis.", "Pay us once you agree. We buy it and deliver it to you."].map((t, i) => (
+          {["Tell us what you want, for example \"OnePlus 13 256GB\". If you already have a link from the UK shop, paste it too.", "We find it, check the price and stock, and send you the full cost in cedis.", "Pay us once you agree. We buy it and deliver it to you."].map((t, i) => (
             <li key={t} className="flex gap-4">
               <span className="display text-3xl text-green">{i + 1}</span>
               <span>{t}</span>
@@ -107,8 +107,8 @@ export default function RequestForm({ initial = {}, signedIn = false, itemTypes 
 
       <form action={action} className="box box-shadow grid gap-4 p-5">
         <div className="field">
-          <label className="label" htmlFor="url">Link to the item</label>
-          <input id="url" name="url" type="url" className="input" placeholder="https://" required value={url} onChange={(e) => setUrl(e.target.value)} onBlur={(e) => look(e.target.value)} onPaste={(e) => { const t = e.clipboardData.getData("text"); window.setTimeout(() => look(t), 0); }} />
+          <label className="label" htmlFor="url">Link to the item (optional)</label>
+          <input id="url" name="url" type="url" className="input" placeholder="https://" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={(e) => look(e.target.value)} onPaste={(e) => { const t = e.clipboardData.getData("text"); window.setTimeout(() => look(t), 0); }} />
           <div aria-live="polite">
             {preview.kind === "loading" && <p className="hint">Checking the link…</p>}
             {preview.kind === "onsite" && (
@@ -144,8 +144,8 @@ export default function RequestForm({ initial = {}, signedIn = false, itemTypes 
           </div>
         </div>
         <div className="field">
-          <label className="label" htmlFor="title">Item name (optional)</label>
-          <input id="title" name="title" className="input" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <label className="label" htmlFor="title">{url.trim() ? "Item name (optional)" : "What do you want?"}</label>
+          <input id="title" name="title" className="input" required={!url.trim()} placeholder="e.g. OnePlus 13 256GB, black" value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
         <div className="field">
           <label className="label" htmlFor="details">Size, colour or other details</label>

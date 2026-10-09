@@ -306,6 +306,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-LNK-12 | The system shall recognise Amazon product links (including short links and shared text) by their ASIN, turn an Amazon UK link into its clean `amazon.co.uk/dp/ASIN` form, and refuse other Amazon stores with a message offering the UK link. The shop shall never request an Amazon page itself; the customer reads the price on Amazon and types it, and staff verify before buying. | S | Implemented | `amazon-links.test.ts`; E2E "ordering from Amazon UK…" |
 | FR-LNK-13 | The search page shall offer a hand-off to Amazon UK's own search for the same words, and an Amazon page (`/amazon`) shall explain the steps and offer a one-click bookmarklet that opens the request form pre-filled from the page the customer is viewing. | S | Implemented | E2E |
 | FR-LNK-14 | The shop shall be installable as a phone app and appear in the phone's Share menu (web app manifest with a share target), so a customer can share an Amazon product from the Amazon app straight into a request. | C | Implemented | E2E |
+| FR-LNK-15 | A customer shall be able to request an item by describing it (at least 3 characters) without a link. Such a request shall never be quoted automatically; staff shall be offered searches for it and can attach the link they find when quoting. | S | Implemented | `link-submit.test.ts`; E2E "an item described in words…" |
 
 ### 4.10 Catalogue management (FR-CAT)
 
@@ -659,7 +660,7 @@ Counted from the requirement tables above (functional, interface, non-functional
 | FR-BRW | 12 | 0 | 0 | 12 |
 | FR-CAT | 20 | 0 | 0 | 20 |
 | FR-CRT | 6 | 0 | 0 | 6 |
-| FR-LNK | 13 | 0 | 1 | 14 |
+| FR-LNK | 14 | 0 | 1 | 15 |
 | FR-MSG | 8 | 0 | 0 | 8 |
 | FR-ORD | 14 | 0 | 2 | 16 |
 | FR-PAY | 8 | 0 | 1 | 9 |
@@ -732,6 +733,6 @@ Items below are **not implemented** or only **partial**. They are the honest edg
 | Version | Date | Change |
 | --- | --- | --- |
 | 1.0 | 7 October 2026 | First complete, as-built SRS written from the finished system, with every requirement given a status and a means of verification. |
-| 1.1 | 9 October 2026 | Added FR-LNK-12 to -14 (ordering from Amazon UK by link, hand-off search, bookmarklet, phone Share menu). |
+| 1.1 | 9 October 2026 | Added FR-LNK-12 to -15 (ordering from Amazon UK by link, hand-off search, bookmarklet, phone Share menu, requests described in words). |
 
 To keep this document true, update the status of a requirement in the same change that implements it, and add new requirements with the next free number in their area.

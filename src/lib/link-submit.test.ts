@@ -50,4 +50,13 @@ describe("submitting a link request", () => {
     expect(dear.quote).toBeUndefined();
     expect(getLinkRequest(dear.id, d)?.status).toBe("NEW");
   });
+
+  it("accepts an item described in words, with no link, and leaves it for a person", async () => {
+    const d = setup();
+    let reads = 0;
+    const out = await submitLinkRequest(input({ url: "", title: "OnePlus 13 256GB", priceSeen: "700" }), 5, async () => { reads++; return 70000; }, d, NOW);
+    expect(out.quote).toBeUndefined();
+    expect(reads).toBe(0);
+    expect(getLinkRequest(out.id, d)).toMatchObject({ status: "NEW", url: "", title: "OnePlus 13 256GB" });
+  });
 });

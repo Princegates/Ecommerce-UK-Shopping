@@ -4,7 +4,7 @@ import { normalizeRequestUrl } from "@/lib/amazon-links";
 import { getCustomer } from "@/lib/customer-session";
 import { getItemTypes } from "@/lib/link-auto";
 
-export const metadata: Metadata = { title: "Request an item by link" };
+export const metadata: Metadata = { title: "Request any item" };
 
 export default async function RequestPage({ searchParams }: { searchParams: Promise<{ url?: string; title?: string; price?: string; img?: string }> }) {
   const sp = await searchParams;

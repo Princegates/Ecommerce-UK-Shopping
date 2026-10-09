@@ -229,7 +229,7 @@ export default async function HomePage() {
           <div className={`${tint} bg-[color-mix(in_srgb,var(--cta)_18%,white)]`}>
             <h2 className="text-xl font-bold">We&rsquo;re stocking the shelves</h2>
             <p className="text-sm text-ink-soft">Listings from UK sellers are being added. In the meantime, you can still get anything from a UK shop.</p>
-            <Link href="/request" className="btn btn-gold mt-auto w-fit">Request an item by link</Link>
+            <Link href="/request" className="btn btn-gold mt-auto w-fit">Request any item</Link>
           </div>
         )}
         <div className={card}>
