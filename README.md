@@ -125,6 +125,10 @@ it read the price from the shop's own web page. You can also let it use the pric
 a person must quote, and edit the item types and default weights shoppers choose from. Link orders show a banner on the order page, saying how the price was
 found, as a reminder to check the shop's price before buying.
 
+**Amazon UK.** Amazon forbids automated reading of its pages, and its official product data needs an approved Associates account, so the shop does not list Amazon products. Customers instead search on Amazon UK
+(the search page links there), then send the item back by pasting the link, the phone's Share menu (the site is an installable app) or a bookmarklet from `/amazon`. Links are cleaned to `amazon.co.uk/dp/ASIN`;
+other Amazon stores are refused; the price is the customer's guide and staff verify it before buying.
+
 ## Configuration
 
 Copy `.env.example` to `.env.local`. In production set at least `ADMIN_PASSWORD`, `ADMIN_SECRET`

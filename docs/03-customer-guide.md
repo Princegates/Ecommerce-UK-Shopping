@@ -28,6 +28,19 @@ You can buy from **almost any UK website**, even if it is not listed here.
 
 The price is held for a few days. After that it may have changed, so ask us for a fresh one.
 
+### Ordering from Amazon UK
+
+We do not show Amazon's products in our own search, but ordering from **Amazon UK** is just as easy:
+
+1. Search for the item here. Under the results, tap **Search "…" on Amazon UK**; Amazon opens in a new tab.
+2. On Amazon, open the item you like and choose your size, colour or storage.
+3. Bring it back to us in whichever way is easiest:
+   - **On a phone with the Amazon app:** tap **Share**, then choose our shop in the list (install our shop on your phone first from the **Order from Amazon UK** page).
+   - **On a computer or phone browser:** copy the address and paste it into the box, or use the one-click button from the **Order from Amazon UK** page (link at the bottom of every page).
+4. Check the price on Amazon and type it in. We add our charges and show the full cost in cedis.
+
+Only **Amazon UK** (amazon.co.uk) links work, because we buy from UK shops. If you paste an amazon.com link we will say so and suggest the UK one. The price you type is a guide: we check it on Amazon before buying and will contact you if it is different.
+
 ## Ordering
 
 1. **Add to cart** (choose your size and colour first where there is a choice).

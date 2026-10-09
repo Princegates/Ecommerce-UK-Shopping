@@ -48,6 +48,11 @@ What was built and in what order. Every change below is a commit on the `claude/
 - **One-click** from a found link to the customer's price and payment.
 - Fixed header pop-up panels closing on Safari-style browsers; fixed a rounding error in the safety margin.
 
+## Ordering from Amazon UK
+- Amazon UK links are recognised by their ASIN (including short links and shared text) and cleaned; other Amazon stores are refused with a pointer to the UK link. The shop never requests an Amazon page.
+- A hand-off link from the search page to Amazon UK's search, an **Order from Amazon UK** page with a one-click bookmarklet, and an installable phone app with a Share-menu entry so a customer can send an Amazon item straight into a request.
+- Customer-typed price stays a guide; staff verify before buying. No Amazon data feed or paid service is used.
+
 ## Staff and access
 - **Roles and access control**: the developer's password is the **super admin**; staff accounts are created by the super admin with roles or exact rights, forced first-time password change, switch-off with immediate sign-out, and an activity log that names the person. Every admin page and action checks a right, and a test enforces this.
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { clientKey } from "@/lib/auth";
+import { parseAmazonLink } from "@/lib/amazon-links";
 import { findListedProductByUrl } from "@/lib/ingest/store";
 import { lookupLink } from "@/lib/ingest/run";
 import { getItemTypes } from "@/lib/link-auto";
@@ -25,6 +26,9 @@ export async function GET(req: Request) {
 
   const listed = findListedProductByUrl(url);
   if (listed) return NextResponse.json({ ok: true, onSite: listed }, { headers: { "Cache-Control": "no-store" } });
+
+  // Amazon does not let the shop read its pages, and the shop does not try. The form recognises the link itself and asks for the price.
+  if (parseAmazonLink(url)) return none("amazon");
 
   const r = await lookupLink(url);
   if (!r.ok) return none(r.reason);

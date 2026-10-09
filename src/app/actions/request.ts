@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { clientKey } from "@/lib/auth";
 import { getCustomer } from "@/lib/customer-session";
+import { normalizeRequestUrl, wrongStoreMessage } from "@/lib/amazon-links";
 import { lookupLink } from "@/lib/ingest/run";
 import { submitLinkRequest } from "@/lib/link-submit";
 import { createLimiter } from "@/lib/throttle";
@@ -11,6 +12,7 @@ import { firstError, linkRequestSchema } from "@/lib/validation";
 const limiter = createLimiter(6, 60 * 60 * 1000);
 
 async function readPagePrice(url: string): Promise<number | null> {
+  if (normalizeRequestUrl(url).amazon) return null; // Amazon's pages are never requested by the shop: a person confirms the price
   const seen = await lookupLink(url);
   return seen.ok && seen.item.priceMinor > 0 ? seen.item.priceMinor : null;
 }
@@ -31,7 +33,9 @@ export async function requestAction(_prev: RequestState, formData: FormData): Pr
   const key = `request:${await clientKey()}`;
   if (!limiter.allowed(key)) return { error: "You have sent several requests recently. Please try again later.", values };
   limiter.record(key);
-  const r = parsed.data;
+  const link = normalizeRequestUrl(parsed.data.url);
+  if (link.amazon && (link.amazon.store === "us" || link.amazon.store === "other")) return { error: wrongStoreMessage(link.amazon), values };
+  const r = { ...parsed.data, url: link.url.slice(0, 500) };
   const customer = await getCustomer();
   const out = await submitLinkRequest(r, customer?.id ?? null, readPagePrice);
   if (out.quote) return { done: true, quote: out.quote };
@@ -44,7 +48,8 @@ export async function requestAction(_prev: RequestState, formData: FormData): Pr
  * on the server (a price sent from the browser is never trusted), and the customer goes straight to their price and payment.
  */
 export async function quickLinkAction(formData: FormData): Promise<void> {
-  const url = String(formData.get("url") ?? "").trim().slice(0, 500);
+  const link = normalizeRequestUrl(String(formData.get("url") ?? ""));
+  const url = link.url.slice(0, 500);
   const title = String(formData.get("title") ?? "").trim().slice(0, 150);
   const back = `/request?${new URLSearchParams({ url, title }).toString()}`;
   const customer = await getCustomer();
@@ -54,7 +59,7 @@ export async function quickLinkAction(formData: FormData): Promise<void> {
     url, title, details: String(formData.get("details") ?? ""), quantity, priceSeen: "", itemType: String(formData.get("itemType") ?? ""),
     name: customer.name, phone: customer.phone, email: customer.email ?? "",
   });
-  if (!parsed.success) redirect(back);
+  if (!parsed.success || (link.amazon && (link.amazon.store === "us" || link.amazon.store === "other"))) redirect(back);
   const key = `request:${await clientKey()}`;
   if (!limiter.allowed(key)) redirect(back);
   limiter.record(key);

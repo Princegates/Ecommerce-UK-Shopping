@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
 import { requestAction, type RequestState } from "@/app/actions/request";
+import PhotoImg from "@/components/PhotoImg";
+import { normalizeRequestUrl, parseAmazonLink, wrongStoreMessage, type AmazonLink } from "@/lib/amazon-links";
 import { gbp } from "@/lib/money";
 
 type Preview =
@@ -10,20 +12,34 @@ type Preview =
   | { kind: "loading" }
   | { kind: "onsite"; slug: string; name: string }
   | { kind: "found"; name: string; priceMinor: number; host: string }
+  | { kind: "amazon"; link: AmazonLink }
   | { kind: "none"; reason: string };
 
-export default function RequestForm({ initial = {}, signedIn = false, itemTypes = [] }: { initial?: { url?: string; title?: string; priceSeen?: string; name?: string; phone?: string; email?: string }; signedIn?: boolean; itemTypes?: string[] }) {
+export default function RequestForm({ initial = {}, signedIn = false, itemTypes = [] }: { initial?: { url?: string; imageUrl?: string; title?: string; priceSeen?: string; name?: string; phone?: string; email?: string }; signedIn?: boolean; itemTypes?: string[] }) {
   const [state, action, pending] = useActionState<RequestState, FormData>(requestAction, {});
   const v: Record<string, string | undefined> = { ...initial, ...(state.values ?? {}) };
   const [title, setTitle] = useState(v.title ?? "");
   const [price, setPrice] = useState(v.priceSeen ?? "");
-  const [preview, setPreview] = useState<Preview>({ kind: "idle" });
+  // a link that arrives already filled in (from the Amazon button, the share sheet or the bookmarklet) is recognised straight away
+  const [preview, setPreview] = useState<Preview>(() => {
+    const amazon = v.url ? parseAmazonLink(v.url) : null;
+    return amazon ? { kind: "amazon", link: amazon } : { kind: "idle" };
+  });
+  const [url, setUrl] = useState(v.url ?? "");
   const lastUrl = useRef("");
 
   async function look(raw: string) {
-    const url = raw.trim();
+    // text shared from the Amazon app has the link inside a sentence; an Amazon UK link is tidied to the plain product page
+    const clean = normalizeRequestUrl(raw);
+    const url = clean.url.trim();
     if (!/^https?:\/\//i.test(url) || url === lastUrl.current) return;
     lastUrl.current = url;
+    if (url !== raw.trim()) setUrl(url);
+    const amazon = parseAmazonLink(url);
+    if (amazon) {
+      setPreview({ kind: "amazon", link: amazon });
+      return;
+    }
     setPreview({ kind: "loading" });
     try {
       const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
@@ -92,7 +108,7 @@ export default function RequestForm({ initial = {}, signedIn = false, itemTypes 
       <form action={action} className="box box-shadow grid gap-4 p-5">
         <div className="field">
           <label className="label" htmlFor="url">Link to the item</label>
-          <input id="url" name="url" type="url" className="input" placeholder="https://" required defaultValue={v.url} onBlur={(e) => look(e.target.value)} onPaste={(e) => { const t = e.clipboardData.getData("text"); window.setTimeout(() => look(t), 0); }} />
+          <input id="url" name="url" type="url" className="input" placeholder="https://" required value={url} onChange={(e) => setUrl(e.target.value)} onBlur={(e) => look(e.target.value)} onPaste={(e) => { const t = e.clipboardData.getData("text"); window.setTimeout(() => look(t), 0); }} />
           <div aria-live="polite">
             {preview.kind === "loading" && <p className="hint">Checking the link…</p>}
             {preview.kind === "onsite" && (
@@ -105,6 +121,22 @@ export default function RequestForm({ initial = {}, signedIn = false, itemTypes 
                 <span className="font-bold">We found it:</span> {preview.name} · <span className="num font-bold">{gbp(preview.priceMinor)}</span> on {preview.host}.{" "}
                 <span className="text-ink-soft">We filled in the details below. Please check them and add your size or colour.</span>
               </p>
+            )}
+            {preview.kind === "amazon" && (preview.link.store === "uk" || preview.link.store === "short") && (
+              <div className="pop mt-1 flex gap-3 rounded-lg border border-line bg-paper-2 p-3 text-sm">
+                {v.imageUrl && <PhotoImg src={v.imageUrl} alt="" className="h-16 w-16 shrink-0 rounded object-contain" fallback={null} />}
+                <p>
+                  <span className="font-bold">Amazon UK item{preview.link.asin ? ` ${preview.link.asin}` : ""}.</span>{" "}
+                  Choose your size or colour on Amazon first, then type the price you see below. We confirm the real price before you pay.
+                  {preview.link.store === "short" && <span className="text-ink-soft"> This is a short Amazon link, which is fine. We will open it to check.</span>}
+                </p>
+              </div>
+            )}
+            {preview.kind === "amazon" && (preview.link.store === "us" || preview.link.store === "other") && (
+              <div role="alert" className="pop mt-1 rounded-lg border border-red bg-red/10 p-3 text-sm">
+                <p className="font-semibold text-red">{wrongStoreMessage(preview.link)}</p>
+                {preview.link.ukUrl && <button type="button" className="btn btn-small mt-2" onClick={() => { setUrl(preview.link.ukUrl!); lastUrl.current = ""; void look(preview.link.ukUrl!); }}>Use the Amazon UK link</button>}
+              </div>
             )}
             {preview.kind === "none" && preview.reason !== "invalid" && (
               <p className="hint mt-1">We could not read that page automatically{preview.reason === "robots" || preview.reason === "blocked" ? " (the shop does not allow it)" : ""}. No problem: fill in the details below and we will check it for you.</p>

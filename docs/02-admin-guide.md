@@ -175,6 +175,12 @@ It is an **ordinary order**: same statuses, tracking, messages, refunds and cost
 
 **Always check the shop's price again before you buy.** If it is now higher, contact the customer first; you can cancel and refund from the order page.
 
+### Amazon UK requests
+Amazon does not allow shops to read its pages, so the system never opens an Amazon link. Instead:
+- The search page offers customers a link to Amazon UK's own search; they pick the item there and send it back by pasting the link, by the phone's **Share** menu or by the bookmarklet on the **Order from Amazon UK** page (`/amazon`).
+- The link is cleaned to `amazon.co.uk/dp/<ASIN>`. Amazon.com and other Amazon stores are refused with a message pointing to the UK link.
+- The name and price in the request come from **the customer** (or their bookmarklet), not from Amazon. They are only a guide. Always open the link, confirm the real price, size/colour and stock, and quote it yourself, or let the customer-typed-price automatic quote apply if you have switched it on (it adds your safety margin).
+
 ### Limits to be aware of
 - Amazon-style pages can show several prices (other sellers, other sizes). A single read may pick the wrong one. Check a few real items before relying on automatic quotes for a shop.
 - Item-type weights are estimates; a heavy or bulky item may cost more to ship than the rate card suggests.

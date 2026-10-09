@@ -653,6 +653,62 @@ try {
     step("the privacy policy, terms and data-deletion pages are public, linked from the footer, and use the owner's contact details");
   }
 
+  // 9m. ordering from Amazon UK without any Amazon data feed: a search hand-off to Amazon, recognised Amazon links (short, shared text, US store),
+  // a one-click button that runs in the customer's own browser, Android's Share menu, and a shop that never requests Amazon's pages
+  {
+    await page.goto(base + "/search?q=oneplus");
+    const hand = page.getByRole("link", { name: /Search Amazon UK for/ });
+    await hand.waitFor();
+    must((await hand.getAttribute("href")) === "https://www.amazon.co.uk/s?k=oneplus" && (await hand.getAttribute("target")) === "_blank", "the search page offers a plain link to Amazon UK's own search");
+    await page.goto(base + "/amazon");
+    await page.getByRole("heading", { level: 1, name: "Order from Amazon UK" }).waitFor();
+    must((await page.locator("form[action='https://www.amazon.co.uk/s']").count()) === 1, "the Amazon page has a search that opens Amazon UK");
+    const bm = page.getByRole("link", { name: /^Send to / });
+    await bm.waitFor();
+    await page.waitForFunction(() => document.querySelector("a[draggable='true']")?.getAttribute("href")?.startsWith("javascript:"));
+    const code = decodeURIComponent((await bm.getAttribute("href")).slice("javascript:".length));
+    must(code.includes(base + "/request?"), "the one-click button opens this shop's request form");
+
+    // run the button on a stand-in Amazon UK page, in the browser, as a customer would
+    const amazon = await ctx.newPage();
+    await amazon.route("https://www.amazon.co.uk/**", (r) => r.fulfill({ status: 200, contentType: "text/html", body: `<html><title>x</title><body><span id="productTitle"> OnePlus 15R, 12GB RAM + 256GB </span><div id="corePrice_feature_div"><span class="a-offscreen">£1,749.99</span></div><img id="landingImage" src="https://m.media-amazon.com/images/I/51zoLE5g5XL._AC_UY218_.jpg"></body></html>` }));
+    await amazon.goto("https://www.amazon.co.uk/OnePlus/dp/B0FXFR45J7/ref=sr_1_1?qid=1&smid=XYZ");
+    const popup = amazon.waitForEvent("popup");
+    await amazon.evaluate(code);
+    const form = await popup;
+    await form.waitForURL("**/request?**");
+    const u = new URL(form.url());
+    must(u.searchParams.get("url") === "https://www.amazon.co.uk/dp/B0FXFR45J7" && u.searchParams.get("price") === "1749.99" && u.searchParams.get("title") === "OnePlus 15R, 12GB RAM + 256GB" && u.searchParams.get("img")?.startsWith("https://m.media-amazon.com/images/"), "the button sends the clean link, title, the price shown and the picture: " + form.url());
+    await form.getByText(/Amazon UK item B0FXFR45J7/).waitFor();
+    must((await form.locator("#priceSeen").inputValue()) === "1749.99" && (await form.locator("#title").inputValue()) === "OnePlus 15R, 12GB RAM + 256GB", "the request form arrives filled in");
+    must((await form.getByRole("button", { name: "Send request" }).count()) === 1, "and can be sent");
+    await form.close();
+    await amazon.close();
+
+    // the US store is refused with a way forward, and the clean UK link can be used in one click
+    await page.goto(base + "/request?url=" + encodeURIComponent("https://www.amazon.com/OnePlus/dp/B0FXFR45J7/ref=sr_1_1"));
+    await page.getByText(/Amazon's US store/).first().waitFor();
+    await page.getByRole("button", { name: "Use the Amazon UK link" }).click();
+    await page.getByText(/Amazon UK item B0FXFR45J7/).waitFor();
+    must((await page.locator("#url").inputValue()) === "https://www.amazon.co.uk/dp/B0FXFR45J7", "the Amazon UK link replaces the US one");
+    await page.goto(base + "/request?url=" + encodeURIComponent("https://www.amazon.com/dp/B0FXFR45J7"));
+    await page.locator("#priceSeen").fill("700");
+    await page.getByRole("button", { name: "Send request" }).click();
+    await page.getByText(/Amazon's US store/).first().waitFor();
+    step("a US Amazon link is refused with the UK address to use, never sent");
+
+    // Android's Share menu (the web app manifest), and no page of Amazon's is ever requested by the shop
+    const share = await page.request.get(base + "/request/share?text=" + encodeURIComponent("Check out OnePlus 15R! https://www.amazon.co.uk/dp/B0FXFR45J7?th=1&psc=1"), { maxRedirects: 0 });
+    const to = new URL(share.headers()["location"] ?? "", base);
+    must(share.status() === 303 && to.pathname === "/request" && to.searchParams.get("url")?.startsWith("https://www.amazon.co.uk/dp/B0FXFR45J7") && to.searchParams.get("title") === "OnePlus 15R!", "Share sends the link and the name to the request form, got " + share.headers()["location"]);
+    const mf = await (await page.request.get(base + "/manifest.webmanifest")).json();
+    must(mf.share_target?.action === "/request/share" && mf.display === "standalone" && mf.icons?.some((i) => i.sizes === "512x512"), "the shop can be installed and appears in the Share menu");
+    for (const asset of ["/icons/icon-192.png", "/icons/icon-512.png", "/sw.js"]) must((await page.request.get(base + asset)).ok(), asset + " is served");
+    const prev = await (await page.request.get(base + "/api/link-preview?url=" + encodeURIComponent("https://www.amazon.co.uk/dp/B0FXFR45J7"))).json();
+    must(prev.ok === false && prev.reason === "amazon", "the shop recognises an Amazon link without asking Amazon for the page");
+    step("ordering from Amazon UK: hand-off search, one-click button, Share menu, short and shared links, US store refused, Amazon never contacted");
+  }
+
   // 10. wishlist + sign out
   await page.goto(base + PRODUCT);
   await page.getByRole("button", { name: /Save|wishlist/i }).first().click();
