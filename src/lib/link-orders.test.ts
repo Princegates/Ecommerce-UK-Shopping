@@ -109,7 +109,7 @@ describe("customer view and messages", () => {
   });
 
   it("writes a short quote message with the pay link", () => {
-    const m = renderQuoteMessage("SHOP UK FROM GH", "Ama Mensah", "Tefal Kettle", "https://shop.example/quote/tok", 3);
+    const m = renderQuoteMessage("YenkoExpress", "Ama Mensah", "Tefal Kettle", "https://shop.example/quote/tok", 3);
     expect(m.sms).toContain("https://shop.example/quote/tok");
     expect(m.sms.length).toBeLessThan(220);
     expect(m.email.html).toContain("See your price and pay");

@@ -186,7 +186,7 @@ export function seedIfEmpty(db: Database.Database, opts: { sample?: boolean } = 
     );
     ZONES.forEach(([n, a, f, e], i) => insertZone.run(n, a, f, e, i));
 
-    setSetting.run("site_name", JSON.stringify("SHOP UK FROM GH"));
+    setSetting.run("site_name", JSON.stringify("YenkoExpress"));
     setSetting.run("fx_rate", JSON.stringify(15.2));
     setSetting.run("fx_markup_pct", JSON.stringify(3));
     setSetting.run("service_fee", JSON.stringify(SERVICE_FEE));

@@ -57,7 +57,8 @@ export function migrate(d: Db): void {
   }
   d.exec("CREATE UNIQUE INDEX IF NOT EXISTS link_requests_token_idx ON link_requests (token) WHERE token IS NOT NULL");
 
-  d.prepare("UPDATE settings SET value = ? WHERE key = 'site_name' AND value = ?").run(JSON.stringify("SHOP UK FROM GH"), JSON.stringify("Akwaaba UK"));
+  // rename the untouched default names; a name the owner chose themselves is left alone
+  for (const old of ["Akwaaba UK", "SHOP UK FROM GH"]) d.prepare("UPDATE settings SET value = ? WHERE key = 'site_name' AND value = ?").run(JSON.stringify("YenkoExpress"), JSON.stringify(old));
 
   const msgCols = has("messages");
   if (!msgCols.includes("payload")) d.exec("ALTER TABLE messages ADD COLUMN payload TEXT NOT NULL DEFAULT ''");

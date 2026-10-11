@@ -41,7 +41,7 @@ export type Settings = {
 };
 
 const DEFAULTS = {
-  site_name: "SHOP UK FROM GH",
+  site_name: "YenkoExpress",
   fx_rate: 15,
   fx_markup_pct: 0,
   service_fee: { mode: "percent", percent: 10, minMinor: 0 } as ServiceFeeRule,

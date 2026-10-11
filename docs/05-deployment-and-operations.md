@@ -20,14 +20,14 @@ Serverless hosts (Vercel, Netlify, Cloudflare Workers) **will not work**: no per
 | Item | Value |
 | --- | --- |
 | Host | Render, **Web Service**, Docker runtime |
-| Service name | `ukgh-shop` (from `render.yaml`) |
+| Service name | `ukgh-shop` (from `render.yaml`; keep this name, because renaming a Blueprint service makes Render create a new one without the disk) |
 | Region | **Frankfurt** (closest to Ghana and the UK). A region cannot be changed after the service exists. |
 | Plan | **Starter** (a persistent disk needs a paid instance) |
 | Disk | `shopdata`, **1 GB**, mounted at `/data` |
 | Database file | `/data/shop.db` (`DATABASE_PATH`) |
 | Health check | `/api/health` |
 | Code | GitHub repository `Princegates/Ecommerce-UK-Shopping`, branch deployed from Render |
-| Address | `https://ukgh-shop.onrender.com` (until you add your own domain) |
+| Address | `https://ukgh-shop.onrender.com` until **yenkoexpress.com** is connected (see 5.4, Your own domain) |
 
 **Updating the live site:** push code to the branch Render watches (or press **Manual Deploy** in Render). The Docker image rebuilds and the server restarts. Database changes are applied automatically at start. Expect a short interruption while it restarts.
 
@@ -94,6 +94,18 @@ Details of each provider are in [Integrations](09-integrations.md).
 
 ### Your own domain
 Add the domain in the host (Render → service → **Settings → Custom Domains**), create the DNS records it shows, wait for the certificate, then change `APP_URL` to the new address and **update every gateway's webhook and return address** to match, and the redirect address of Google, Facebook and Apple sign-in.
+
+**Connecting yenkoexpress.com, in order:**
+1. Render → service → **Settings → Custom Domains**: add `yenkoexpress.com` and `www.yenkoexpress.com`. Create the DNS records Render shows at the domain registrar (usually an `A` record for the bare domain and a `CNAME` for `www`), then wait for the certificate.
+2. Change `APP_URL` to `https://yenkoexpress.com` and redeploy.
+3. Update the return and webhook address in Stripe, Paystack and Flutterwave (`https://yenkoexpress.com/api/webhooks/...`).
+4. In the Google, Facebook and Apple consoles, change the sign-in redirect address, the privacy policy address (`/privacy`) and the terms address to the new domain.
+5. Verify `yenkoexpress.com` in Resend (add the SPF and DKIM records it shows) and set the sender to `YenkoExpress <orders@yenkoexpress.com>` in **Admin → Integrations**.
+6. Set the SMS sender name in Arkesel (11 characters at most, for example `YENKO`) and have it approved.
+7. Update the site address in Facebook and Google app settings, and in the eBay developer account if it lists one.
+8. Keep the `onrender.com` address working for a few days, and add a redirect from `www` to the bare domain at the registrar or in Render.
+
+The site name shown to customers is **YenkoExpress** (Admin → Prices and settings → Site name). Existing installs that still had the old default name are renamed automatically when the server starts.
 
 ## 5.5 Scheduled jobs
 

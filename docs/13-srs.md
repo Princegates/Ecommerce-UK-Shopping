@@ -1,6 +1,6 @@
 # Software Requirements Specification (SRS)
 
-**System:** SHOP UK FROM GH
+**System:** YenkoExpress
 **Document:** SRS, **as-built** edition
 **Version:** 1.0
 **Date:** 7 October 2026
@@ -31,7 +31,7 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This SRS specifies the requirements of **SHOP UK FROM GH**, a web system that lets shoppers in Ghana buy goods from UK retailers and pay once in Ghana cedis (GHS), while the operator buys the goods in the UK, ships them to Ghana and has a third-party courier deliver them. It is the reference for deciding whether the system is correct and complete, for planning changes, and for acceptance testing.
+This SRS specifies the requirements of **YenkoExpress**, a web system that lets shoppers in Ghana buy goods from UK retailers and pay once in Ghana cedis (GHS), while the operator buys the goods in the UK, ships them to Ghana and has a third-party courier deliver them. It is the reference for deciding whether the system is correct and complete, for planning changes, and for acceptance testing.
 
 ### 1.2 Scope
 **In scope.** A public storefront; customer accounts; carts, checkout and online payment; order tracking; notifications by SMS, WhatsApp and email; a catalogue that fills itself from approved sources; "link orders" for items from shops that are not in the catalogue; an administration console with role-based access for the owner's staff; and the operational machinery to run it (scheduler, health check, audit log).

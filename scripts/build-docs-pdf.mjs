@@ -16,7 +16,7 @@ const out = path.join(docs, "pdf");
 const work = path.join(out, ".build");
 fs.mkdirSync(work, { recursive: true });
 
-const SITE = "SHOP UK FROM GH";
+const SITE = "YenkoExpress";
 const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 

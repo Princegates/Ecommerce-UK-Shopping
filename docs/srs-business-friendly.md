@@ -1,6 +1,6 @@
 ## 1. Executive Summary
 
-SHOP UK FROM GH will be an online platform that allows customers in Ghana to shop for products sold by UK shops and have those products delivered to Ghana.
+YenkoExpress will be an online platform that allows customers in Ghana to shop for products sold by UK shops and have those products delivered to Ghana.
 
 The website will provide a simple way for a customer to find a product, understand the estimated total cost, pay online, and track the order until delivery.
 
@@ -8,7 +8,7 @@ The business will handle the UK purchase, receiving the item at a UK address, sh
 
 The basic journey is:
 
-- Customer finds a product → Customer sees the total cost → Customer pays → SHOP UK FROM GH purchases the product in the UK → Product arrives at the UK receiving address → Product ships to Ghana → Customs process → Local delivery → Customer receives product.
+- Customer finds a product → Customer sees the total cost → Customer pays → YenkoExpress purchases the product in the UK → Product arrives at the UK receiving address → Product ships to Ghana → Customs process → Local delivery → Customer receives product.
 
 ## 2. Purpose of the System
 
@@ -449,7 +449,7 @@ The business should also be able to manage products, orders, staff, pricing, shi
 
 ## 53. Final System Vision
 
-SHOP UK FROM GH should feel like a trusted bridge between UK online shopping and customers in Ghana.
+YenkoExpress should feel like a trusted bridge between UK online shopping and customers in Ghana.
 
 The customer should not need to understand the technical process behind purchasing, forwarding, shipping or delivery. The platform should make the journey simple, transparent and trackable.
 
@@ -457,11 +457,11 @@ The central business promise is: **Find it in the UK. Pay in Ghana. We handle th
 
 ## 54. Document Control
 
-- Document: Software Requirements Specification – SHOP UK FROM GH
+- Document: Software Requirements Specification – YenkoExpress
 - Version: 1.0
 - Date: 7 October 2026
 - Document type: Business-friendly requirements version
 - Primary Market: Ghana
 - Shopping Source: United Kingdom
-- Prepared for: SHOP UK FROM GH
+- Prepared for: YenkoExpress
 - Technology Partner: Anknovate IT Consultancy Services

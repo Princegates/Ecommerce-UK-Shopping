@@ -103,7 +103,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
     channels: ["sms"],
     fields: [
       { key: "apiKey", label: "API key", env: "ARKESEL_API_KEY", secret: true, required: ["sms"], help: "Arkesel dashboard → SMS API." },
-      { key: "senderId", label: "Sender name", env: "ARKESEL_SENDER_ID", required: ["sms"], placeholder: "SHOPUKGH", help: "Up to 11 letters or numbers, registered and approved in Arkesel." },
+      { key: "senderId", label: "Sender name", env: "ARKESEL_SENDER_ID", required: ["sms"], placeholder: "YENKO", help: "Up to 11 letters or numbers, registered and approved in Arkesel." },
     ],
     steps: ["Register a sender name in Arkesel and wait for approval.", "Paste the API key and sender name, save.", "Send a test message to your own number."],
   },
@@ -145,7 +145,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
     channels: ["email"],
     fields: [
       { key: "apiKey", label: "API key", env: "RESEND_API_KEY", secret: true, required: ["email"], placeholder: "re_…" },
-      { key: "from", label: "From address", env: "RESEND_FROM", required: ["email"], placeholder: "SHOP UK FROM GH <orders@yourdomain.com>", help: "The domain must be verified in Resend." },
+      { key: "from", label: "From address", env: "RESEND_FROM", required: ["email"], placeholder: "YenkoExpress <orders@yenkoexpress.com>", help: "The domain must be verified in Resend." },
     ],
     steps: ["Verify your sending domain in Resend.", "Create an API key and paste it with your From address.", "Save, choose Resend under Email above, then send a test."],
   },
@@ -187,7 +187,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
     docsUrl: "https://developer.ebay.com/api-docs/buy/browse/overview.html",
     channels: ["catalog"],
     fields: [
-      { key: "appId", label: "App ID (Client ID)", env: "EBAY_APP_ID", required: ["catalog"], placeholder: "YourName-ShopUKGH-PRD-…", help: "From your eBay developer account, under Application Keys." },
+      { key: "appId", label: "App ID (Client ID)", env: "EBAY_APP_ID", required: ["catalog"], placeholder: "YourName-YenkoExp-PRD-…", help: "From your eBay developer account, under Application Keys." },
       { key: "certId", label: "Cert ID (Client Secret)", env: "EBAY_CERT_ID", secret: true, required: ["catalog"], placeholder: "PRD-…", help: "From the same page. Keep it private." },
       {
         key: "environment", label: "Environment", env: "EBAY_ENVIRONMENT", default: "production",

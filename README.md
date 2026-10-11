@@ -1,4 +1,4 @@
-# SHOP UK FROM GH: UK shops to Ghana
+# YenkoExpress: UK shops to Ghana
 
 A storefront where Ghanaian shoppers browse listed UK shops, add items to a cart here and pay once in
 cedis. You buy from the UK retailer, ship to Ghana, and a courier delivers. The customer's total is:

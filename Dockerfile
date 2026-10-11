@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# Build:  docker build -t ukgh-shop .
-# Run:    docker run -p 3000:3000 -v shopdata:/data --env-file .env.production ukgh-shop
+# Build:  docker build -t yenkoexpress .
+# Run:    docker run -p 3000:3000 -v shopdata:/data --env-file .env.production yenkoexpress
 
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app

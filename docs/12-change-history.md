@@ -11,6 +11,7 @@ What was built and in what order. Every change below is a commit on the `claude/
 | **Catalogue importer** | Catalogue sources that fill the shop from feeds and pages, with strict safety rules (robots.txt, polite pacing, stop on refusal, no private addresses), review queue and scheduler. |
 | **Look and themes** | A distinct Ghana green and gold look with its own fonts and shapes, marquee and animations, and 15 colour themes chosen in the admin. |
 | **Rename and deployment** | Renamed to **SHOP UK FROM GH**. Deployment package: Docker image, Compose with HTTPS, Fly.io and Render configurations, health check, backups guidance. |
+| **Rebrand** | Renamed to **YenkoExpress** (domain **yenkoexpress.com**). Existing installs are renamed at start-up; the hosting service name, the encryption salt and the `UKG-` order-number prefix were kept so nothing already stored breaks. |
 
 ## Deployment fixes
 - Fixed the Docker build (missing `public` folder) and Render disk permissions (the container now fixes ownership of the data folder, then drops root).

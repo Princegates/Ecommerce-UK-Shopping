@@ -1,6 +1,6 @@
-# SHOP UK FROM GH: documentation
+# YenkoExpress: documentation
 
-SHOP UK FROM GH lets shoppers in Ghana buy from UK shops and pay once, in cedis. The team buys the items in the UK, ships them to Ghana, and a courier delivers.
+YenkoExpress lets shoppers in Ghana buy from UK shops and pay once, in cedis. The team buys the items in the UK, ships them to Ghana, and a courier delivers.
 
 This folder holds everything written about the system. Start with the guide for your job.
 
