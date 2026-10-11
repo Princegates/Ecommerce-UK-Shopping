@@ -176,8 +176,8 @@ export default async function HomePage() {
           <div className="grid gap-6 lg:grid-cols-[1fr_1.25fr] lg:items-center">
             <div>
               <p className="inline-block rounded-full bg-navy px-3 py-1 text-xs font-bold uppercase tracking-wide text-spark">The easiest way to shop</p>
-              <h2 id="paste-h" className="mt-2 text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold leading-tight">Found it on a UK website? Paste the link.</h2>
-              <p className="mt-2 max-w-xl text-base text-ink-soft">Works with any UK shop: Amazon, Argos, Next, Tesco, Currys, M&amp;S, B&amp;Q and more. <Link href="/amazon" className="link font-semibold">Ordering from Amazon UK?</Link> We check the price, quote the full cost in pounds and cedis, and buy it once you pay.</p>
+              <h2 id="paste-h" className="mt-2 text-[clamp(1.8rem,3.6vw,2.8rem)] font-bold leading-tight">Found it on Amazon UK? Paste the link.</h2>
+              <p className="mt-2 max-w-xl text-base text-ink-soft">We&rsquo;re starting with Amazon UK, with more UK shops on the way. Paste the link and we&rsquo;ll check the price, quote the full cost in pounds and cedis, and buy it once you pay.</p>
               <ol className="mt-4 grid gap-2 text-sm font-semibold sm:grid-cols-3">
                 {["Paste the link", "Get your price in cedis", "Pay, we ship to Ghana"].map((t, i) => (
                   <li key={t} className="flex items-center gap-2"><span className="num grid h-7 w-7 shrink-0 place-items-center rounded-full bg-navy text-spark">{i + 1}</span>{t}</li>
