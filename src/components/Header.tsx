@@ -8,6 +8,7 @@ import { getDeliveryContext } from "@/lib/delivery-context";
 import { effectiveRate } from "@/lib/pricing";
 import { getSettings, getZones } from "@/lib/settings";
 import { wishlistIds } from "@/lib/wishlist";
+import { BrandMark } from "./Brand";
 import BottomNav from "./shop/BottomNav";
 import CartBump from "./shop/CartBump";
 import DepartmentIcon from "./DepartmentIcon";
@@ -38,7 +39,7 @@ export default async function Header() {
           <div className="mx-auto grid max-w-[90rem] grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-2 px-3 py-2 md:grid-cols-[auto_auto_minmax(0,1fr)_auto] md:px-4">
             <Link href="/" className="rounded-lg px-2 py-1 hover:bg-white/10" aria-label={`${settings.siteName} home`}>
               <span className="flex items-center gap-2">
-                <span className="grid h-7 w-7 shrink-0 rotate-45 place-items-center rounded-md bg-cta" aria-hidden="true"><span className="h-2 w-2 rounded-full bg-navy" /></span>
+                <BrandMark className="h-8 md:h-9" />
                 <span className="font-display text-base font-bold leading-none tracking-tight sm:text-lg md:text-xl">{settings.siteName}</span>
               </span>
             </Link>

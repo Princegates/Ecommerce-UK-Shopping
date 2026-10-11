@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { BrandWordmark } from "@/components/Brand";
+import { getSettings } from "@/lib/settings";
 
 const PERKS = [
   ["Track every order", "One timeline from purchase to your door."],
@@ -12,6 +14,7 @@ export default function AuthShell({ title, lead, children, footer }: { title: st
   return (
     <div className="mx-auto grid max-w-6xl gap-0 px-4 py-10 md:grid-cols-[1fr_1.1fr] md:py-16">
       <aside className="hidden border-2 border-r border-line bg-ink p-10 text-paper md:block">
+        <div className="mb-8 inline-block rounded-lg bg-white p-3"><BrandWordmark siteName={getSettings().siteName} className="h-28" /></div>
         <p className="label !text-gold">Your account</p>
         <h2 className="mt-3 text-2xl text-paper">Everything about your UK orders, in one place.</h2>
         <ul className="mt-10 grid gap-6">
@@ -27,6 +30,7 @@ export default function AuthShell({ title, lead, children, footer }: { title: st
         </ul>
       </aside>
       <section className="border border-line bg-paper-3 p-6 shadow-[5px_5px_0_var(--ink)] md:p-10">
+        <div className="mb-5 flex justify-center md:hidden"><BrandWordmark siteName={getSettings().siteName} className="h-24" /></div>
         <h1 className="text-2xl">{title}</h1>
         {lead && <p className="mt-2 text-ink-soft">{lead}</p>}
         <div className="mt-6">{children}</div>

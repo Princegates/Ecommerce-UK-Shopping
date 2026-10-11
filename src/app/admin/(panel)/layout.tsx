@@ -6,6 +6,7 @@ import { newRequestCount } from "@/lib/admin";
 import { reviewCount } from "@/lib/ingest/store";
 import { ROLE_LABEL, type Permission } from "@/lib/permissions";
 import { getSettings } from "@/lib/settings";
+import { BrandMark } from "@/components/Brand";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +77,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         />
         <div className="hidden md:block">
           <div className="p-4">
-            <p className="display text-2xl">{siteName}</p>
+            <p className="display flex items-center gap-2 text-2xl"><BrandMark className="h-8" />{siteName}</p>
             <p className="label !text-gold">Admin</p>
           </div>
           <nav aria-label="Admin" className="grid gap-3 px-2 pb-3">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSettings } from "@/lib/settings";
+import { BrandMark } from "./Brand";
 
 const PAY = ["Mobile Money", "Visa", "Mastercard", "Pay in GH₵", "Pay in £ at the shop"];
 
@@ -43,7 +44,7 @@ export default function Footer() {
       </div>
       <div className="bg-navy">
         <div className="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-4 px-4 py-6">
-          <p className="text-xl font-bold">{siteName}</p>
+          <p className="flex items-center gap-3 text-xl font-bold"><BrandMark className="h-10" />{siteName}</p>
           <ul className="flex flex-wrap items-center gap-2" aria-label="Ways to pay">
             {PAY.map((m) => <li key={m} className="rounded border border-white/30 px-2 py-1 text-xs text-white/85">{m}</li>)}
           </ul>

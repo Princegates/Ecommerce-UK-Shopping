@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { BrandMark } from "@/components/Brand";
 
 export type NavGroup = { heading: string; items: { href: string; label: string; badge?: number }[] };
 
@@ -27,7 +28,7 @@ export default function MobileNav({ siteName, groups, who, signOut }: { siteName
     <div className="md:hidden">
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <div className="min-w-0">
-          <p className="display truncate text-xl leading-tight">{siteName}</p>
+          <p className="display flex items-center gap-2 truncate text-xl leading-tight"><BrandMark className="h-7" /><span className="truncate">{siteName}</span></p>
           <p className="label !text-gold">Admin{current ? ` · ${current.label}` : ""}</p>
         </div>
         <button

@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import LoginForm from "@/components/admin/LoginForm";
+import { BrandWordmark } from "@/components/Brand";
+import { getSettings } from "@/lib/settings";
 import { adminConfig, getAdmin } from "@/lib/auth";
 import { landingPage } from "@/lib/permissions";
 
@@ -13,6 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const developer = sp.developer === "1";
   return (
     <div className="mx-auto w-full max-w-md px-4 py-20">
+      <BrandWordmark siteName={getSettings().siteName} className="mb-6 h-28" />
       <p className="label">Staff only</p>
       <h1 className="text-3xl">{developer ? "Developer sign in" : "Admin sign in"}</h1>
       {cfg ? (
