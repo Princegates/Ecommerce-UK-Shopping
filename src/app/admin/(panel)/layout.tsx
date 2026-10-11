@@ -77,7 +77,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         />
         <div className="hidden md:block">
           <div className="p-4">
-            <p className="display flex items-center gap-2 text-2xl"><BrandMark className="h-8" />{siteName}</p>
+            <BrandMark className="h-9" />
+            <p className="display mt-2 break-words text-2xl leading-tight">{siteName}</p>
             <p className="label !text-gold">Admin</p>
           </div>
           <nav aria-label="Admin" className="grid gap-3 px-2 pb-3">
