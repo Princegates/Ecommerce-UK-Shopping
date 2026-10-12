@@ -57,7 +57,7 @@ There is a **minimum order** (items only). The cart tells you how close you are.
 
 ## Paying
 
-Payment options depend on what the shop has switched on, for example Mobile Money and cards through Paystack or Flutterwave, or international cards through Stripe. Your order is only bought **after payment is confirmed**. If a payment fails you can try again from your account.
+Payment options depend on what the shop has switched on, for example Mobile Money and cards through Paystack or Flutterwave, or international cards through Stripe. Your total is always shown in cedis. A card payment through Stripe is charged in pounds: the same amount converted at the rate shown on your order (your bank may add its own currency fee). Your order is only bought **after payment is confirmed**. If a payment fails you can try again from your account.
 
 ## Tracking your order
 

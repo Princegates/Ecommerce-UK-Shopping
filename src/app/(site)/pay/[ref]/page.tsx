@@ -5,7 +5,7 @@ import { gbp, ghs } from "@/lib/money";
 import { getOrderByRef } from "@/lib/orders";
 import { activeGateways, demoPaymentsEnabled } from "@/lib/payments";
 import { pendingAttempts } from "@/lib/payments/confirm";
-import { ghsToGbpMinor } from "@/lib/pricing";
+import { effectiveRate, ghsToGbpMinor } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Payment", robots: { index: false } };
@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Payment", robots: { index: false } }
 const BLURB: Record<string, string> = {
   paystack: "Mobile Money (MTN, Telecel, AirtelTigo) and Ghana cards. Pay in cedis.",
   flutterwave: "Mobile Money, cards and bank payment. Pay in cedis.",
-  stripe: "Visa, Mastercard and other international cards.",
+  stripe: "Visa, Mastercard and other international cards. Charged in pounds.",
 };
 
 export default async function PayPage({
@@ -33,6 +33,7 @@ export default async function PayPage({
   const demo = demoPaymentsEnabled();
   const waiting = pendingAttempts(order.id);
   const fx = { rate: order.fxRate, markupPct: order.fxMarkupPct };
+  const rate = effectiveRate(fx);
 
   return (
     <div className="mx-auto max-w-xl px-4 py-14">
@@ -71,10 +72,12 @@ export default async function PayPage({
                       <p className="display text-xl">{g.label}</p>
                       <p className="text-sm text-ink-soft">{BLURB[g.id]}</p>
                       {g.chargeCurrency === "GBP" && (
-                        <p className="hint mt-1">You will be charged {amount}, the pound equivalent of {ghs(order.totalMinor)} at today&rsquo;s rate on your order.</p>
+                        <p className="hint mt-1">
+                          Your order total is {ghs(order.totalMinor)}. Your card is charged <strong>{amount}</strong>, the same amount in pounds at £1 = GH₵{rate.toFixed(2)}, the rate on your order. Your bank may add its own currency fee.
+                        </p>
                       )}
                     </div>
-                    <button className="btn btn-primary">Pay {amount}</button>
+                    <button className="btn btn-primary">{g.chargeCurrency === "GBP" ? `Pay ${amount} by card` : `Pay ${amount}`}</button>
                   </form>
                 </li>
               );
