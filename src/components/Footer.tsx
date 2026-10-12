@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getSettings } from "@/lib/settings";
 import { BrandMark } from "./Brand";
 
-const PAY = ["Mobile Money", "Visa", "Mastercard", "Pay in GH₵", "Pay in £ at the shop"];
+const PAY = ["Mobile Money", "Visa", "Mastercard", "Pay in GH₵"];
 
 export default function Footer() {
   const { siteName, supportWhatsapp } = getSettings();
@@ -58,7 +58,6 @@ export default function Footer() {
               <Link className="text-white/80 hover:text-white hover:underline" href="/data-deletion">Delete your data</Link>
             </nav>
           </div>
-          <Link href="/admin" rel="nofollow" className="rounded-lg border border-white/30 px-3 py-1.5 font-medium text-white/85 hover:bg-white/10 hover:text-white">Admin</Link>
         </div>
       </div>
     </footer>

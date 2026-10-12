@@ -19,7 +19,7 @@ What was built and in what order. Every change below is a commit on the `claude/
 ## Deployment fixes
 - Fixed the Docker build (missing `public` folder) and Render disk permissions (the container now fixes ownership of the data folder, then drops root).
 - Render region set to **Frankfurt**.
-- Admin link added to the public footer, plus `robots.txt`.
+- `robots.txt` added. (The public footer no longer links to the admin: staff sign in at `/admin/login`.)
 
 ## Products and photos
 - Product photo upload and a visible **Add by link** button.
