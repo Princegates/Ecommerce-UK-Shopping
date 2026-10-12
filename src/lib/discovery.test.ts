@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { openForTest } from "./db";
 import {
-  dealPercent, dealProducts, departmentFromSlug, isDealLive, listDepartments, listProducts, newArrivals, productsByIds, queryProducts,
+  departmentFromSlug, listDepartments, listProducts, newArrivals, productsByIds, queryProducts,
 } from "./catalog";
 import type { CartLine } from "./cart";
 import { registerCustomer } from "./customers";
@@ -11,26 +11,10 @@ import { addReview, adminReviews, displayName, listReviews, ratingSummary, revie
 import { getProductById } from "./catalog";
 import { getShippingMethods, getZones } from "./settings";
 
-describe("deals", () => {
-  it("is live only with a higher was-price that has not expired", () => {
-    const base = { priceMinor: 8000, compareAtMinor: 10000, dealEndsAt: null as string | null };
-    expect(isDealLive(base)).toBe(true);
-    expect(isDealLive({ ...base, compareAtMinor: 8000 })).toBe(false);
-    expect(isDealLive({ ...base, compareAtMinor: null })).toBe(false);
-    expect(isDealLive({ ...base, dealEndsAt: "2020-01-01 00:00:00" })).toBe(false);
-    expect(isDealLive({ ...base, dealEndsAt: "2099-01-01 00:00:00" })).toBe(true);
-    expect(dealPercent(base)).toBe(20);
-    expect(dealPercent({ priceMinor: 100, compareAtMinor: null })).toBe(0);
-  });
-  it("lists live deals best first and drops expired ones", () => {
+describe("no discount claims", () => {
+  it("keeps no was-price or deal time on any product, even when old data had them", () => {
     const d = openForTest();
-    expect(dealProducts(20, d).length).toBe(9); // the seed ships sample deals
-    d.prepare("UPDATE products SET compare_at_minor = NULL, deal_ends_at = NULL").run();
-    const [a, b, c] = listProducts({}, d);
-    d.prepare("UPDATE products SET compare_at_minor = price_minor * 2 WHERE id = ?").run(a.id); // 50% off
-    d.prepare("UPDATE products SET compare_at_minor = price_minor * 1.25 WHERE id = ?").run(b.id); // 20% off
-    d.prepare("UPDATE products SET compare_at_minor = price_minor * 3, deal_ends_at = datetime('now', '-1 hour') WHERE id = ?").run(c.id);
-    expect(dealProducts(10, d).map((p) => p.id)).toEqual([a.id, b.id]);
+    expect(d.prepare("SELECT COUNT(*) AS n FROM products WHERE compare_at_minor IS NOT NULL OR deal_ends_at IS NOT NULL").get()).toEqual({ n: 0 });
   });
 });
 

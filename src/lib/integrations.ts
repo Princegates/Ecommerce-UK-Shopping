@@ -206,7 +206,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
   {
     id: "diffbot",
     name: "Diffbot (Product API)",
-    blurb: "Reads the product pages you list and returns the name, price, was-price, stock, brand and photo. Paid (Diffbot credits). Used by a Catalogue source of type Diffbot.",
+    blurb: "Reads the product pages you list and returns the name, price, stock, brand and photo. Paid (Diffbot credits). Used by a Catalogue source of type Diffbot.",
     docsUrl: "https://docs.diffbot.com/reference/extract-product",
     channels: ["catalog"],
     fields: [

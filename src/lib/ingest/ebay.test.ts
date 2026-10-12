@@ -109,7 +109,7 @@ describe("eBay source", () => {
     expect(search).toHaveLength(2);
     expect(search.every((c) => c.auth === "Bearer tok-123" && c.market === "EBAY_GB")).toBe(true);
     const p = d.prepare("SELECT price_minor, compare_at_minor, image_url, source_url, weight_grams FROM products WHERE shop_id = ? AND name = 'Acme Kettle 1.7L Stainless Steel'").get(shop.id) as Record<string, unknown>;
-    expect(p).toEqual({ price_minor: 2499, compare_at_minor: 3499, image_url: "https://i.ebayimg.com/images/g/AbC/s-l500.jpg", source_url: "https://www.ebay.co.uk/itm/1234567890?hash=x", weight_grams: 1200 });
+    expect(p).toEqual({ price_minor: 2499, compare_at_minor: null, image_url: "https://i.ebayimg.com/images/g/AbC/s-l500.jpg", source_url: "https://www.ebay.co.uk/itm/1234567890?hash=x", weight_grams: 1200 });
   });
 
   it("updates prices later, and never treats a missing listing as removed", async () => {

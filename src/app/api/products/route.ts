@@ -12,7 +12,6 @@ export async function GET(req: Request) {
   return NextResponse.json(
     productsByIds(ids).map((p) => ({
       id: p.id, slug: p.slug, name: p.name, shop: p.shopName, accent: p.shopAccent, imageUrl: p.imageUrl, priceMinor: gbpToGhsMinor(p.priceMinor, fx), gbpMinor: p.priceMinor, category: p.category,
-      wasMinor: p.compareAtMinor ? gbpToGhsMinor(p.compareAtMinor, fx) : null,
     })),
     { headers: { "Cache-Control": "no-store" } },
   );

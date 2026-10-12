@@ -13,6 +13,7 @@ What was built and in what order. Every change below is a commit on the `claude/
 | **Rename and deployment** | Renamed to **SHOP UK FROM GH**. Deployment package: Docker image, Compose with HTTPS, Fly.io and Render configurations, health check, backups guidance. |
 | **Rebrand** | Renamed to **YenkoExpress** (domain **yenkoexpress.com**). Existing installs are renamed at start-up; the hosting service name, the encryption salt and the `UKG-` order-number prefix were kept so nothing already stored breaks. |
 | **Logo** | The YenkoExpress logo (cart icon and stacked wordmark) is on the header, footer, sign-in pages and admin, and is the favicon and phone home-screen icon. Source files and the app icons for Google and Facebook sign-in are in `docs/brand/`; the web copies are in `public/brand/`. |
+| **No discount claims** | Removed every percentage-off tag, "was" price, "You save" amount, "Limited-time deal" label, deal countdown, the Today's deals shelf and links, the deals filter and the biggest-discount sort. Sources' was-prices are no longer stored on items, and earlier ones were cleared. The admin no longer has Was price or Deal ends fields. |
 
 ## Deployment fixes
 - Fixed the Docker build (missing `public` folder) and Render disk permissions (the container now fixes ownership of the data folder, then drops root).

@@ -12,7 +12,6 @@ The price you see includes the items, our service charge, shipping to Ghana and 
 
 - **Browse**: the shop pages, the departments (Fashion, Electronics and so on) and the **Browse** menu at the top.
 - **Search**: type in the search bar. Suggestions appear as you type; filters and sorting are on the results page.
-- **Today's deals**: items with a lower price for a limited time.
 - **Prices**: every price is shown in **pounds** (the UK price) and **cedis** (what you pay). On a product page, the **"to your door"** box shows the full cost for your delivery area.
 - **Saved items**: tap the heart to save something for later (you need to be signed in).
 

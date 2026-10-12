@@ -41,7 +41,7 @@ export default async function SourcesAdmin({ searchParams }: { searchParams: Pro
             <ol className="mt-1 grid list-decimal gap-1 pl-5">
               <li>Join an affiliate network as a publisher (free to apply): <strong>Awin</strong>, <strong>CJ</strong>, <strong>Rakuten Advertising</strong> or <strong>Impact</strong>. Add this website when asked.</li>
               <li>Search the network&rsquo;s advertiser list for UK shops you want and click <strong>Join</strong>. Each shop approves you. Read each programme&rsquo;s terms, since some limit how their products may be resold.</li>
-              <li>On Awin, open <strong>Toolbox → Create-a-Feed</strong>. Pick the shops, choose <strong>CSV</strong> and <strong>gzip</strong>, and include the columns for name, price, was-price, stock, link and <strong>merchant image URL</strong> (the full-size photo). Copy the feed address it gives you.</li>
+              <li>On Awin, open <strong>Toolbox → Create-a-Feed</strong>. Pick the shops, choose <strong>CSV</strong> and <strong>gzip</strong>, and include the columns for name, price, stock, link and <strong>merchant image URL</strong> (the full-size photo). Copy the feed address it gives you.</li>
               <li>Come back here: <strong>Add a source → Product feed (CSV)</strong>, paste the address, tick the permission box, click <strong>Check this setup first</strong>, then <strong>Create source</strong>.</li>
             </ol>
           </div>
@@ -68,7 +68,7 @@ export default async function SourcesAdmin({ searchParams }: { searchParams: Pro
               <li>Create a Diffbot account and paste its token under <a className="link" href="/admin/integrations#catalog-apis">Integrations → Catalogue APIs</a>, switch it on and press <strong>Test connection</strong>.</li>
               <li>Here: <strong>Add a source → Diffbot (Product API)</strong>, paste the product page addresses (one per line), tick the permission box, click <strong>Check this setup first</strong>, then <strong>Create source</strong>.</li>
             </ol>
-            <p className="mt-1 text-ink-soft">Diffbot downloads the pages for you and returns the name, price, was-price, stock, brand and photo. Each product read uses Diffbot credits on every run. Pages the shop&rsquo;s robots.txt disallows are skipped, and the shop&rsquo;s own terms still apply, so only list pages you are allowed to use.</p>
+            <p className="mt-1 text-ink-soft">Diffbot downloads the pages for you and returns the name, price, stock, brand and photo. Each product read uses Diffbot credits on every run. Pages the shop&rsquo;s robots.txt disallows are skipped, and the shop&rsquo;s own terms still apply, so only list pages you are allowed to use.</p>
           </div>
           <div className="md:col-span-2">
             <p className="font-bold">Small UK shops on WooCommerce (with the owner&rsquo;s agreement)</p>
@@ -89,7 +89,7 @@ export default async function SourcesAdmin({ searchParams }: { searchParams: Pro
           <div>
             <p className="font-bold">What you get, and what you don&rsquo;t</p>
             <ul className="mt-1 grid list-disc gap-1 pl-5">
-              <li>Real product names, prices, was-prices, stock and <strong>the shop&rsquo;s own photos</strong>, refreshed automatically.</li>
+              <li>Real product names, prices, stock and <strong>the shop&rsquo;s own photos</strong>, refreshed automatically.</li>
               <li>Only shops that offer a feed (or allow reading their site). Big retailers that forbid scraping are reached through their affiliate programme, not by reading their website.</li>
               <li>Photos are linked from the shop&rsquo;s servers, not copied, so they update when the shop changes them.</li>
             </ul>

@@ -9,7 +9,6 @@ export const SORTS: [SortKey, string][] = [
   ["price-desc", "Price: high to low"],
   ["rating", "Best rated"],
   ["newest", "Newest"],
-  ["discount", "Biggest discount"],
 ];
 
 export type BrowseParams = {
@@ -23,7 +22,6 @@ export type BrowseParams = {
   /** Price bounds in cedis, as typed. */
   min: string;
   max: string;
-  deals: boolean;
   sort: SortKey;
   page: number;
 };
@@ -46,7 +44,6 @@ export function parseBrowse(sp: Raw): BrowseParams {
     cat: many(sp.cat, 60),
     min: money(one(sp.min)),
     max: money(one(sp.max)),
-    deals: one(sp.deals) === "1",
     sort: (SORTS.find(([k]) => k === sort)?.[0] ?? "popular") as SortKey,
     page: Number.isInteger(page) && page >= 1 && page <= 500 ? page : 1,
   };
@@ -63,7 +60,6 @@ export function toQuery(p: BrowseParams, fx: FxConfig, departmentNames: Map<stri
     categories: p.cat.length ? p.cat : undefined,
     minGbpMinor: cedisToGbp(p.min),
     maxGbpMinor: cedisToGbp(p.max),
-    dealsOnly: p.deals || undefined,
     sort: p.sort,
     limit: PAGE_SIZE,
     offset: (p.page - 1) * PAGE_SIZE,
@@ -80,7 +76,6 @@ export function browseHref(basePath: string, p: BrowseParams, patch: Partial<Bro
   for (const v of n.cat) q.append("cat", v);
   if (n.min) q.set("min", n.min);
   if (n.max) q.set("max", n.max);
-  if (n.deals) q.set("deals", "1");
   if (n.sort !== "popular") q.set("sort", n.sort);
   if (n.page > 1) q.set("page", String(n.page));
   const s = q.toString();

@@ -37,7 +37,6 @@ export default function BrowseView({
   for (const s of p.shop) chips.push({ label: facets.shops.find((x) => x.slug === s)?.name ?? s, to: href({ shop: without(p.shop, s) }) });
   for (const c of p.cat) chips.push({ label: c, to: href({ cat: without(p.cat, c) }) });
   if (p.min || p.max) chips.push({ label: `GH₵${p.min || "0"} – ${p.max ? `GH₵${p.max}` : "any"}`, to: href({ min: "", max: "" }) });
-  if (p.deals) chips.push({ label: "Deals only", to: href({ deals: false }) });
 
   const filters = (
     <form method="get" action={basePath} className="grid gap-6">
@@ -94,8 +93,6 @@ export default function BrowseView({
         </div>
       </fieldset>
 
-      <label className="check font-semibold"><input type="checkbox" name="deals" value="1" defaultChecked={p.deals} /> Deals only</label>
-
       <div className="flex gap-3">
         <button className="btn btn-primary btn-small">Apply</button>
         <Link href={fixedDepartment || !p.q ? basePath : `${basePath}?q=${encodeURIComponent(p.q)}`} className="btn btn-small">Clear</Link>
@@ -146,7 +143,7 @@ export default function BrowseView({
           ) : (
             <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
               {items.map((item) => (
-                <li key={item.id}><ProductCard product={item} fx={fx} ctx={shopper.ctx} saved={shopper.saved.has(item.id)} countdown={p.deals} /></li>
+                <li key={item.id}><ProductCard product={item} fx={fx} ctx={shopper.ctx} saved={shopper.saved.has(item.id)} /></li>
               ))}
             </ul>
           )}

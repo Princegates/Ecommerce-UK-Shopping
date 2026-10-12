@@ -136,7 +136,7 @@ export default function SourceForm({
         <h2 className="text-2xl">What happens to what we read</h2>
         <Check label={isUpload ? "Switch this source on (items stay visible while it is on)" : "Switch this source on (it then runs by itself on the schedule below)"} name="enabled" defaultChecked={v.enabled} />
         <Check label="Publish new items automatically" name="autoPublishNew" defaultChecked={v.autoPublishNew} />
-        <Check label="Update prices, was-prices and stock on live items automatically" name="autoApplyUpdates" defaultChecked={v.autoApplyUpdates} />
+        <Check label="Update prices and stock on live items automatically" name="autoApplyUpdates" defaultChecked={v.autoApplyUpdates} />
         <div className="grid gap-4 md:grid-cols-3">
           <Text label="Hold a price move bigger than (%)" name="maxPriceChangePct" inputMode="numeric" defaultValue={v.maxPriceChangePct} hint="Bigger jumps wait for you in Import review." />
           <Text label="Run every (hours)" name="intervalHours" inputMode="numeric" defaultValue={v.intervalHours} />
@@ -170,13 +170,12 @@ export default function SourceForm({
             {pv.preview.sample.length > 0 && (
               <div className="mt-3 overflow-x-auto">
                 <table className="table">
-                  <thead><tr><th>Item</th><th className="text-right">Price</th><th className="text-right">Was</th><th>Stock</th><th>Image</th></tr></thead>
+                  <thead><tr><th>Item</th><th className="text-right">Price</th><th>Stock</th><th>Image</th></tr></thead>
                   <tbody>
                     {pv.preview.sample.map((s) => (
                       <tr key={s.externalId}>
                         <td className="font-semibold">{s.name}<span className="block text-xs text-ink-soft">{s.brand}{s.category ? ` · ${s.category}` : ""}</span></td>
                         <td className="num text-right">{gbp(s.priceMinor)}</td>
-                        <td className="num text-right">{s.compareAtMinor ? gbp(s.compareAtMinor) : ""}</td>
                         <td>{s.inStock ? "In stock" : "Out"}</td>
                         <td>{s.imageUrl ? "Yes" : "None"}</td>
                       </tr>

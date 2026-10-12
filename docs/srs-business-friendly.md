@@ -42,7 +42,6 @@ The website should be easy to understand and usable on phones, tablets and compu
 - Search and product categories.
 - UK shop listings.
 - Product details and pricing.
-- Deals/promotions where available.
 - Shopping cart.
 - Customer account.
 - Order tracking.
@@ -58,7 +57,6 @@ Customers should be able to browse products available from approved UK shops.
 - UK price in pounds (£).
 - Product details where available.
 - Availability/status.
-- Current deals where applicable.
 - Product link/source.
 - Customer reviews where applicable.
 
@@ -212,7 +210,6 @@ Staff and administrators should be able to manage products and shops shown on th
 - Manage shop information.
 - Control product visibility.
 - Review unusual imported products.
-- Manage deals/promotions.
 - Remove or hold products when required.
 
 ## 28. Automatic Product Import
@@ -344,7 +341,7 @@ The software supports business operations but does not itself provide legal comp
 - Staff normally move an order one step forward through its process.
 - Cancellation is normally allowed before UK purchase.
 - A review is allowed only for a delivered item and once per item.
-- A deal is live only while the current price is below the original/was price and the deal has not expired.
+- Customers see the shop's current price only. The platform makes no "was" price, percentage-off or savings claims.
 - A quotation is valid for a defined period, normally 3 days unless configured otherwise.
 - A quote link is private, can be edited until used, and can normally be used for one order.
 

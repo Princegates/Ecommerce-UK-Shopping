@@ -32,7 +32,7 @@ npm run build && npm start                      # production
 
 ## What is in it
 
-**Storefront:** home with deals, departments, shop pages, search with suggestions and filters, product pages
+**Storefront:** home with best sellers and new arrivals, departments, shop pages, search with suggestions and filters, product pages
 with reviews and a live "what it costs to your door" panel, cart drawer, wishlist, recently viewed, delivery
 area picker, link-request form for items not listed, order lookup.
 
@@ -47,7 +47,7 @@ webhooks are signed and idempotent, and card data never touches this server.
 Postmark) through a retrying outbox, with per-status rules and per-order customer preferences.
 
 **Catalogue feeding (Admin > Catalogue sources):** shops and products fill themselves in. Each source runs on its own
-schedule from a built-in scheduler, publishes new items automatically, keeps prices, was-prices and stock current, and hides items
+schedule from a built-in scheduler, publishes new items automatically, keeps prices and stock current, and hides items
 that go stale. See [Catalogue sources](#catalogue-sources) below.
 
 **Themes (Admin > Appearance):** 15 colour themes, applied to the whole shop at once. Ghana green and gold is the default.
@@ -58,7 +58,7 @@ that go stale. See [Catalogue sources](#catalogue-sources) below.
 rates inside guardrails; your markup always applies on top.
 
 **Admin** (`/admin`): dashboard with sales, margin and attention list; orders and status changes; customers;
-link requests; shops, items and deals; reviews moderation; pricing, shipping and delivery areas;
+link requests; shops and items; reviews moderation; pricing, shipping and delivery areas;
 integrations (keys are encrypted and shown masked); message log; activity log; CSV export.
 
 ## Catalogue sources
@@ -76,7 +76,7 @@ A source is one place we are allowed to read a shop's products from. Add them in
 | File import (CSV or JSON) | Data you collected yourself, for example a spreadsheet or an export from a tool such as Octoparse | Create the source, then upload the file on its page. Nothing is fetched from any shop. Prices must be in pounds. Re-uploading updates prices and stock; a file never removes products. Only upload data you are allowed to use. |
 | Pasted links | One-off items | Paste up to 20 product links. Prices are re-checked automatically. |
 
-**What runs by itself:** new items go live, price, was-price and stock changes update live items, items that disappear from a
+**What runs by itself:** new items go live, price and stock changes update live items, items that disappear from a
 feed (or go out of stock) are hidden, and anything not refreshed within the source's "stale" window is hidden so an old price
 never stays on sale. A price move bigger than the source's limit (40% by default), or an implausible price, waits in **Import
 review** instead.

@@ -11,7 +11,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const p = parseBrowse(sp);
   const shopper = await getShopper();
-  const heading = p.q ? `Results for “${p.q}”` : p.deals ? "Today’s deals" : p.sort === "newest" ? "New arrivals" : "All items";
+  const heading = p.q ? `Results for “${p.q}”` : p.sort === "newest" ? "New arrivals" : "All items";
   const q = p.q?.trim() ?? "";
   return (
     <>

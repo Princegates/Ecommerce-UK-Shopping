@@ -8,11 +8,10 @@ import Reveal from "@/components/shop/Reveal";
 import ShopTile from "@/components/ShopTile";
 import StatusTracker from "@/components/StatusTracker";
 import Carousel from "@/components/shop/Carousel";
-import Countdown from "@/components/shop/Countdown";
 import ProductShelf from "@/components/shop/ProductShelf";
 import RecentlyViewed from "@/components/shop/RecentlyViewed";
 import { bestSellerIds } from "@/lib/analytics";
-import { dealPercent, dealProducts, listDepartments, listShops, newArrivals, productsByIds, queryProducts, getProductById, type Product } from "@/lib/catalog";
+import { listDepartments, listShops, newArrivals, productsByIds, queryProducts, getProductById, type Product } from "@/lib/catalog";
 import { gbp, ghs } from "@/lib/money";
 import { listOrdersForCustomer, reorderableItems } from "@/lib/orders";
 import { STATUS_LABEL } from "@/lib/order-status";
@@ -41,7 +40,6 @@ export default async function HomePage() {
   const shopper = await getShopper();
   const departments = listDepartments();
   const shops = listShops();
-  const deals = dealProducts(12);
   const arrivals = newArrivals(12);
 
   const soldIds = bestSellerIds(12);
@@ -69,9 +67,6 @@ export default async function HomePage() {
     }
   }
 
-  const bestDeal = deals.reduce((m, p) => Math.max(m, dealPercent(p)), 0);
-  const nextEnd = deals.map((p) => p.dealEndsAt).filter((v): v is string => Boolean(v)).sort()[0];
-
   const hero = "relative isolate overflow-hidden px-5 pb-14 pt-8 text-white md:px-20 md:pb-16 md:pt-12";
   const slides = [
     (
@@ -97,34 +92,6 @@ export default async function HomePage() {
               <Breakdown b={sample} approxGbpMinor={ghsToGbpMinor(sample.totalMinor, settings.fx)} />
             </div>
           )}
-        </div>
-      </div>
-    ),
-    (
-      <div key="two" className={`${hero} hero-b`}>
-        <span className="woven absolute inset-0 -z-10" aria-hidden="true" />
-        <span className="float-slow absolute -left-10 top-10 -z-10 h-48 w-48 rounded-full bg-red/40" aria-hidden="true" />
-        <div className="grid gap-6 md:grid-cols-[1.3fr_1fr] md:items-center">
-          <div className="stagger">
-            <p className="flex items-center gap-2 text-sm font-bold text-spark"><span className="live-dot" aria-hidden="true" /> Limited-time prices</p>
-            <h2 className="mt-2 text-[clamp(2rem,4.6vw,3.6rem)] font-bold leading-[1.05]">{bestDeal > 0 ? `Up to ${bestDeal}% off` : "Deals on UK favourites"}</h2>
-            <p className="mt-3 max-w-lg text-lg text-white/90">Real savings from our UK shops, with the full cost to your door shown before you pay.</p>
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              <Link href="/search?deals=1&sort=discount" className="btn btn-gold !px-6 !text-base">Shop the deals</Link>
-              {nextEnd && <p className="font-semibold">Next ends in <Countdown endsAt={nextEnd} className="text-spark" /></p>}
-            </div>
-          </div>
-          <ul className="hidden grid-cols-3 gap-2 md:grid" aria-label="Some of today's deals">
-            {deals.slice(0, 3).map((p) => (
-              <li key={p.id}>
-                <Link href={`/products/${p.slug}`} className="lift block overflow-hidden rounded-2xl bg-white text-ink">
-                  <ProductArt name={p.name} accent={p.shopAccent} imageUrl={p.imageUrl} category={p.category} />
-                  <p className="num bg-red p-1.5 text-center text-sm font-bold text-white">-{dealPercent(p)}%</p>
-                  <span className="sr-only">{p.name}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     ),
@@ -164,7 +131,7 @@ export default async function HomePage() {
   );
   const card = "rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(16,20,18,0.14)] flex flex-col gap-3";
   const tint = "rounded-2xl p-4 shadow-[0_1px_3px_rgba(16,20,18,0.14)] flex flex-col gap-3";
-  const trending = [...deals, ...featured, ...arrivals].filter((p, i, a) => a.findIndex((x) => x.id === p.id) === i).slice(0, 16);
+  const trending = [...featured, ...arrivals].filter((p, i, a) => a.findIndex((x) => x.id === p.id) === i).slice(0, 16);
 
   return (
     <>
@@ -219,11 +186,11 @@ export default async function HomePage() {
             <Link href="/register" className="link text-center text-sm">New customer? Start here.</Link>
           </div>
         )}
-        {deals.length > 0 ? (
+        {featured.length > 0 ? (
         <div className={`${tint} bg-[color-mix(in_srgb,var(--cta)_18%,white)]`}>
-          <h2 className="text-xl font-bold">Today&rsquo;s deals</h2>
-          {mini(deals)}
-          <Link href="/search?deals=1&sort=discount" className="link mt-auto text-sm">See all deals ›</Link>
+          <h2 className="text-xl font-bold">{bestIsReal ? "Best sellers" : "Top picks"}</h2>
+          {mini(featured)}
+          <Link href="/search?sort=rating" className="link mt-auto text-sm">See all ›</Link>
         </div>
         ) : (
           <div className={`${tint} bg-[color-mix(in_srgb,var(--cta)_18%,white)]`}>
@@ -296,7 +263,6 @@ export default async function HomePage() {
         </Reveal>
       </section>
 
-      <ProductShelf id="deals" title="Today's deals" subtitle={nextEnd ? <>Next deal ends in <Countdown endsAt={nextEnd} className="font-bold text-red" /></> : "Real savings on UK favourites"} products={deals} shopper={shopper} href="/search?deals=1&sort=discount" countdown accent />
       <ProductShelf id="best" title={bestIsReal ? "Best sellers" : "Top picks"} subtitle={bestIsReal ? "What other shoppers bought in the last 30 days" : "A selection to get you started"} products={featured} shopper={shopper} href="/search?sort=rating" />
       {again.length > 0 && <ProductShelf id="again" title="Buy it again" subtitle="From your past orders" products={again.slice(0, 12)} shopper={shopper} href="/account/orders" linkLabel="Your orders" />}
 

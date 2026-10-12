@@ -170,18 +170,18 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 
 | ID | Requirement | Pri | Status | Verified by |
 | --- | --- | --- | --- | --- |
-| FR-BRW-01 | The system shall show a home page with featured offers, a paste-a-link entry, departments, today's deals, new arrivals, best sellers, and recently viewed items. | M | Implemented | E2E "home renders deals shelf" |
+| FR-BRW-01 | The system shall show a home page with featured banners, a paste-a-link entry, departments, new arrivals, best sellers, and recently viewed items. | M | Implemented | E2E "home renders deals shelf" |
 | FR-BRW-02 | The system shall list shops and show a page per shop with its logo, description, department and items, filterable by item category and sortable. | M | Implemented | E2E; `browse.test.ts` |
 | FR-BRW-03 | The system shall show a page per department (the category a shop is filed under) listing its items and shops, with an icon chosen from the department name. | S | Implemented | `department-icons.test.ts` |
 | FR-BRW-04 | The system shall offer text search with suggestions of items, shops and departments while typing (at least 2 characters), rate-limited to 120 requests per minute per visitor. | M | Implemented | E2E "search suggests products as you type"; `discovery.test.ts` |
 | FR-BRW-05 | A pasted web address in the search box shall be recognised and sent to the link flow instead of a text search. | S | Implemented | E2E "search box recognises pasted links" |
-| FR-BRW-06 | Results shall be filterable by department, shop, item category, price range (typed in cedis), and deals only, and sortable by featured, price low-to-high, price high-to-low, best rated, newest and biggest discount, 24 per page. | M | Implemented | `browse.test.ts` |
+| FR-BRW-06 | Results shall be filterable by department, shop, item category, price range (typed in cedis), and sortable by featured, price low-to-high, price high-to-low, best rated and newest, 24 per page. | M | Implemented | `browse.test.ts` |
 | FR-BRW-07 | Invalid or hostile query parameters shall fall back to safe defaults. | M | Implemented | `browse.test.ts` |
-| FR-BRW-08 | The product page shall show photos (or a fallback), price in pounds and cedis, was-price and deal percentage, size/colour options, quantity, the shop, a link to the item on the shop's own website, reviews and rating, related items from the same shop, a wishlist button and a share-on-WhatsApp link. | M | Implemented | E2E; inspection |
+| FR-BRW-08 | The product page shall show photos (or a fallback), price in pounds and cedis, size/colour options, quantity, the shop, a link to the item on the shop's own website, reviews and rating, related items from the same shop, a wishlist button and a share-on-WhatsApp link. | M | Implemented | E2E; inspection |
 | FR-BRW-09 | The product page shall show "what it costs to your door" for the chosen delivery area and shipping method. | M | Implemented | `pricing.test.ts`; inspection |
 | FR-BRW-10 | The visitor shall be able to choose a delivery area that is remembered (cookie; for signed-in customers also saved as their default) and used for "to your door" prices across the shop. | S | Implemented | Inspection |
 | FR-BRW-11 | Only items marked active, of shops marked shown, shall appear to customers. | M | Implemented | `discovery.test.ts` ("hides products from inactive shops") |
-| FR-BRW-12 | Deals shall be shown only while the was-price is higher than the price and the deal end time, if set, has not passed; a live countdown shall be shown. | S | Implemented | `discovery.test.ts` ("deals") |
+| FR-BRW-12 | The system shall make no discount claims: no percentage-off tags, "was" prices, savings amounts, "deal" labels or countdowns. Prices a source reports as a "was" or list price shall not be stored on items or shown. | M | Implemented | `discovery.test.ts` ("no discount claims"); `run.test.ts` |
 
 ### 4.2 Cart (FR-CRT)
 
@@ -313,14 +313,14 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | ID | Requirement | Pri | Status | Verified by |
 | --- | --- | --- | --- | --- |
 | FR-CAT-01 | Staff with the right shall be able to create, edit, show/hide and delete shops (name, department, tagline, description, website, colour, order, logo by upload or link). Deleting a shop shall remove its items, sources and cart/wishlist entries but never alter placed orders; confirmation shall be required. | M | Implemented | `shop-delete.test.ts`; `shop-logo.test.ts`; E2E |
-| FR-CAT-02 | Staff shall be able to create and edit items (name, brand, category, description, UK price, was-price and deal end, weight, size/colour options, source link, photo upload or link, shown/hidden). | M | Implemented | `admin.test.ts`; E2E |
+| FR-CAT-02 | Staff shall be able to create and edit items (name, brand, category, description, UK price, weight, size/colour options, source link, photo upload or link, shown/hidden). | M | Implemented | `admin.test.ts`; E2E |
 | FR-CAT-03 | Uploaded images shall be accepted by file content (JPEG, PNG, WebP, GIF), up to 4 MB, stored under random names, and served with a fixed type, `nosniff` and a sandbox policy. | M | Implemented | `uploads.test.ts`; E2E "fake images are refused" |
 | FR-CAT-04 | A new database shall contain only the shop **eBay UK**; made-up sample data shall be created only for tests or when explicitly enabled. | M | Implemented | `seed.test.ts` |
 | FR-CAT-10 | The system shall support catalogue sources of these kinds: product feed (CSV/JSON), eBay API, Diffbot Product API, Shopify shop, WooCommerce shop, shop website (sitemap and product pages), file import, pasted links. | M | Implemented | `run.test.ts`, `ebay.test.ts`, `shopify.test.ts`, `woocommerce.test.ts`, `file-import.test.ts` |
 | FR-CAT-11 | A source shall not be switched on until staff confirm they have checked the shop's terms or hold a licence. | M | Implemented | `run.test.ts`; E2E "sources need confirmed permission" |
 | FR-CAT-12 | Staff shall be able to preview a source without saving, run it now, switch it on or off, set its schedule and rules, and remove it keeping or removing its products. | M | Implemented | `run.test.ts`; E2E |
 | FR-CAT-13 | The system shall run due sources automatically (built-in scheduler, 10-minute tick; each source default every 24 hours) or via an external cron endpoint. | M | Implemented | `run.test.ts` (due sources); inspection |
-| FR-CAT-14 | New items shall be published automatically unless held; changes of price, was-price, stock or photo shall update live items; items missing from a complete feed shall be hidden only if at least half remain; items not refreshed within the source's stale window (default 14 days) shall be hidden. | M | Implemented | `run.test.ts` |
+| FR-CAT-14 | New items shall be published automatically unless held; changes of price, stock or photo shall update live items; items missing from a complete feed shall be hidden only if at least half remain; items not refreshed within the source's stale window (default 14 days) shall be hidden. | M | Implemented | `run.test.ts` |
 | FR-CAT-15 | Items with a price under 50p or over £10,000, a name under 3 characters, no link back, or a price move above the source's limit (default 40%) shall be held for staff review; staff shall be able to approve or reject singly or in bulk. | M | Implemented | `run.test.ts` |
 | FR-CAT-16 | Only prices in pounds shall be accepted. | M | Implemented | `parse.test.ts`; `shopify.test.ts` |
 | FR-CAT-17 | Feed addresses (which often hold keys) shall be stored encrypted and shown truncated. | M | Implemented | `run.test.ts`; `secrets.test.ts` |
@@ -545,7 +545,7 @@ The operator is responsible for consumer-protection terms and refund policy, VAT
 | BR-06 | Staff move an order **one step forward**; they may **cancel** up to *Buying from the UK shop*; a **paid and cancelled** order may be marked **Refunded** after the refund is made in the gateway. |
 | BR-07 | **Nothing is bought before payment is confirmed.** |
 | BR-08 | A **review** is allowed only for an item the customer received (order *Delivered*), once per item. |
-| BR-09 | A **deal** is live only while the was-price is higher than the price and the end time (if any) has not passed. |
+| BR-09 | **No discount claims**: customers see only the shop's current price (in pounds and cedis). The shop never shows a "was" price, a percentage off, or a saving. |
 | BR-10 | **Imported prices** are accepted only in pounds; an item is held for review if the price is under 50p, over £10,000, jumps by more than the source's limit (default 40%), the name is under 3 characters or there is no link back. |
 | BR-11 | **Disappearing items**: hidden only when missing from a *complete* feed and at least half of the known items remain; items not refreshed within the stale window (default 14 days) are hidden. |
 | BR-12 | **A source needs permission**: it cannot be switched on until the operator confirms the shop's terms or a licence. |
@@ -564,7 +564,7 @@ The operator is responsible for consumer-protection terms and refund policy, VAT
 
 ### UC-01 Browse and buy a listed item
 - **Actor:** Customer. **Pre:** none (sign-in required at checkout). **Related:** FR-BRW, FR-CRT, FR-PRC, FR-ORD, FR-PAY.
-- **Main flow:** 1. Customer finds an item (browse, search, deals). 2. Chooses options and quantity, **Add to cart**. 3. Opens the cart; sees totals in cedis and pounds. 4. **Checkout**: signs in or registers; chooses area and shipping; enters address; chooses notifications. 5. **Place order and pay**; chooses a gateway; pays on its page. 6. The system confirms payment, sets *Payment received*, sends a message. 7. Customer follows tracking.
+- **Main flow:** 1. Customer finds an item (browse or search). 2. Chooses options and quantity, **Add to cart**. 3. Opens the cart; sees totals in cedis and pounds. 4. **Checkout**: signs in or registers; chooses area and shipping; enters address; chooses notifications. 5. **Place order and pay**; chooses a gateway; pays on its page. 6. The system confirms payment, sets *Payment received*, sends a message. 7. Customer follows tracking.
 - **Alternatives:** payment fails → order stays awaiting payment, customer retries. Below minimum → told how much more is needed. Item or option missing → cannot add.
 - **Post:** an order exists with status *Payment received*; staff see it as "waiting to be bought".
 

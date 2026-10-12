@@ -17,7 +17,6 @@ export default function Footer() {
           <nav aria-label="Shop" className={col}>
             <p className="mb-1 text-base font-bold">Shop</p>
             <Link className={a} href="/shops">All shops</Link>
-            <Link className={a} href="/search?deals=1&sort=discount">Today&rsquo;s deals</Link>
             <Link className={a} href="/search?sort=newest">New arrivals</Link>
             <Link className={a} href="/search">Search everything</Link>
           </nav>

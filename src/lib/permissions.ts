@@ -14,7 +14,7 @@ export const PERMISSIONS = [
   { key: "customers.manage", group: "Sales", label: "Manage customers", help: "Disable or enable accounts and create password-reset links." },
   { key: "requests.manage", group: "Sales", label: "Handle link requests", help: "Quote link requests, and set the automatic-quote rules." },
   { key: "shops.manage", group: "Catalogue", label: "Manage shops", help: "Add, edit and delete shops and their logos." },
-  { key: "items.manage", group: "Catalogue", label: "Manage items", help: "Add, edit and hide items, photos and deals." },
+  { key: "items.manage", group: "Catalogue", label: "Manage items", help: "Add, edit and hide items and photos." },
   { key: "sources.manage", group: "Catalogue", label: "Manage catalogue sources", help: "Feeds, Shopify, eBay and file imports." },
   { key: "import.review", group: "Catalogue", label: "Review imported items", help: "Approve or reject items waiting in Import review." },
   { key: "reviews.manage", group: "Catalogue", label: "Moderate reviews", help: "Publish or hide customer reviews." },

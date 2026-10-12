@@ -37,7 +37,7 @@ Important choices:
 | --- | --- |
 | `settings` | Key/value site settings: site name, exchange rate and markup, service charge rule, minimum order, support WhatsApp, theme, exchange-rate policy, automatic-quote rules, item types, notification rules. |
 | `shops` | The shops shown on the site. `category` is the department. `logo_url` is an uploaded file or a link. |
-| `products` | Items for sale: price, optional was-price and deal end, weight, size/colour options (JSON), photo, source link, active flag, last-synced time. |
+| `products` | Items for sale: price, weight, size/colour options (JSON), photo, source link, active flag, last-synced time. |
 | `carts`, `cart_items` | A visitor's cart, found by a cookie token. |
 | `shipping_methods` | Shipping methods and their rate cards (JSON). |
 | `delivery_zones` | Delivery areas and their fees. |

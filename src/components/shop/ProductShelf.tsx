@@ -7,7 +7,7 @@ import Reveal from "./Reveal";
 
 /** A white panel holding a titled, scrollable row of product cards, like a department shelf. */
 export default function ProductShelf({
-  id, title, subtitle, products, shopper, href, linkLabel = "See all", countdown, badge, accent,
+  id, title, subtitle, products, shopper, href, linkLabel = "See all", badge, accent,
 }: {
   id?: string;
   title: string;
@@ -16,7 +16,6 @@ export default function ProductShelf({
   shopper: Shopper;
   href?: string;
   linkLabel?: string;
-  countdown?: boolean;
   badge?: "new";
   accent?: boolean;
 }) {
@@ -38,7 +37,7 @@ export default function ProductShelf({
             <Rail label={title}>
               {products.map((p) => (
                 <li key={p.id} className="w-44 sm:w-52">
-                  <ProductCard product={p} fx={shopper.fx} ctx={shopper.ctx} saved={shopper.saved.has(p.id)} countdown={countdown} badge={badge} />
+                  <ProductCard product={p} fx={shopper.fx} ctx={shopper.ctx} saved={shopper.saved.has(p.id)} badge={badge} />
                 </li>
               ))}
             </Rail>

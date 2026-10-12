@@ -57,7 +57,7 @@ The scheduler inside the server wakes every **ten minutes** and runs each source
 
 For each item it reads:
 - **New** → published (unless auto-publish is off or a check fails).
-- **Changed price, was-price, stock or photo** → the live product is updated (unless it fails a check, then it is **held**).
+- **Changed price, stock or photo** → the live product is updated (unless it fails a check, then it is **held**).
 - **Disappeared from a complete feed** → hidden. This happens only for complete feeds, and only if at least half of the previous items are still there (so a half-empty feed cannot wipe your shop).
 - **Not refreshed within the stale window** → hidden.
 

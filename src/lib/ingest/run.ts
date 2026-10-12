@@ -55,16 +55,13 @@ type ItemRow = {
 };
 
 function applyToProduct(d: Db, productId: number, it: ItemRow, reactivate: boolean, nowStr: string): void {
-  const p = d.prepare("SELECT image_url, compare_at_minor FROM products WHERE id = ?").get(productId) as { image_url: string | null; compare_at_minor: number | null } | undefined;
-  if (!p) return;
-  const compare = it.compare_at_minor && it.compare_at_minor > it.price_minor ? it.compare_at_minor : null;
+  if (!d.prepare("SELECT 1 FROM products WHERE id = ?").get(productId)) return;
   d.prepare(
-    `UPDATE products SET price_minor = @price, compare_at_minor = @compare,
-       deal_ends_at = CASE WHEN @compare IS NULL THEN NULL ELSE deal_ends_at END,
+    `UPDATE products SET price_minor = @price,
        image_url = CASE WHEN COALESCE(image_url, '') = '' AND @image <> '' THEN @image ELSE image_url END,
        active = CASE WHEN @reactivate = 1 THEN @inStock ELSE active END,
        last_synced_at = @now WHERE id = @id`,
-  ).run({ id: productId, price: it.price_minor, compare, image: it.image_url, reactivate: reactivate ? 1 : 0, inStock: it.in_stock, now: nowStr });
+  ).run({ id: productId, price: it.price_minor, image: it.image_url, reactivate: reactivate ? 1 : 0, inStock: it.in_stock, now: nowStr });
 }
 
 /** Puts an item on the site (creating the product) or applies its latest price and stock to the product it already feeds. */
@@ -85,7 +82,7 @@ export function publishItem(itemId: number, d: Db = db(), now = Date.now()): { o
       {
         id: 0, shopId: src.shop_id, name: it.name, brand: it.brand, category: it.category || src.default_category || src.shop_category, description: it.description,
         priceMinor: it.price_minor, weightGrams: it.weight_grams ?? src.default_weight_grams, options: parseOptions(it.options), imageUrl: it.image_url, sourceUrl: it.product_url,
-        active: it.in_stock === 1, compareAtMinor: it.compare_at_minor && it.compare_at_minor > it.price_minor ? it.compare_at_minor : null, dealEndsAt: null,
+        active: it.in_stock === 1, compareAtMinor: null, dealEndsAt: null, // sources report "was" prices, but the shop never shows them
       },
       d,
     );

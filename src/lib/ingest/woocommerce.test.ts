@@ -99,7 +99,7 @@ describe("WooCommerce source", () => {
     const r = await runSource(id, f.deps, d);
     expect(r).toMatchObject({ status: "OK", fetched: 2, created: 2 });
     const p = d.prepare("SELECT price_minor, compare_at_minor, options, source_url, active FROM products WHERE shop_id = ? AND name = 'Linen Shirt'").get(shop.id) as Record<string, unknown>;
-    expect(p).toMatchObject({ price_minor: 4500, compare_at_minor: 6000, source_url: "https://shop.example/product/linen-shirt/", active: 1 });
+    expect(p).toMatchObject({ price_minor: 4500, compare_at_minor: null, source_url: "https://shop.example/product/linen-shirt/", active: 1 });
     expect(JSON.parse(p.options as string)).toEqual([{ name: "Size", values: ["S", "M"] }]);
     expect(f.log).toContain(`${ORIGIN}/robots.txt`);
   });

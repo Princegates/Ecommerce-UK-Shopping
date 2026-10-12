@@ -7,7 +7,7 @@ import { gbp, ghs } from "@/lib/money";
 
 const KEY = "recently-viewed";
 
-type Item = { id: number; slug: string; name: string; shop: string; accent: string; imageUrl: string | null; priceMinor: number; gbpMinor: number; category: string; wasMinor: number | null };
+type Item = { id: number; slug: string; name: string; shop: string; accent: string; imageUrl: string | null; priceMinor: number; gbpMinor: number; category: string; };
 
 function read(): number[] {
   try {
@@ -54,7 +54,7 @@ export default function RecentlyViewed({ excludeId, title = "Recently viewed" }:
                 <ProductArt name={p.name} accent={p.accent} imageUrl={p.imageUrl} category={p.category} />
                 <div className="grid gap-0.5 p-2.5">
                   <span className="line-clamp-2 text-sm">{p.name}</span>
-                  <span className="num text-base font-medium">{ghs(p.priceMinor)}{p.wasMinor && <span className="was ml-1.5 text-xs">{ghs(p.wasMinor)}</span>}</span>
+                  <span className="num text-base font-medium">{ghs(p.priceMinor)}</span>
                   <span className="num text-xs text-ink-soft">{gbp(p.gbpMinor)} UK price</span>
                 </div>
               </Link>

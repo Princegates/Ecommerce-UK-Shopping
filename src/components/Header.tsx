@@ -129,7 +129,6 @@ export default async function Header() {
               <p className="mt-5 border-t border-line pt-3 text-sm"><Link href="/shops" className="link font-bold">See every shop →</Link></p>
             </Dropdown>
             <ul className="flex flex-1 items-center gap-0.5 overflow-x-auto whitespace-nowrap">
-              <li><Link href="/search?deals=1&sort=discount" className={`${navLink} font-bold text-spark`}>Today&rsquo;s Deals</Link></li>
               <li><Link href="/search?sort=newest" className={navLink}>New arrivals</Link></li>
               <li><Link href="/#best" className={navLink}>Best sellers</Link></li>
               {departments.slice(0, 6).map((d) => (

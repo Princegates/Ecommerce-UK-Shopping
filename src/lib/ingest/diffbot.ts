@@ -11,7 +11,7 @@ import { cleanText, cleanUrl, parsePrice, type NormalizedItem, type ParseResult 
 export { parseProductUrls };
 
 /**
- * Diffbot's Product API reads product pages for us and returns clean data (name, price, was-price, stock, brand, photo). You save your
+ * Diffbot's Product API reads product pages for us and returns clean data (name, price, stock, brand, photo). You save your
  * Diffbot token in Admin > Integrations and list product page addresses in a Catalogue source of type Diffbot. Diffbot, not this site,
  * downloads the pages, so each address is checked against the shop's robots.txt here first, and nothing is sent for a page the shop
  * disallows. Every product read uses Diffbot credits.

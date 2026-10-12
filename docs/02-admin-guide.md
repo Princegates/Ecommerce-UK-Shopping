@@ -86,7 +86,7 @@ Everything customers send by link. See [section 5](#5-link-orders-in-detail).
 Add, edit and **delete** shops: name, category (this is the **department** shown on the site), tagline, description, website, colour, order on the page, a **logo** (upload a JPEG, PNG, WebP or GIF up to 4 MB, or paste a link) and whether the shop is shown. Deleting a shop removes its items, its sources and their cart/wishlist entries; **orders already placed keep their own record**. You must tick a confirmation. If you only want to hide a shop, untick "Show this shop to customers".
 
 ### Items
-All products. Add an item by hand (name, brand, category, description, UK price, was-price and deal end, weight, size/colour options, source link, photo upload or link, shown or hidden) or edit existing ones. **Add by link** reads a pasted product link. Imported items appear here too; changes you make by hand to imported items can be overwritten by the next source refresh.
+All products. Add an item by hand (name, brand, category, description, UK price, weight, size/colour options, source link, photo upload or link, shown or hidden) or edit existing ones. **Add by link** reads a pasted product link. Imported items appear here too; changes you make by hand to imported items can be overwritten by the next source refresh.
 
 ### Catalogue sources
 Where products come from. Create, check ("Check this setup first" shows what would be read without saving), run now, switch on or off, upload files for file-import sources, and **remove** a source (keeping or removing the products it brought in). Full details in [Catalogue sources](04-catalogue-sources.md).
@@ -212,7 +212,7 @@ Picking a role ticks its rights. Changing any tick switches the role to **Custom
 | Manage customers (customers.manage) | Disable or enable accounts and create password-reset links. | ✔ |  |  |  |  |  |
 | Handle link requests (requests.manage) | Quote link requests, and set the automatic-quote rules. | ✔ | ✔ | ✔ |  |  |  |
 | Manage shops (shops.manage) | Add, edit and delete shops and their logos. | ✔ |  |  | ✔ |  |  |
-| Manage items (items.manage) | Add, edit and hide items, photos and deals. | ✔ |  |  | ✔ |  |  |
+| Manage items (items.manage) | Add, edit and hide items and photos. | ✔ |  |  | ✔ |  |  |
 | Manage catalogue sources (sources.manage) | Feeds, Shopify, WooCommerce, eBay, Diffbot and file imports. | ✔ |  |  | ✔ |  |  |
 | Review imported items (import.review) | Approve or reject items waiting in Import review. | ✔ |  |  | ✔ |  |  |
 | Moderate reviews (reviews.manage) | Publish or hide customer reviews. | ✔ |  |  | ✔ |  |  |

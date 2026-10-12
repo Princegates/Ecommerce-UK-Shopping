@@ -40,9 +40,9 @@ try {
 
   // 1. home page basics
   await page.goto(base + "/", { waitUntil: "networkidle" });
-  await page.getByRole("heading", { name: "Today's deals" }).waitFor();
+  await page.getByRole("heading", { name: /Best sellers|Top picks/ }).first().waitFor();
   must((await page.locator("nav.tabbar").isVisible()) === false, "tab bar hidden on desktop");
-  step("home renders deals shelf; tab bar hidden on desktop");
+  step("home renders the best sellers shelf; tab bar hidden on desktop");
 
   // 2. search autosuggest
   await page.locator("#site-q").fill("runner");

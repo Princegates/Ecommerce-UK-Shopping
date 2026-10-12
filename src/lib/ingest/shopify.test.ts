@@ -97,7 +97,7 @@ describe("Shopify source", () => {
     const r = await runSource(id, f.deps, d);
     expect(r).toMatchObject({ status: "OK", fetched: 2, created: 2 });
     const p = d.prepare("SELECT price_minor, compare_at_minor, options, image_url, source_url, active FROM products WHERE shop_id = ? AND name = 'Linen Shirt'").get(shop.id) as Record<string, unknown>;
-    expect(p).toMatchObject({ price_minor: 4500, compare_at_minor: 6000, image_url: "https://cdn.shopify.com/s/files/1/shirt.jpg", source_url: "https://brand.example/products/linen-shirt", active: 1 });
+    expect(p).toMatchObject({ price_minor: 4500, compare_at_minor: null, image_url: "https://cdn.shopify.com/s/files/1/shirt.jpg", source_url: "https://brand.example/products/linen-shirt", active: 1 });
     expect(JSON.parse(p.options as string)).toEqual([{ name: "Size", values: ["S", "M"] }, { name: "Colour", values: ["White"] }]);
     expect(f.log).toContain(`${ORIGIN}/robots.txt`);
     expect(f.log).toContain(`${ORIGIN}/meta.json`);

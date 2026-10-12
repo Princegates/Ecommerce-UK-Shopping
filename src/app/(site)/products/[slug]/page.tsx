@@ -5,14 +5,13 @@ import { notFound } from "next/navigation";
 import BuyBox from "@/components/BuyBox";
 import Price from "@/components/Price";
 import ProductArt from "@/components/ProductArt";
-import Countdown from "@/components/shop/Countdown";
 import RecentlyViewed, { TrackView } from "@/components/shop/RecentlyViewed";
 import ProductShelf from "@/components/shop/ProductShelf";
 import Reviews from "@/components/shop/Reviews";
 import Stars from "@/components/shop/Stars";
 import WishlistButton from "@/components/shop/WishlistButton";
 import { MAX_ITEM_QUANTITY } from "@/lib/cart";
-import { dealPercent, getProduct, isDealLive, relatedProducts } from "@/lib/catalog";
+import { getProduct, relatedProducts } from "@/lib/catalog";
 import { landedMinor } from "@/lib/landed";
 import { gbp, ghs } from "@/lib/money";
 import { appUrl } from "@/lib/app-url";
@@ -44,7 +43,6 @@ export default async function ProductPage({ params }: Props) {
   const methods = getShippingMethods();
   const zones = getZones();
   const related = relatedProducts(product, 10);
-  const deal = isDealLive(product);
   const cfg = {
     fx,
     serviceFee: getSettings().serviceFee,
@@ -73,8 +71,6 @@ export default async function ProductPage({ params }: Props) {
     ...(product.reviewCount > 0 && product.ratingAvg ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.ratingAvg, reviewCount: product.reviewCount } } : {}),
   };
 
-  const was = deal ? product.compareAtMinor : null;
-  const saveGbp = was ? was - product.priceMinor : 0;
   const door = shopper.ctx ? landedMinor(product, shopper.ctx) : null;
 
   return (
@@ -91,7 +87,6 @@ export default async function ProductPage({ params }: Props) {
           <div className="lg:sticky lg:top-36 lg:self-start">
             <div className="relative overflow-hidden rounded-lg border border-line">
               <ProductArt name={product.name} accent={product.shopAccent} imageUrl={product.imageUrl} category={product.category} />
-              {deal && <span className="badge badge-deal left-3 top-3 !text-sm">-{dealPercent(product)}% deal</span>}
             </div>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
               <span className="tag">{product.category || "Item"}</span>
@@ -117,11 +112,7 @@ export default async function ProductPage({ params }: Props) {
               )}
             </div>
             <hr className="my-3 border-line" />
-            {saveGbp > 0 && <p className="mb-1 text-sm font-bold text-red">Limited-time deal{product.dealEndsAt && <> · ends in <Countdown endsAt={product.dealEndsAt} /></>}</p>}
-            <Price gbpMinor={product.priceMinor} wasGbpMinor={was} fx={fx} size="lg" />
-            {saveGbp > 0 && (
-              <p className="mt-2 inline-block rounded bg-spark px-2 py-0.5 text-sm font-bold">You save {gbp(saveGbp)} · {ghs(gbpToGhsMinor(saveGbp, fx))}</p>
-            )}
+            <Price gbpMinor={product.priceMinor} fx={fx} size="lg" />
             <p className="mt-2 text-xs text-ink-soft">The price above is for the item only, at today&rsquo;s rate. Service charge, shipping and delivery are shown on the right before you pay.</p>
             {door !== null && shopper.ctx && (
               <p className="mt-3 text-sm">

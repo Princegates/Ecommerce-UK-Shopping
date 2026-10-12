@@ -69,14 +69,14 @@ describe("governance", () => {
 });
 
 describe("feed runs", () => {
-  it("publishes new items automatically with price, was-price, weight and source link", async () => {
+  it("publishes new items automatically with price, weight and source link, and never carries a was-price onto the product", async () => {
     const { d, id, shop } = setup();
     const f = fake({ [FEED]: csv([row("1", "Cloud Runner", "64.99", { rrp: "80.00" }), row("2", "Slim Jeans", "34.00"), row("3", "Euro Item", "9.00", { cur: "EUR" })]) });
     const r = await runSource(id, f.deps, d);
     expect(r).toMatchObject({ status: "OK", fetched: 2, created: 2, skipped: 1 });
     expect(r.message).toContain("price is in EUR");
     const p = products(d, shop.id, "Cloud Runner")[0];
-    expect(p).toMatchObject({ price_minor: 6499, compare_at_minor: 8000, active: 1, weight_grams: 600, source_url: "https://north.example/p/1" });
+    expect(p).toMatchObject({ price_minor: 6499, compare_at_minor: null, active: 1, weight_grams: 600, source_url: "https://north.example/p/1" });
     expect(p.last_synced_at).toBeTruthy();
     expect(reviewCount(d)).toBe(0);
     expect(listRuns(id, 5, d)[0]).toMatchObject({ status: "OK", created: 2 });

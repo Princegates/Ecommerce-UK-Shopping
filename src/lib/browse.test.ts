@@ -6,13 +6,13 @@ const depts = new Map([["fashion", "Fashion"], ["home-and-furniture", "Home & Fu
 
 describe("parseBrowse", () => {
   it("reads single and repeated values", () => {
-    const p = parseBrowse({ q: " trainers ", d: ["fashion", "sports"], shop: "northgate-fashion", min: "50", max: "500.5", deals: "1", sort: "price-asc", page: "3" });
-    expect(p).toMatchObject({ q: "trainers", d: ["fashion", "sports"], shop: ["northgate-fashion"], min: "50", max: "500.5", deals: true, sort: "price-asc", page: 3 });
+    const p = parseBrowse({ q: " trainers ", d: ["fashion", "sports"], shop: "northgate-fashion", min: "50", max: "500.5", sort: "price-asc", page: "3" });
+    expect(p).toMatchObject({ q: "trainers", d: ["fashion", "sports"], shop: ["northgate-fashion"], min: "50", max: "500.5", sort: "price-asc", page: 3 });
   });
   it("falls back safely on junk", () => {
-    const p = parseBrowse({ q: "x".repeat(500), sort: "drop table", page: "-4", min: "abc", max: "1e9", d: ["", "  "], deals: "yes" });
+    const p = parseBrowse({ q: "x".repeat(500), sort: "drop table", page: "-4", min: "abc", max: "1e9", d: ["", "  "] });
     expect(p.q).toHaveLength(80);
-    expect(p).toMatchObject({ sort: "popular", page: 1, min: "", max: "", d: [], deals: false });
+    expect(p).toMatchObject({ sort: "popular", page: 1, min: "", max: "", d: [] });
     expect(parseBrowse({ page: "9999" }).page).toBe(1);
     expect(parseBrowse({}).page).toBe(1);
   });

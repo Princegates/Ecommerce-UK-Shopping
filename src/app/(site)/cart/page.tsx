@@ -31,7 +31,7 @@ export default async function CartPage() {
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
           <Link href="/shops" className="btn btn-primary">Browse the shops</Link>
-          <Link href="/search?deals=1&sort=discount" className="btn btn-gold">See today&rsquo;s deals</Link>
+          <Link href="/search?sort=newest" className="btn btn-gold">See new arrivals</Link>
           <Link href="/request" className="btn">Request any item</Link>
         </div>
       </div>

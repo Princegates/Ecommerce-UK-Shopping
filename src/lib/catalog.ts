@@ -95,18 +95,6 @@ const toProduct = (r: ProductRow): Product => ({
   createdAt: r.created_at,
 });
 
-/** A deal is live while there is a higher "was" price and the end time, if one is set, has not passed. */
-export function isDealLive(p: Pick<Product, "priceMinor" | "compareAtMinor" | "dealEndsAt">, now = new Date()): boolean {
-  if (!p.compareAtMinor || p.compareAtMinor <= p.priceMinor) return false;
-  if (!p.dealEndsAt) return true;
-  const end = Date.parse(p.dealEndsAt.includes("T") ? p.dealEndsAt : `${p.dealEndsAt.replace(" ", "T")}Z`);
-  return Number.isFinite(end) && end > now.getTime();
-}
-
-export function dealPercent(p: Pick<Product, "priceMinor" | "compareAtMinor">): number {
-  return p.compareAtMinor && p.compareAtMinor > p.priceMinor ? Math.round((1 - p.priceMinor / p.compareAtMinor) * 100) : 0;
-}
-
 export function listShops(opts: { includeInactive?: boolean; category?: string } = {}, d: Db = db()): Shop[] {
   const where: string[] = [];
   const args: unknown[] = [];
@@ -225,7 +213,7 @@ export function featuredProducts(limit = 8, d: Db = db()): Product[] {
 
 // ------------------------------------------------------------------ discovery
 
-export type SortKey = ProductSort | "newest" | "rating" | "discount";
+export type SortKey = ProductSort | "newest" | "rating";
 
 export type Query = {
   q?: string;
@@ -236,7 +224,6 @@ export type Query = {
   categories?: string[];
   minGbpMinor?: number;
   maxGbpMinor?: number;
-  dealsOnly?: boolean;
   sort?: SortKey;
   limit?: number;
   offset?: number;
@@ -257,7 +244,6 @@ const SORT_SQL: Record<SortKey, string> = {
   name: "p.name COLLATE NOCASE",
   newest: "p.created_at DESC, p.id DESC",
   rating: "review_avg DESC NULLS LAST, review_count DESC, p.id",
-  discount: "(CASE WHEN p.compare_at_minor > p.price_minor THEN 1.0 - (p.price_minor * 1.0 / p.compare_at_minor) ELSE 0 END) DESC, p.id",
 };
 
 function where(q: Query, skip: "shops" | "departments" | "categories" | "price" | null = null): { sql: string; args: unknown[] } {
@@ -281,7 +267,6 @@ function where(q: Query, skip: "shops" | "departments" | "categories" | "price" 
     if (q.minGbpMinor && q.minGbpMinor > 0) { w.push("p.price_minor >= ?"); args.push(Math.floor(q.minGbpMinor)); }
     if (q.maxGbpMinor && q.maxGbpMinor > 0) { w.push("p.price_minor <= ?"); args.push(Math.floor(q.maxGbpMinor)); }
   }
-  if (q.dealsOnly) w.push("p.compare_at_minor > p.price_minor AND (p.deal_ends_at IS NULL OR p.deal_ends_at > datetime('now'))");
   return { sql: w.join(" AND "), args };
 }
 
@@ -318,10 +303,6 @@ export function queryProducts(q: Query, d: Db = db()): { items: Product[]; total
       priceMaxGbp: range.hi ?? 0,
     },
   };
-}
-
-export function dealProducts(limit = 12, d: Db = db()): Product[] {
-  return queryProducts({ dealsOnly: true, sort: "discount", limit }, d).items;
 }
 
 export function newArrivals(limit = 12, d: Db = db()): Product[] {

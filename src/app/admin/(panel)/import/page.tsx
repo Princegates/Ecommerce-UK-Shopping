@@ -68,7 +68,6 @@ export default async function ImportReview({ searchParams }: { searchParams: Pro
                   <p className="font-bold">{it.name}</p>
                   <p className="num">
                     {it.status === "HELD" && it.productPriceMinor !== null && it.productPriceMinor !== it.priceMinor ? <><span className="was">{gbp(it.productPriceMinor)}</span> → <strong>{gbp(it.priceMinor)}</strong></> : <strong>{gbp(it.priceMinor)}</strong>}
-                    {it.compareAtMinor ? <span className="was ml-2">{gbp(it.compareAtMinor)}</span> : null}
                     <span className="ml-3 text-sm text-ink-soft">{it.inStock ? "In stock" : "Out of stock"}{it.category ? ` · ${it.category}` : ""}</span>
                   </p>
                   {it.holdReason && <p className="text-sm font-semibold text-red">{it.holdReason}</p>}

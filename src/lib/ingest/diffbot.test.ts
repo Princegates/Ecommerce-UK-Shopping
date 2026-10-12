@@ -127,13 +127,13 @@ function setup(token = true, urls = `${PAGE_A}\n${PAGE_B}`) {
 beforeEach(() => resetHostClock());
 
 describe("Diffbot source", () => {
-  it("publishes the pages Diffbot reads, with photo, was-price and the link back", async () => {
+  it("publishes the pages Diffbot reads, with photo and the link back, but no was-price", async () => {
     const { d, id, shop } = setup();
     const f = fakes();
     const r = await runSource(id, f.deps, d);
     expect(r).toMatchObject({ status: "OK", fetched: 2, created: 2 });
     const p = d.prepare("SELECT price_minor, compare_at_minor, image_url, source_url, weight_grams, active FROM products WHERE shop_id = ? AND name = 'Acme Kettle 1.7L'").get(shop.id) as Record<string, unknown>;
-    expect(p).toEqual({ price_minor: 2499, compare_at_minor: 3499, image_url: "https://shop.example/img/main.jpg", source_url: PAGE_A, weight_grams: 800, active: 1 });
+    expect(p).toEqual({ price_minor: 2499, compare_at_minor: null, image_url: "https://shop.example/img/main.jpg", source_url: PAGE_A, weight_grams: 800, active: 1 });
     expect(f.diffbotCalls).toEqual([PAGE_A, PAGE_B]);
   });
 

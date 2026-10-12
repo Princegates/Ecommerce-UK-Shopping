@@ -80,7 +80,7 @@ export default async function SourceDetail({ params, searchParams }: { params: P
                 <label className="label" htmlFor="importFile">CSV or JSON file (up to 15 MB)</label>
                 <input id="importFile" name="file" type="file" accept=".csv,.json,text/csv,application/json,text/plain" className="input !p-1.5" />
                 <p className="hint">
-                  One product per row, with columns for the name, price (in pounds), link to the product page, photo link, and optionally was-price, stock, brand and
+                  One product per row, with columns for the name, price (in pounds), link to the product page, photo link, and optionally stock, brand and
                   category. Common column names are recognised automatically; use &ldquo;Column names&rdquo; below if yours differ. Uploading the same file again updates
                   prices and stock. Items the file does not mention are left alone.
                 </p>

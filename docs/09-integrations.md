@@ -81,7 +81,7 @@ Needs free keys from developer.ebay.com: **App ID** and **Cert ID**, and an **en
 ## Diffbot (Product API, paid)
 
 Needs a **token** from your Diffbot dashboard (there is a free trial; after that each product read uses credits). Save it, switch Diffbot on and press **Test connection**, which reads one example page and so uses one credit. Then create a **Catalogue source** of type Diffbot and list the product page addresses, one per line.
-- Diffbot downloads the pages for you and returns the name, price, was-price, stock, brand and photo. Only prices clearly in pounds are used.
+- Diffbot downloads the pages for you and returns the name, price, stock, brand and photo. Only prices clearly in pounds are used.
 - The shop's own terms still apply, because Diffbot reads the page on your behalf. Only list pages you are allowed to use. The permission box on the source is how you confirm that.
 - The site checks each shop's `robots.txt` before asking Diffbot, and sends nothing for a page the shop disallows or when the shop refuses the `robots.txt` request.
 - A bad token, no credits left or a rate limit stops the run with a clear message. A page Diffbot cannot read is skipped and counted.
