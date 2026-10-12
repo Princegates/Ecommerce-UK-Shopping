@@ -16,6 +16,7 @@ import { diffbotConfig, gatherDiffbot, parseProductUrls } from "./diffbot";
 import { gatherWooCommerce } from "./woocommerce";
 import { ebayConfig, ebayToken, mapEbayItem, parseQueries, searchEbay } from "./ebay";
 import { getSource, getSourceUrl, linksSourceFor, type ImportItem, type Source, type SourceKind } from "./store";
+import { looksLikeAddOn } from "./non-product";
 
 type Db = Database.Database;
 
@@ -38,6 +39,7 @@ export function sanityProblem(it: NormalizedItem): string | null {
   if (it.priceMinor < MIN_PRICE) return `Price ${fmtGbp(it.priceMinor)} looks too low`;
   if (it.priceMinor > MAX_PRICE) return `Price ${fmtGbp(it.priceMinor)} looks too high`;
   if (it.name.length < 3) return "Name is too short";
+  if (looksLikeAddOn(it.name)) return "Looks like a warranty, plan or fee, not a product";
   if (!it.productUrl) return "No link back to the shop";
   return null;
 }

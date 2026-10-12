@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { openForTest } from "../db";
 import { listShops } from "../catalog";
 import { importLinks, lookupLink, previewSource, publishItem, rejectItem, runDueSources, runSource, sanityProblem, sweepStale, type IngestDeps } from "./run";
+import { delistAddOns, isCertainAddOn, looksLikeAddOn } from "./non-product";
 import { resetHostClock, type Fetcher, type HttpResponse } from "./net";
 import { deleteSource, getSource, listImportItems, listRuns, reviewCount, saveSource, setSourceEnabled, findListedProductByUrl, type SourceInput } from "./store";
 
@@ -204,6 +205,33 @@ describe("feed runs", () => {
     expect(rejectItem(999999, d)).toBe(false);
     expect(publishItem(item.id, d)).toMatchObject({ ok: true });
     expect(products(d, shop.id, "Live thing")[0].active).toBe(1);
+  });
+
+  it("holds warranty and fee listings for review instead of publishing them", async () => {
+    const { d, id, shop } = setup();
+    const f = fake({ [FEED]: csv([row("1", "Worry-Free Purchase", "1.00"), row("2", "Real thing", "20.00")]) });
+    await runSource(id, f.deps, d);
+    expect(products(d, shop.id, "Worry-Free Purchase")).toHaveLength(0);
+    expect(products(d, shop.id, "Real thing")).toHaveLength(1);
+    expect(listImportItems({ status: "PENDING" }, d).items[0].holdReason).toContain("not a product");
+    expect(looksLikeAddOn("2 Year Extended Warranty")).toBe(true);
+    expect(looksLikeAddOn("Cloud Runner Trainers")).toBe(false);
+    expect(isCertainAddOn("Samsung TV 3 Year Warranty")).toBe(false);
+  });
+
+  it("takes a live add-on off the site, out of carts, and keeps it rejected", async () => {
+    const { d, id, shop } = setup();
+    const f = fake({ [FEED]: csv([row("1", "Real thing", "20.00")]) });
+    await runSource(id, f.deps, d);
+    const [real] = products(d, shop.id, "Real thing");
+    d.prepare("UPDATE products SET name = 'Worry-Free Purchase' WHERE id = ?").run(real.id); // as if an earlier import had published it
+    d.prepare("INSERT INTO carts (token) VALUES ('t')").run();
+    d.prepare("INSERT INTO cart_items (cart_token, product_id, quantity) VALUES ('t', ?, 1)").run(real.id);
+    expect(delistAddOns(d)).toBe(1);
+    expect(d.prepare("SELECT active FROM products WHERE id = ?").get(real.id)).toEqual({ active: 0 });
+    expect(d.prepare("SELECT COUNT(*) AS n FROM cart_items WHERE product_id = ?").get(real.id)).toEqual({ n: 0 });
+    expect(listImportItems({ status: "REJECTED" }, d).total).toBe(1);
+    expect(delistAddOns(d)).toBe(0);
   });
 
   it("holds every update when auto-apply is off", async () => {

@@ -92,7 +92,7 @@ All products. Add an item by hand (name, brand, category, description, UK price,
 Where products come from. Create, check ("Check this setup first" shows what would be read without saving), run now, switch on or off, upload files for file-import sources, and **remove** a source (keeping or removing the products it brought in). Full details in [Catalogue sources](04-catalogue-sources.md).
 
 ### Import review
-Items waiting for a person: odd prices (under 50p, over £10,000), price jumps over the source's limit (default 40%), updates you chose to approve by hand. **Approve** puts the item or its new price live; **Reject** keeps it off. There is a bulk approve.
+Items waiting for a person: odd prices (under 50p, over £10,000), names that look like a warranty, protection plan or fee rather than a product, price jumps over the source's limit (default 40%), updates you chose to approve by hand. **Approve** puts the item or its new price live; **Reject** keeps it off. There is a bulk approve.
 
 ### Reviews
 Customer reviews, filterable by **All / Published / Hidden**. Only customers whose order was **delivered** can review that item, once. Hide a review to remove it from the product page.

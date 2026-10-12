@@ -63,6 +63,7 @@ For each item it reads:
 
 ### Checks that send an item to review
 - Price under **50p** or over **£10,000**.
+- A name that looks like a warranty, protection plan, insurance or fee (for example "Worry-Free Purchase"): these are add-ons, not products.
 - Name shorter than 3 characters, or no link back to the shop.
 - A price move bigger than the source's limit.
 - Any update, if you turned automatic updates off.
