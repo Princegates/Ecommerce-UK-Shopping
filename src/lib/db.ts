@@ -3,6 +3,7 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 import { delistAddOns } from "./ingest/non-product";
+import { delistRestricted } from "./restricted";
 import { SCHEMA } from "./schema";
 import { removeSampleData, seedIfEmpty } from "./seed";
 
@@ -63,6 +64,8 @@ export function migrate(d: Db): void {
 
   // marketplace add-ons such as "Worry-Free Purchase" are not products; take any that earlier imports published off the site
   delistAddOns(d);
+  // powered massage machines and TENS/EMS muscle stimulators are not sold (medical-device and air-freight battery rules)
+  delistRestricted(d);
 
   // rename the untouched default names; a name the owner chose themselves is left alone
   for (const old of ["Akwaaba UK", "SHOP UK FROM GH"]) d.prepare("UPDATE settings SET value = ? WHERE key = 'site_name' AND value = ?").run(JSON.stringify("YenkoExpress"), JSON.stringify(old));

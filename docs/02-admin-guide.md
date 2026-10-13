@@ -92,6 +92,8 @@ All products. Add an item by hand (name, brand, category, description, UK price,
 Where products come from. Create, check ("Check this setup first" shows what would be read without saving), run now, switch on or off, upload files for file-import sources, and **remove** a source (keeping or removing the products it brought in). Full details in [Catalogue sources](04-catalogue-sources.md).
 
 ### Import review
+**Restricted items are never sold.** TENS and EMS muscle stimulators and battery-powered massage machines are rejected automatically (they show under **Rejected** with the reason "Restricted item"), and you cannot add one by hand. To change the list of words, a developer edits `src/lib/restricted.ts`.
+
 Items waiting for a person: odd prices (under 50p, over £10,000), names that look like a warranty, protection plan or fee rather than a product, price jumps over the source's limit (default 40%), updates you chose to approve by hand. **Approve** puts the item or its new price live; **Reject** keeps it off. There is a bulk approve.
 
 ### Reviews

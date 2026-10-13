@@ -16,6 +16,17 @@ function setup() {
 }
 
 describe("submitting a link request", () => {
+  it("refuses a muscle stimulator or powered massage machine, by its title or its link, and saves nothing", async () => {
+    const d = setup();
+    const byTitle = await submitLinkRequest(input({ title: "EMS Foot Massager Mat" }), 5, async () => 2000, d, NOW);
+    expect(byTitle).toMatchObject({ id: 0, blocked: expect.stringContaining("muscle stimulator") });
+    const byLink = await submitLinkRequest(input({ title: "", url: "https://www.amazon.co.uk/Shiatsu-Neck-Massager-Heat/dp/B0AAAAAAAA" }), 5, async () => 2000, d, NOW);
+    expect(byLink.blocked).toBe("powered massage device");
+    expect(d.prepare("SELECT COUNT(*) AS n FROM link_requests").get()).toEqual({ n: 0 });
+    const fine = await submitLinkRequest(input(), 5, async () => 3500, d, NOW);
+    expect(fine.blocked).toBeUndefined();
+  });
+
   it("uses the price the system read from the page, with no price typed by the customer", async () => {
     const d = setup();
     const out = await submitLinkRequest(input(), 5, async () => 3500, d, NOW);

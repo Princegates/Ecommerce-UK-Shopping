@@ -29,6 +29,7 @@ import { adminAudit, audit } from "@/lib/audit";
 import { kickOutbox } from "@/lib/notify/kick";
 import { confirmPaymentManually } from "@/lib/payments/manual";
 import { getSettings } from "@/lib/settings";
+import { restrictedReason } from "@/lib/restricted";
 
 function done(path: string, error?: string): never {
   revalidatePath("/", "layout");
@@ -251,6 +252,8 @@ export async function saveProductAction(f: FormData): Promise<void> {
   const path = id ? `/admin/items/${id}` : "/admin/items/new";
   const name = str(f, "name");
   if (name.length < 2 || name.length > 120) done(path, "Give the item a name (2 to 120 characters).");
+  const restricted = restrictedReason(name, str(f, "category"));
+  if (restricted) done(path, `We do not sell this kind of item (${restricted}): it is a battery-powered medical-type device, which the medical-device and air-freight battery rules do not allow.`);
   const shopId = num(f, "shopId");
   if (!db().prepare("SELECT 1 FROM shops WHERE id = ?").get(shopId)) done(path, "Choose a shop.");
   const price = money(f, "price", "The price");

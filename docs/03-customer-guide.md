@@ -23,7 +23,8 @@ You can buy from **almost any UK website**, even if it is not listed here.
 2. Copy the web address from your browser.
 3. Paste it into the box on our home page (or the **Add by link** button at the top, the search bar, or the **Paste link** tab on a phone).
 4. We show the price if we can read it. Choose the quantity, the kind of item and your size or colour, then tap **Get my full price and pay**.
-5. If we cannot price it straight away, we check it for you and **send you a message** with your price and a link to pay. It also appears in your account under **Your link requests**.
+5. We cannot buy or ship muscle stimulators (TENS and EMS) or battery-powered massage machines; a request for one is refused (see **Items we cannot ship** in the footer).
+6. If we cannot price it straight away, we check it for you and **send you a message** with your price and a link to pay. It also appears in your account under **Your link requests**.
 
 The price is held for a few days. After that it may have changed, so ask us for a fresh one.
 

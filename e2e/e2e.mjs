@@ -361,6 +361,15 @@ try {
   must((await page.locator("#url").inputValue()) === "https://www.shop.example/product/boots", "pasted link is carried into the request form");
   step("paste-a-link box on the home page; search box recognises pasted links");
 
+  // 9e2. restricted items: a TENS/EMS stimulator or powered massager is refused, and the notice page explains why
+  await page.goto(base + "/request?url=" + encodeURIComponent("http://127.0.0.1/ems") + "&title=EMS+Foot+Massager+Mat&price=25");
+  await page.locator("#title").waitFor();
+  await page.getByRole("button", { name: "Send request" }).click();
+  await page.getByText(/cannot buy or ship this kind of item/).waitFor();
+  await page.goto(base + "/restricted-items");
+  await page.getByRole("heading", { name: /cannot buy or ship/ }).waitFor();
+  step("a muscle stimulator request is refused and the notice page explains why");
+
   // 9f. a link request becomes a real order: request, quote, pay, then it is an ordinary order
   await page.goto(base + "/request?url=" + encodeURIComponent("http://127.0.0.1/kettle") + "&title=Link+Order+Kettle&price=25");
   await page.locator("#title").waitFor();

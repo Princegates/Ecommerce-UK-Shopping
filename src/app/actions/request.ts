@@ -6,8 +6,11 @@ import { getCustomer } from "@/lib/customer-session";
 import { normalizeRequestUrl, wrongStoreMessage } from "@/lib/amazon-links";
 import { lookupLink } from "@/lib/ingest/run";
 import { submitLinkRequest } from "@/lib/link-submit";
+import { linkWords, restrictedReason } from "@/lib/restricted";
 import { createLimiter } from "@/lib/throttle";
 import { firstError, linkRequestSchema } from "@/lib/validation";
+
+const RESTRICTED_MESSAGE = "Sorry, we cannot buy or ship this kind of item (muscle stimulators such as TENS and EMS, and battery-powered massage machines) because of medical-device and air-freight battery rules.";
 
 const limiter = createLimiter(6, 60 * 60 * 1000);
 
@@ -30,6 +33,8 @@ export async function requestAction(_prev: RequestState, formData: FormData): Pr
   }
   const parsed = linkRequestSchema.safeParse(values);
   if (!parsed.success) return { error: firstError(parsed.error), values };
+  // refused before the rate limiter, so a refused request does not use up the visitor's allowance
+  if (restrictedReason(parsed.data.title, parsed.data.details, linkWords(parsed.data.url))) return { error: RESTRICTED_MESSAGE, values };
   const key = `request:${await clientKey()}`;
   if (!limiter.allowed(key)) return { error: "You have sent several requests recently. Please try again later.", values };
   limiter.record(key);
@@ -38,6 +43,7 @@ export async function requestAction(_prev: RequestState, formData: FormData): Pr
   const r = { ...parsed.data, url: link.url.slice(0, 500) };
   const customer = await getCustomer();
   const out = await submitLinkRequest(r, customer?.id ?? null, readPagePrice);
+  if (out.blocked) return { error: RESTRICTED_MESSAGE, values };
   if (out.quote) return { done: true, quote: out.quote };
   return { done: true };
 }
@@ -64,5 +70,6 @@ export async function quickLinkAction(formData: FormData): Promise<void> {
   if (!limiter.allowed(key)) redirect(back);
   limiter.record(key);
   const out = await submitLinkRequest(parsed.data, customer.id, readPagePrice);
+  if (out.blocked) redirect("/restricted-items");
   redirect(out.quote ? `/quote/${out.quote.token}` : "/account#requests");
 }

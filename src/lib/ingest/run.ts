@@ -17,6 +17,7 @@ import { gatherWooCommerce } from "./woocommerce";
 import { ebayConfig, ebayToken, mapEbayItem, parseQueries, searchEbay } from "./ebay";
 import { getSource, getSourceUrl, linksSourceFor, type ImportItem, type Source, type SourceKind } from "./store";
 import { looksLikeAddOn } from "./non-product";
+import { restrictedReason } from "../restricted";
 
 type Db = Database.Database;
 
@@ -121,6 +122,9 @@ export function stageItem(d: Db, source: Source, it: NormalizedItem, runStart: s
     compare: it.compareAtMinor, image: it.imageUrl, stock: it.inStock ? 1 : 0, weight: it.weightGrams, options: JSON.stringify(it.options ?? []), fp, seen: runStart,
   };
 
+  // medical-type and powered massage devices are never sold: a new one is recorded as rejected, a known one (even live) is taken down
+  const restricted = restrictedReason(it.name, it.category);
+
   if (!existing) {
     const info = d
       .prepare(
@@ -129,6 +133,12 @@ export function stageItem(d: Db, source: Source, it: NormalizedItem, runStart: s
       )
       .run({ ...fields, source: source.id, ext: it.externalId });
     const id = Number(info.lastInsertRowid);
+    if (restricted) {
+      rejectItem(id, d);
+      d.prepare("UPDATE import_items SET hold_reason = ? WHERE id = ?").run(`Restricted item: ${restricted}`, id);
+      c.skipped++;
+      return id;
+    }
     c.created++;
     const problem = sanityProblem(it);
     if (source.autoPublishNew && !problem) publishItem(id, d, now);
@@ -137,6 +147,15 @@ export function stageItem(d: Db, source: Source, it: NormalizedItem, runStart: s
   }
 
   const touch = () => d.prepare("UPDATE import_items SET last_seen_at = ? WHERE id = ?").run(runStart, existing.id);
+  if (restricted) {
+    if (existing.status !== "REJECTED") {
+      rejectItem(existing.id, d);
+      d.prepare("UPDATE import_items SET hold_reason = ? WHERE id = ?").run(`Restricted item: ${restricted}`, existing.id);
+      c.skipped++;
+    }
+    touch();
+    return existing.id;
+  }
   const savedProductId = existing.product_id && d.prepare("SELECT 1 FROM products WHERE id = ?").get(existing.product_id) ? existing.product_id : null;
   const nowStr = sqlTime(now);
 

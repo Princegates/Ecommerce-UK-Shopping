@@ -1,6 +1,7 @@
 import type Database from "better-sqlite3";
 import { db } from "./db";
 import { autoQuoteRequest, getItemTypes, getLinkAuto } from "./link-auto";
+import { linkWords, restrictedReason } from "./restricted";
 
 type Db = Database.Database;
 
@@ -18,7 +19,9 @@ export async function submitLinkRequest(
   readPagePrice: (url: string) => Promise<number | null>,
   d: Db = db(),
   now = Date.now(),
-): Promise<{ id: number; quote?: { token: string; unitPriceMinor: number; source: "page" | "customer" } }> {
+): Promise<{ id: number; blocked?: string; quote?: { token: string; unitPriceMinor: number; source: "page" | "customer" } }> {
+  const blocked = restrictedReason(i.title, i.details, linkWords(i.url));
+  if (blocked) return { id: 0, blocked }; // not saved, not quoted: we do not buy or ship this kind of item
   const itemType = getItemTypes(d).some((t) => t.name === i.itemType) ? i.itemType : "";
   const info = d
     .prepare("INSERT INTO link_requests (url, title, details, quantity, price_seen, name, phone, email, customer_id, item_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")

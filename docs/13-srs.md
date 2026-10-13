@@ -333,6 +333,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-CAT-32 | When a shop answers 401, 403, 429 or 451, or shows a verification page, the importer shall stop, pause that source for 24 hours and tell staff. | M | Implemented | `net.test.ts`; `run.test.ts` |
 | FR-CAT-33 | The importer shall never evade a block: no changed identity, rotating addresses, or CAPTCHA solving. | M | Implemented (by design) | Inspection; `net.test.ts` |
 | FR-CAT-34 | Only one run per source at a time (lock expiring after 30 minutes). | M | Implemented | `run.test.ts` |
+| FR-CAT-35 | The system shall not sell muscle stimulators (TENS and EMS) or powered massage machines, which are battery-powered medical-type devices subject to medical-device and air-freight battery rules. Imports shall record such items as rejected and never publish them; any already live shall be taken off the site and out of carts; link requests for them shall be refused; staff shall not be able to add them by hand. | M | Implemented | `restricted.test.ts`; `run.test.ts`; `link-submit.test.ts`; E2E |
 
 ### 4.11 Administration (FR-ADM)
 
@@ -557,6 +558,7 @@ The operator is responsible for consumer-protection terms and refund policy, VAT
 | BR-18 | **Notifications** go out only on channels the customer chose, the admin enabled for that status, and a configured provider supports. |
 | BR-19 | **Cancelled before shipment** is the customer's window to withdraw; after the UK shop has bought the item it normally cannot be cancelled. (Policy; not enforced by software beyond BR-06.) |
 | BR-20 | **Prices shown are guidance until paid**: the server recomputes every amount at order creation. |
+| BR-21 | **Restricted items** are never sold: TENS and EMS muscle stimulators and battery-powered massage machines are refused whether they arrive by import, link request or by hand. |
 
 ---
 

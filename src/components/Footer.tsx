@@ -32,6 +32,7 @@ export default function Footer() {
             <Link className={a} href="/amazon">Order from Amazon UK</Link>
             <Link className={a} href="/request">Request any item</Link>
             <Link className={a} href="/#how">How it works</Link>
+            <Link className={a} href="/restricted-items">Items we cannot ship</Link>
             {wa && <a className={a} href={`https://wa.me/${wa}`}>Chat on WhatsApp</a>}
           </nav>
           <div className={col}>

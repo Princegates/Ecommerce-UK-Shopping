@@ -39,6 +39,10 @@ export default function TermsPage() {
         you before going ahead, and you can cancel and be refunded. We can only quote what a shop shows us, so the price you type in is a guide until we confirm it.
       </p>
 
+      <p>
+        We do not buy or ship muscle stimulators (TENS and EMS machines) or battery-powered massage machines. They are medical-type devices with batteries, and medical-device and air-freight rules do not allow us to carry them. If one is in your cart or request, we will refuse or cancel it and refund anything you paid.
+      </p>
+
       <h2>5. Placing an order and paying</h2>
       <ul>
         <li>An order is accepted when your payment is confirmed. We start buying only after that.</li>

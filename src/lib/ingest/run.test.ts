@@ -3,6 +3,7 @@ import { openForTest } from "../db";
 import { listShops } from "../catalog";
 import { importLinks, lookupLink, previewSource, publishItem, rejectItem, runDueSources, runSource, sanityProblem, sweepStale, type IngestDeps } from "./run";
 import { delistAddOns, isCertainAddOn, looksLikeAddOn } from "./non-product";
+import { delistRestricted } from "../restricted";
 import { resetHostClock, type Fetcher, type HttpResponse } from "./net";
 import { deleteSource, getSource, listImportItems, listRuns, reviewCount, saveSource, setSourceEnabled, findListedProductByUrl, type SourceInput } from "./store";
 
@@ -232,6 +233,37 @@ describe("feed runs", () => {
     expect(d.prepare("SELECT COUNT(*) AS n FROM cart_items WHERE product_id = ?").get(real.id)).toEqual({ n: 0 });
     expect(listImportItems({ status: "REJECTED" }, d).total).toBe(1);
     expect(delistAddOns(d)).toBe(0);
+  });
+
+  it("never publishes a TENS/EMS stimulator or powered massager, and takes a live one down", async () => {
+    const { d, id, shop } = setup();
+    const routes: Routes = { [FEED]: csv([row("1", "EMS TENS Foot Massager Mat", "24.00"), row("2", "Real thing", "20.00")]) };
+    const f = fake(routes);
+    await runSource(id, f.deps, d);
+    expect(products(d, shop.id, "EMS TENS Foot Massager Mat")).toHaveLength(0);
+    expect(products(d, shop.id, "Real thing")).toHaveLength(1);
+    const rejected = listImportItems({ status: "REJECTED" }, d).items;
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].holdReason).toContain("Restricted item");
+    // a live product that later turns out to be restricted (renamed by the shop) is hidden and stays rejected
+    routes[FEED] = csv([row("1", "EMS TENS Foot Massager Mat", "24.00"), row("2", "Rechargeable Massage Gun Pro", "21.00")]);
+    resetHostClock();
+    await runSource(id, f.deps, d);
+    expect(products(d, shop.id, "Real thing")[0].active).toBe(0);
+    expect(listImportItems({ status: "REJECTED" }, d).total).toBe(2);
+    expect(listImportItems({ status: "PUBLISHED" }, d).total).toBe(0);
+  });
+
+  it("delists restricted products already on the site", async () => {
+    const { d, id, shop } = setup();
+    const f = fake({ [FEED]: csv([row("1", "Real thing", "20.00")]) });
+    await runSource(id, f.deps, d);
+    const [p] = products(d, shop.id, "Real thing");
+    d.prepare("UPDATE products SET name = 'Shiatsu Foot Massager Machine' WHERE id = ?").run(p.id);
+    expect(delistRestricted(d)).toBe(1);
+    expect(d.prepare("SELECT active FROM products WHERE id = ?").get(p.id)).toEqual({ active: 0 });
+    expect(listImportItems({ status: "REJECTED" }, d).items[0].holdReason).toContain("Restricted item");
+    expect(delistRestricted(d)).toBe(0);
   });
 
   it("holds every update when auto-apply is off", async () => {
