@@ -61,7 +61,7 @@ export default function RequestForm({ initial = {}, signedIn = false, itemTypes 
         <p className="tag tag-green">Your price is ready</p>
         <h1 className="mt-3 text-3xl">We priced it for you</h1>
         <p className="mt-3 text-ink-soft">
-          {state.quote.source === "page" ? "We read the price on the shop's website." : "We used the price you gave, with a small safety margin."} Open your price to see the
+          {state.quote.source === "page" ? "We checked the price with the shop." : "We used the price you gave, with a small safety margin."} Open your price to see the
           full cost in cedis, choose delivery and pay. The price is held for a few days. We check the shop&rsquo;s price again before buying.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">

@@ -103,7 +103,7 @@ export default async function HomePage() {
           <div className="stagger">
             <p className="text-sm font-bold text-spark">Not in our shops?</p>
             <h2 className="mt-2 text-[clamp(2rem,4.6vw,3.6rem)] font-bold leading-[1.05]">Send us any UK link</h2>
-            <p className="mt-3 max-w-lg text-lg text-white/90">Paste the link. We read the price, quote the full cost in cedis, and buy it once you pay.</p>
+            <p className="mt-3 max-w-lg text-lg text-white/90">Paste the link. We check the price, quote the full cost in cedis, and buy it once you pay.</p>
             <a href="#paste-link" className="btn btn-gold mt-6 !px-6 !text-base">Paste a product link</a>
           </div>
           <ol className="hidden gap-3 md:grid">
