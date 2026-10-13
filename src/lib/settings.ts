@@ -2,36 +2,26 @@ import type Database from "better-sqlite3";
 import { z } from "zod";
 import { db } from "./db";
 import { THEMES } from "./themes";
-import type { FxConfig, RateCard, ServiceFeeRule } from "./pricing";
+import type { FxConfig } from "./pricing";
+import { customerRate, DEFAULT_PRICING_CONFIG, parsePricingConfig, type PricingConfig } from "./quote-engine";
 
 type Db = Database.Database;
 
-const percent = z.number().min(0).max(100);
-const minor = z.number().int().min(0);
 
-export const serviceFeeSchema = z.discriminatedUnion("mode", [
-  z.object({ mode: z.literal("percent"), percent, minMinor: minor }),
-  z.object({ mode: z.literal("fixed"), fixedMinor: minor }),
-  z.object({
-    mode: z.literal("tiered"),
-    minMinor: minor,
-    tiers: z
-      .array(z.object({ upToGbpMinor: minor.nullable(), percent }))
-      .min(1),
-  }),
-]);
-
-export const rateCardSchema = z.object({
-  brackets: z.array(z.object({ upToGrams: z.number().int().positive(), priceMinor: minor })).min(1),
-  extraPerKgMinor: minor,
-  minChargeMinor: minor,
-});
+/** What the pricing needs to know about the money markets: the shop's market rate, the customs (Bank of Ghana) rate, and how much the rate moved in 3 days. */
+export type MarketContext = { mid: number; customs: number; move3d: number };
 
 export type Settings = {
   siteName: string;
+  /**
+   * The rate customers are charged at: the market rate plus the markup the pricing configuration sets (more in a volatile week).
+   * Everything customer-facing converts pounds to cedis with this, so `markupPct` is always 0.
+   */
   fx: FxConfig;
-  serviceFee: ServiceFeeRule;
-  minOrderGbpMinor: number;
+  /** The market rate, the customs rate and the 3-day move, from which `fx` is worked out. */
+  market: MarketContext;
+  /** Every number the pricing uses: service charge, shipping, insurance, duties, delivery and the shop's internal costs. */
+  pricing: PricingConfig;
   supportWhatsapp: string;
   /** Where customers write about privacy, deletion and complaints. Shown in the privacy policy and terms. */
   supportEmail: string;
@@ -43,9 +33,6 @@ export type Settings = {
 const DEFAULTS = {
   site_name: "YenkoExpress",
   fx_rate: 15,
-  fx_markup_pct: 0,
-  service_fee: { mode: "percent", percent: 10, minMinor: 0 } as ServiceFeeRule,
-  min_order_gbp_minor: 0,
   support_whatsapp: "",
   support_email: "",
   legal_name: "",
@@ -65,19 +52,26 @@ function readRaw(d: Db): Record<string, unknown> {
   return out;
 }
 
+/** How far the market rate moved over the last three days, as a fraction (0.02 is 2%); 0 until there is enough history. */
+export function rateMove3d(mid: number, d: Db = db()): number {
+  const old = d.prepare("SELECT rate FROM fx_rate_history WHERE changed_at <= datetime('now', '-3 days') ORDER BY id DESC LIMIT 1").get() as { rate: number } | undefined;
+  const first = old ?? (d.prepare("SELECT rate FROM fx_rate_history ORDER BY id ASC LIMIT 1").get() as { rate: number } | undefined);
+  return first && first.rate > 0 ? Math.abs(mid / first.rate - 1) : 0;
+}
+
 export function getSettings(d: Db = db()): Settings {
   const raw = readRaw(d);
-  const fee = serviceFeeSchema.safeParse(raw.service_fee);
   const rate = z.number().positive().safeParse(raw.fx_rate);
-  const markup = percent.safeParse(raw.fx_markup_pct);
+  const mid = rate.success ? rate.data : DEFAULTS.fx_rate;
+  const customs = z.number().positive().safeParse(raw.customs_rate);
+  const cfg = parsePricingConfig(raw.pricing_config);
+  const pricing = cfg.ok ? cfg.value : DEFAULT_PRICING_CONFIG;
+  const move3d = rateMove3d(mid, d);
   return {
     siteName: z.string().min(1).catch(DEFAULTS.site_name).parse(raw.site_name),
-    fx: {
-      rate: rate.success ? rate.data : DEFAULTS.fx_rate,
-      markupPct: markup.success ? markup.data : DEFAULTS.fx_markup_pct,
-    },
-    serviceFee: fee.success ? fee.data : DEFAULTS.service_fee,
-    minOrderGbpMinor: minor.catch(DEFAULTS.min_order_gbp_minor).parse(raw.min_order_gbp_minor),
+    fx: { rate: customerRate(mid, move3d, pricing).rate, markupPct: 0 },
+    market: { mid, customs: customs.success ? customs.data : mid, move3d },
+    pricing,
     supportWhatsapp: z.string().catch("").parse(raw.support_whatsapp),
     supportEmail: z.string().catch("").parse(raw.support_email),
     legalName: z.string().catch("").parse(raw.legal_name),
@@ -99,59 +93,43 @@ export function setSetting(key: string, value: unknown, d: Db = db()): void {
   d.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run(key, JSON.stringify(value));
 }
 
+/** How an order travels. Air always; economy sea only when the pricing configuration turns it on. Not stored: it follows the configuration. */
 export type ShippingMethod = {
   id: number;
-  code: string;
+  code: "air" | "sea";
   name: string;
   eta: string;
   active: boolean;
-  rateCard: RateCard;
 };
 
-type MethodRow = { id: number; code: string; name: string; eta: string; rate_card: string; active: number };
-
-function toMethod(r: MethodRow): ShippingMethod {
-  const parsed = rateCardSchema.safeParse(JSON.parse(r.rate_card));
-  return {
-    id: r.id,
-    code: r.code,
-    name: r.name,
-    eta: r.eta,
-    active: r.active === 1,
-    rateCard: parsed.success
-      ? parsed.data
-      : { brackets: [{ upToGrams: 1000, priceMinor: 0 }], extraPerKgMinor: 0, minChargeMinor: 0 },
-  };
-}
-
-export function getShippingMethods(activeOnly = true, d: Db = db()): ShippingMethod[] {
-  const rows = d
-    .prepare(`SELECT * FROM shipping_methods ${activeOnly ? "WHERE active = 1" : ""} ORDER BY sort, id`)
-    .all() as MethodRow[];
-  return rows.map(toMethod);
+export function getShippingMethods(_activeOnly?: boolean, d: Db = db()): ShippingMethod[] {
+  const { shipping } = getSettings(d).pricing;
+  const methods: ShippingMethod[] = [{ id: 1, code: "air", name: "Air freight", eta: shipping.airTransit, active: true }];
+  if (shipping.sea.enabled) methods.push({ id: 2, code: "sea", name: "Economy sea freight", eta: shipping.sea.transit, active: true });
+  return methods;
 }
 
 export function getShippingMethod(code: string, d: Db = db()): ShippingMethod | null {
-  const r = d.prepare("SELECT * FROM shipping_methods WHERE code = ? AND active = 1").get(code) as MethodRow | undefined;
-  return r ? toMethod(r) : null;
+  return getShippingMethods(true, d).find((m) => m.code === code) ?? null;
 }
 
 export type DeliveryZone = {
   id: number;
   name: string;
   areas: string;
-  feeMinor: number;
+  /** Which delivery price in the pricing configuration applies here (a key of its `delivery` list). */
+  pricingKey: string;
   eta: string;
   active: boolean;
 };
 
-type ZoneRow = { id: number; name: string; areas: string; fee_minor: number; eta: string; active: number };
+type ZoneRow = { id: number; name: string; areas: string; pricing_key: string; eta: string; active: number };
 
 const toZone = (r: ZoneRow): DeliveryZone => ({
   id: r.id,
   name: r.name,
   areas: r.areas,
-  feeMinor: r.fee_minor,
+  pricingKey: r.pricing_key || "other_regions",
   eta: r.eta,
   active: r.active === 1,
 });

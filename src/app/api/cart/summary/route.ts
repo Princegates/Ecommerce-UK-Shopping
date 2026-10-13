@@ -15,7 +15,7 @@ export async function GET() {
       count: lines.reduce((n, l) => n + l.quantity, 0),
       itemsGbpMinor: itemsGbp,
       itemsGhsMinor: gbpToGhsMinor(itemsGbp, s.fx),
-      minOrderGbpMinor: s.minOrderGbpMinor,
+      minOrderMinor: Math.round(s.pricing.minOrderGhs * 100),
       items: lines.map((l) => ({
         id: l.itemId, slug: l.product.slug, name: l.product.name, shop: l.product.shopName, accent: l.product.shopAccent, imageUrl: l.product.imageUrl,
         quantity: l.quantity, options: Object.values(l.options).join(" / "), lineGhsMinor: gbpToGhsMinor(l.product.priceMinor * l.quantity, s.fx),

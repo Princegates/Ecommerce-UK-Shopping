@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Flash, PageHead } from "@/components/admin/ui";
 import ProductForm from "@/components/admin/ProductForm";
 import { listShops } from "@/lib/catalog";
+import { getSettings } from "@/lib/settings";
 
 export default async function NewItem({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   await requirePermission("items.manage");
@@ -13,7 +14,7 @@ export default async function NewItem({ searchParams }: { searchParams: Promise<
         <Link href="/admin/items" className="link">← All items</Link>
       </PageHead>
       <Flash error={sp.error} />
-      <ProductForm shops={listShops({ includeInactive: true })} />
+      <ProductForm shops={listShops({ includeInactive: true })} categories={getSettings().pricing.categories} />
     </>
   );
 }

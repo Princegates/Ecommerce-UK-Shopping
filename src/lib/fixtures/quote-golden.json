@@ -1,0 +1,1205 @@
+[
+ {
+  "name": "kitchen 80 / 2kg / central",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "kitchen",
+     "category": "kitchen_home",
+     "unitGbp": 80,
+     "qty": 1,
+     "weightKg": 2
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "kitchen",
+     "qty": 1,
+     "lineTotalGhs": 1426.94
+    }
+   ],
+   "itemsSubtotalGhs": 1426.94,
+   "deliveryAndImportChargesGhs": 1060.87,
+   "totalGhs": 2487.81,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 1281.6,
+   "ukDelGhs": 0,
+   "serviceGhs": 145.34,
+   "shippingGhs": 340,
+   "insuranceGhs": 7.69,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 673.18,
+   "billableKg": 2,
+   "perKgGhs": 170,
+   "costs": {
+    "goods": 1262.66,
+    "freight": 142.05,
+    "clearance": 15,
+    "insurance": 6.22,
+    "lastMile": 32,
+    "dutyActual": 622.37,
+    "psp": 48.51,
+    "provision": 19.22,
+    "vatOnFees": 30.89,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 2227.8,
+   "contributionGhs": 260.01,
+   "contributionPctOfTotal": 0.1045,
+   "flags": []
+  }
+ },
+ {
+  "name": "phone",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "phone",
+     "category": "phones_tablets",
+     "unitGbp": 164.99,
+     "qty": 1,
+     "weightKg": 1
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "phone",
+     "qty": 1,
+     "lineTotalGhs": 2911.02
+    }
+   ],
+   "itemsSubtotalGhs": 2911.02,
+   "deliveryAndImportChargesGhs": 1243.14,
+   "totalGhs": 4154.16,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 2643.14,
+   "ukDelGhs": 0,
+   "serviceGhs": 267.88,
+   "shippingGhs": 230,
+   "insuranceGhs": 15.86,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 957.28,
+   "billableKg": 1,
+   "perKgGhs": 230,
+   "costs": {
+    "goods": 2604.08,
+    "freight": 71.02,
+    "clearance": 15,
+    "insurance": 12.83,
+    "lastMile": 32,
+    "dutyActual": 885.03,
+    "psp": 81.01,
+    "provision": 39.65,
+    "vatOnFees": 51.31,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 3840.8,
+   "contributionGhs": 313.36,
+   "contributionPctOfTotal": 0.0754,
+   "flags": [
+    "high_value_review:phone"
+   ]
+  }
+ },
+ {
+  "name": "books 8kg",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "books",
+     "category": "books_stationery",
+     "unitGbp": 29.99,
+     "qty": 1,
+     "weightKg": 8
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "books",
+     "qty": 1,
+     "lineTotalGhs": 540.44
+    }
+   ],
+   "itemsSubtotalGhs": 540.44,
+   "deliveryAndImportChargesGhs": 1220.38,
+   "totalGhs": 1760.82,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 480.44,
+   "ukDelGhs": 0,
+   "serviceGhs": 60,
+   "shippingGhs": 950,
+   "insuranceGhs": 3,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 227.38,
+   "billableKg": 8,
+   "perKgGhs": 118.75,
+   "costs": {
+    "goods": 473.34,
+    "freight": 568.2,
+    "clearance": 15,
+    "insurance": 2.33,
+    "lastMile": 32,
+    "dutyActual": 210.22,
+    "psp": 34.34,
+    "provision": 7.21,
+    "vatOnFees": 16.67,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 1408.18,
+   "contributionGhs": 352.64,
+   "contributionPctOfTotal": 0.2003,
+   "flags": []
+  }
+ },
+ {
+  "name": "top 0.5kg",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "top",
+     "category": "clothing_apparel",
+     "unitGbp": 25,
+     "qty": 1,
+     "weightKg": 0.5
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "top",
+     "qty": 1,
+     "lineTotalGhs": 460.5
+    }
+   ],
+   "itemsSubtotalGhs": 460.5,
+   "deliveryAndImportChargesGhs": 409.56,
+   "totalGhs": 870.06,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 400.5,
+   "ukDelGhs": 0,
+   "serviceGhs": 60,
+   "shippingGhs": 160,
+   "insuranceGhs": 3,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 206.56,
+   "billableKg": 0.5,
+   "perKgGhs": 320,
+   "costs": {
+    "goods": 394.58,
+    "freight": 35.51,
+    "clearance": 15,
+    "insurance": 1.94,
+    "lastMile": 32,
+    "dutyActual": 190.97,
+    "psp": 16.97,
+    "provision": 6.01,
+    "vatOnFees": 16.67,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 758.52,
+   "contributionGhs": 111.54,
+   "contributionPctOfTotal": 0.1282,
+   "flags": []
+  }
+ },
+ {
+  "name": "three lines, east legon",
+  "cart": {
+   "zone": "east_legon_airport",
+   "lines": [
+    {
+     "sku": "a",
+     "category": "footwear",
+     "unitGbp": 60,
+     "qty": 2,
+     "weightKg": 1.2
+    },
+    {
+     "sku": "b",
+     "category": "audio_wearables",
+     "unitGbp": 45.5,
+     "qty": 1,
+     "weightKg": 0.3
+    },
+    {
+     "sku": "c",
+     "category": "kitchen_home",
+     "unitGbp": 19.99,
+     "qty": 3,
+     "weightKg": 0.8
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "a",
+     "qty": 2,
+     "lineTotalGhs": 2111.38
+    },
+    {
+     "sku": "b",
+     "qty": 1,
+     "lineTotalGhs": 800.57
+    },
+    {
+     "sku": "c",
+     "qty": 3,
+     "lineTotalGhs": 1055.16
+    }
+   ],
+   "itemsSubtotalGhs": 3967.11,
+   "deliveryAndImportChargesGhs": 2894.78,
+   "totalGhs": 6861.89,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in east legon airport"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 3612.03,
+   "ukDelGhs": 0,
+   "serviceGhs": 355.08,
+   "shippingGhs": 950,
+   "insuranceGhs": 21.67,
+   "deliveryGhs": 30,
+   "taxChargedGhs": 1893.11,
+   "billableKg": 5.5,
+   "perKgGhs": 172.73,
+   "costs": {
+    "goods": 3558.65,
+    "freight": 390.64,
+    "clearance": 15,
+    "insurance": 17.53,
+    "lastMile": 25,
+    "dutyActual": 1750.23,
+    "psp": 133.81,
+    "provision": 54.18,
+    "vatOnFees": 64.18,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 6058.09,
+   "contributionGhs": 803.8,
+   "contributionPctOfTotal": 0.1171,
+   "flags": []
+  }
+ },
+ {
+  "name": "other regions heavy 12kg",
+  "cart": {
+   "zone": "other_regions",
+   "lines": [
+    {
+     "sku": "h",
+     "category": "sports_outdoor",
+     "unitGbp": 120,
+     "qty": 1,
+     "weightKg": 12
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "h",
+     "qty": 1,
+     "lineTotalGhs": 2125.42
+    }
+   ],
+   "itemsSubtotalGhs": 2125.42,
+   "deliveryAndImportChargesGhs": 2605.44,
+   "totalGhs": 4730.86,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in other regions"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 1922.4,
+   "ukDelGhs": 0,
+   "serviceGhs": 203.02,
+   "shippingGhs": 1140,
+   "insuranceGhs": 11.53,
+   "deliveryGhs": 170,
+   "taxChargedGhs": 1283.91,
+   "billableKg": 12,
+   "perKgGhs": 95,
+   "costs": {
+    "goods": 1893.99,
+    "freight": 852.3,
+    "clearance": 15,
+    "insurance": 9.33,
+    "lastMile": 80,
+    "dutyActual": 1187.01,
+    "psp": 92.25,
+    "provision": 28.84,
+    "vatOnFees": 62.17,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 4269.76,
+   "contributionGhs": 461.1,
+   "contributionPctOfTotal": 0.0975,
+   "flags": []
+  }
+ },
+ {
+  "name": "unknown category + manual review",
+  "cart": {
+   "zone": "tema_spintex",
+   "lines": [
+    {
+     "sku": "u",
+     "category": "nonsense",
+     "unitGbp": 40,
+     "qty": 1,
+     "weightKg": 1
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "u",
+     "qty": 1,
+     "lineTotalGhs": 717.7
+    }
+   ],
+   "itemsSubtotalGhs": 717.7,
+   "deliveryAndImportChargesGhs": 746.57,
+   "totalGhs": 1464.27,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in tema spintex"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 640.8,
+   "ukDelGhs": 0,
+   "serviceGhs": 76.9,
+   "shippingGhs": 230,
+   "insuranceGhs": 3.84,
+   "deliveryGhs": 45,
+   "taxChargedGhs": 467.73,
+   "billableKg": 1,
+   "perKgGhs": 230,
+   "costs": {
+    "goods": 631.33,
+    "freight": 71.02,
+    "clearance": 15,
+    "insurance": 3.11,
+    "lastMile": 36,
+    "dutyActual": 432.43,
+    "psp": 28.55,
+    "provision": 9.61,
+    "vatOnFees": 20.32,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 1296.25,
+   "contributionGhs": 168.02,
+   "contributionPctOfTotal": 0.1147,
+   "flags": [
+    "unknown_category:u",
+    "manual_review:u"
+   ]
+  }
+ },
+ {
+  "name": "below minimum order",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "s",
+     "category": "books_stationery",
+     "unitGbp": 10,
+     "qty": 1,
+     "weightKg": 0.3
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "s",
+     "qty": 1,
+     "lineTotalGhs": 220.2
+    }
+   ],
+   "itemsSubtotalGhs": 220.2,
+   "deliveryAndImportChargesGhs": 247.09,
+   "totalGhs": 467.29,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 160.2,
+   "ukDelGhs": 0,
+   "serviceGhs": 60,
+   "shippingGhs": 160,
+   "insuranceGhs": 3,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 44.09,
+   "billableKg": 0.5,
+   "perKgGhs": 320,
+   "costs": {
+    "goods": 157.83,
+    "freight": 35.51,
+    "clearance": 15,
+    "insurance": 0.78,
+    "lastMile": 32,
+    "dutyActual": 40.77,
+    "psp": 9.11,
+    "provision": 2.4,
+    "vatOnFees": 16.67,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 358.94,
+   "contributionGhs": 108.35,
+   "contributionPctOfTotal": 0.2319,
+   "flags": [
+    "below_minimum_order"
+   ]
+  }
+ },
+ {
+  "name": "ignore minimum",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "s",
+     "category": "books_stationery",
+     "unitGbp": 10,
+     "qty": 1,
+     "weightKg": 0.3
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {
+   "ignoreMinOrder": true
+  },
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "s",
+     "qty": 1,
+     "lineTotalGhs": 220.2
+    }
+   ],
+   "itemsSubtotalGhs": 220.2,
+   "deliveryAndImportChargesGhs": 247.09,
+   "totalGhs": 467.29,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 160.2,
+   "ukDelGhs": 0,
+   "serviceGhs": 60,
+   "shippingGhs": 160,
+   "insuranceGhs": 3,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 44.09,
+   "billableKg": 0.5,
+   "perKgGhs": 320,
+   "costs": {
+    "goods": 157.83,
+    "freight": 35.51,
+    "clearance": 15,
+    "insurance": 0.78,
+    "lastMile": 32,
+    "dutyActual": 40.77,
+    "psp": 9.11,
+    "provision": 2.4,
+    "vatOnFees": 16.67,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 358.94,
+   "contributionGhs": 108.35,
+   "contributionPctOfTotal": 0.2319,
+   "flags": []
+  }
+ },
+ {
+  "name": "volatile week",
+  "cart": {
+   "zone": "kasoa_west_accra",
+   "lines": [
+    {
+     "sku": "v",
+     "category": "laptops_computers",
+     "unitGbp": 520,
+     "qty": 1,
+     "weightKg": 2.4
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 16.1,
+   "customsGbpGhs": 15.9,
+   "move3d": 0.035
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "v",
+     "qty": 1,
+     "lineTotalGhs": 9306.88
+    }
+   ],
+   "itemsSubtotalGhs": 9306.88,
+   "deliveryAndImportChargesGhs": 3607.18,
+   "totalGhs": 12914.06,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in kasoa west accra"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.744,
+   "fxMarkupPct": 0.04,
+   "goodsGhs": 8706.88,
+   "ukDelGhs": 0,
+   "serviceGhs": 600,
+   "shippingGhs": 430,
+   "insuranceGhs": 52.24,
+   "deliveryGhs": 55,
+   "taxChargedGhs": 3069.94,
+   "billableKg": 2.5,
+   "perKgGhs": 172,
+   "costs": {
+    "goods": 8497.58,
+    "freight": 183.84,
+    "clearance": 15,
+    "insurance": 41.86,
+    "lastMile": 44,
+    "dutyActual": 2838.25,
+    "psp": 251.82,
+    "provision": 130.6,
+    "vatOnFees": 109.17,
+    "supportAndReferral": 50.25
+   },
+   "totalCostsGhs": 12162.37,
+   "contributionGhs": 751.69,
+   "contributionPctOfTotal": 0.0582,
+   "flags": [
+    "high_value_review:v"
+   ]
+  }
+ },
+ {
+  "name": "sea heavy",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "sea",
+     "category": "kitchen_home",
+     "unitGbp": 150,
+     "qty": 1,
+     "weightKg": 9
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {
+   "service": "sea"
+  },
+  "customerView": {
+   "currency": "GHS",
+   "service": "economy_sea",
+   "estimatedDelivery": "4-6 weeks door to door",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "sea",
+     "qty": 1,
+     "lineTotalGhs": 2649.27
+    }
+   ],
+   "itemsSubtotalGhs": 2649.27,
+   "deliveryAndImportChargesGhs": 1879.48,
+   "totalGhs": 4528.75,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 2403,
+   "ukDelGhs": 0,
+   "serviceGhs": 246.27,
+   "shippingGhs": 540,
+   "insuranceGhs": 14.42,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 1285.06,
+   "billableKg": 9,
+   "perKgGhs": 60,
+   "costs": {
+    "goods": 2367.49,
+    "freight": 397.74,
+    "clearance": 15,
+    "insurance": 11.66,
+    "lastMile": 32,
+    "dutyActual": 1188.07,
+    "psp": 88.31,
+    "provision": 36.05,
+    "vatOnFees": 47.71,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 4232.9,
+   "contributionGhs": 295.85,
+   "contributionPctOfTotal": 0.0653,
+   "flags": []
+  }
+ },
+ {
+  "name": "sea asked but light",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "sea",
+     "category": "kitchen_home",
+     "unitGbp": 50,
+     "qty": 1,
+     "weightKg": 1
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {
+   "service": "sea"
+  },
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "sea",
+     "qty": 1,
+     "lineTotalGhs": 897.12
+    }
+   ],
+   "itemsSubtotalGhs": 897.12,
+   "deliveryAndImportChargesGhs": 687.93,
+   "totalGhs": 1585.05,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 801,
+   "ukDelGhs": 0,
+   "serviceGhs": 96.12,
+   "shippingGhs": 230,
+   "insuranceGhs": 4.81,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 413.12,
+   "billableKg": 1,
+   "perKgGhs": 230,
+   "costs": {
+    "goods": 789.16,
+    "freight": 71.02,
+    "clearance": 15,
+    "insurance": 3.89,
+    "lastMile": 32,
+    "dutyActual": 381.94,
+    "psp": 30.91,
+    "provision": 12.01,
+    "vatOnFees": 22.69,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 1407.5,
+   "contributionGhs": 177.55,
+   "contributionPctOfTotal": 0.112,
+   "flags": [
+    "sea_not_available_using_air"
+   ]
+  }
+ },
+ {
+  "name": "volumetric box",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "box",
+     "category": "bags_luggage",
+     "unitGbp": 70,
+     "qty": 1,
+     "weightKg": 0.8,
+     "dimsCm": [
+      60,
+      50,
+      40
+     ]
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "box",
+     "qty": 1,
+     "lineTotalGhs": 1252.33
+    }
+   ],
+   "itemsSubtotalGhs": 1252.33,
+   "deliveryAndImportChargesGhs": 3593.51,
+   "totalGhs": 4845.84,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 1121.4,
+   "ukDelGhs": 0,
+   "serviceGhs": 130.93,
+   "shippingGhs": 2280,
+   "insuranceGhs": 6.73,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 1266.78,
+   "billableKg": 24,
+   "perKgGhs": 95,
+   "costs": {
+    "goods": 1104.83,
+    "freight": 1704.59,
+    "clearance": 15,
+    "insurance": 5.44,
+    "lastMile": 32,
+    "dutyActual": 1171.17,
+    "psp": 94.49,
+    "provision": 16.82,
+    "vatOnFees": 28.49,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 4221.71,
+   "contributionGhs": 624.13,
+   "contributionPctOfTotal": 0.1288,
+   "flags": []
+  }
+ },
+ {
+  "name": "uk delivery fee",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "uk",
+     "category": "kitchen_home",
+     "unitGbp": 70,
+     "qty": 1,
+     "weightKg": 1.5,
+     "ukDeliveryGbp": 4.99
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "uk",
+     "qty": 1,
+     "lineTotalGhs": 1252.33
+    }
+   ],
+   "itemsSubtotalGhs": 1252.33,
+   "deliveryAndImportChargesGhs": 1086.09,
+   "totalGhs": 2338.42,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 1121.4,
+   "ukDelGhs": 79.94,
+   "serviceGhs": 130.93,
+   "shippingGhs": 340,
+   "insuranceGhs": 6.73,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 619.42,
+   "billableKg": 1.5,
+   "perKgGhs": 226.67,
+   "costs": {
+    "goods": 1183.59,
+    "freight": 106.54,
+    "clearance": 15,
+    "insurance": 5.44,
+    "lastMile": 32,
+    "dutyActual": 572.67,
+    "psp": 45.6,
+    "provision": 16.82,
+    "vatOnFees": 28.49,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 2055.02,
+   "contributionGhs": 283.4,
+   "contributionPctOfTotal": 0.1212,
+   "flags": []
+  }
+ },
+ {
+  "name": "over weight limit",
+  "cart": {
+   "zone": "accra_central",
+   "lines": [
+    {
+     "sku": "w",
+     "category": "kitchen_home",
+     "unitGbp": 300,
+     "qty": 1,
+     "weightKg": 35
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0.004
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "w",
+     "qty": 1,
+     "lineTotalGhs": 5268.54
+    }
+   ],
+   "itemsSubtotalGhs": 5268.54,
+   "deliveryAndImportChargesGhs": 6755.93,
+   "totalGhs": 12024.47,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in accra central"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 4806,
+   "ukDelGhs": 0,
+   "serviceGhs": 462.54,
+   "shippingGhs": 3325,
+   "insuranceGhs": 28.84,
+   "deliveryGhs": 40,
+   "taxChargedGhs": 3362.09,
+   "billableKg": 35,
+   "perKgGhs": 95,
+   "costs": {
+    "goods": 4734.97,
+    "freight": 2485.86,
+    "clearance": 15,
+    "insurance": 23.33,
+    "lastMile": 32,
+    "dutyActual": 3108.34,
+    "psp": 234.48,
+    "provision": 72.09,
+    "vatOnFees": 83.76,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 10838.71,
+   "contributionGhs": 1185.76,
+   "contributionPctOfTotal": 0.0986,
+   "flags": [
+    "over_weight_limit:w"
+   ]
+  }
+ },
+ {
+  "name": "floor top-up",
+  "cart": {
+   "zone": "other_regions",
+   "lines": [
+    {
+     "sku": "t",
+     "category": "books_stationery",
+     "unitGbp": 24.5,
+     "qty": 1,
+     "weightKg": 6
+    }
+   ]
+  },
+  "ctx": {
+   "midGbpGhs": 15.55,
+   "customsGbpGhs": 15.55,
+   "move3d": 0
+  },
+  "opts": {},
+  "customerView": {
+   "currency": "GHS",
+   "service": "express_air",
+   "estimatedDelivery": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)",
+   "rateLockedForMinutes": 30,
+   "items": [
+    {
+     "sku": "t",
+     "qty": 1,
+     "lineTotalGhs": 452.49
+    }
+   ],
+   "itemsSubtotalGhs": 452.49,
+   "deliveryAndImportChargesGhs": 1240.92,
+   "totalGhs": 1693.41,
+   "includes": [
+    "Cargo insurance",
+    "Duties and taxes",
+    "Door delivery in other regions"
+   ],
+   "nothingToPayOnDelivery": true
+  },
+  "internal": {
+   "rate": 16.02,
+   "fxMarkupPct": 0.0302,
+   "goodsGhs": 392.49,
+   "ukDelGhs": 0,
+   "serviceGhs": 60,
+   "shippingGhs": 950,
+   "insuranceGhs": 3,
+   "deliveryGhs": 110,
+   "taxChargedGhs": 177.92,
+   "billableKg": 6,
+   "perKgGhs": 158.33,
+   "costs": {
+    "goods": 386.69,
+    "freight": 426.15,
+    "clearance": 15,
+    "insurance": 1.9,
+    "lastMile": 80,
+    "dutyActual": 164.49,
+    "psp": 33.02,
+    "provision": 5.89,
+    "vatOnFees": 28.33,
+    "supportAndReferral": 48.88
+   },
+   "totalCostsGhs": 1190.35,
+   "contributionGhs": 503.06,
+   "contributionPctOfTotal": 0.2971,
+   "flags": [
+    "below_minimum_order"
+   ]
+  }
+ }
+]

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { addToCartAction, type AddState } from "@/app/actions/cart";
-import Breakdown from "@/components/Breakdown";
+import { quoteProductAction } from "@/app/actions/quote";
+import Breakdown, { BREAKDOWN_NOTE } from "@/components/Breakdown";
 import { ghsToGbpMinor } from "@/lib/pricing";
-import { computeQuote, DeliverySelectors, type QuoteConfig } from "@/components/quote-client";
+import { DeliverySelectors, pickQuote, type QuoteConfig } from "@/components/quote-client";
 import { gbp, ghs } from "@/lib/money";
 import { gbpToGhsMinor } from "@/lib/pricing";
 
@@ -27,16 +28,25 @@ export default function BuyBox({ product, cfg, maxQty }: Props) {
   const [zoneId, setZoneId] = useState(cfg.zones[0]?.id ?? 0);
   const [code, setCode] = useState(cfg.methods[0]?.code ?? "");
 
-  const quote = useMemo(
-    () =>
-      computeQuote(
-        [{ id: String(product.id), unitPriceMinor: product.priceMinor, quantity: qty, weightGrams: product.weightGrams }],
-        cfg,
-        zoneId,
-        code,
-      ),
-    [product, cfg, qty, zoneId, code],
-  );
+  // the server prices one item for every area and method at the first quantity; a new quantity is priced by the server again
+  const [quotes, setQuotes] = useState(cfg.quotes);
+  const [pricedQty, setPricedQty] = useState(1);
+  const latest = useRef(0);
+  useEffect(() => {
+    if (qty === pricedQty) return;
+    const mine = ++latest.current;
+    const t = setTimeout(() => {
+      quoteProductAction(product.id, qty).then((q) => {
+        if (q && mine === latest.current) {
+          setQuotes(q);
+          setPricedQty(qty);
+        }
+      }).catch(() => {});
+    }, 150);
+    return () => clearTimeout(t);
+  }, [qty, pricedQty, product.id]);
+  const quote = pickQuote({ quotes }, zoneId, code);
+  const stale = qty !== pricedQty;
   const unitGhs = gbpToGhsMinor(product.priceMinor, cfg.fx);
   const mainButton = useRef<HTMLButtonElement>(null);
   const [mainVisible, setMainVisible] = useState(true);
@@ -91,8 +101,10 @@ export default function BuyBox({ product, cfg, maxQty }: Props) {
           <DeliverySelectors cfg={cfg} zoneId={zoneId} code={code} onZone={setZoneId} onCode={setCode} idPrefix="pdp" />
         </div>
         <hr />
-        {quote ? <Breakdown b={quote} approxGbpMinor={ghsToGbpMinor(quote.totalMinor, cfg.fx)} /> : <p>Delivery options are not available right now.</p>}
-        <p className="mt-3 text-xs text-ink-soft">Import duty charged by customs, if any, is not included.</p>
+        <div className={stale ? "opacity-60 transition-opacity" : ""} aria-busy={stale}>
+          {quote ? <Breakdown b={quote} approxGbpMinor={ghsToGbpMinor(quote.totalMinor, cfg.fx)} /> : <p>Delivery options are not available right now.</p>}
+        </div>
+        <p className="mt-3 text-xs text-ink-soft">{BREAKDOWN_NOTE}{quote ? ` Expected delivery: ${quote.estimatedDelivery}.` : ""}</p>
       </section>
 
       <div className="grid gap-3">

@@ -14,19 +14,24 @@ You (the operator) buy the items from the UK retailers, ship them to Ghana, and 
 ## The money: how a customer's total is worked out
 
 ```
-customer total = items + service charge + shipping to Ghana + delivery in Ghana
+customer total = items (service charge included) + shipping to Ghana + insurance + import duties and taxes + delivery in Ghana
 ```
+
+The customer sees **three lines**: Items, Delivery, insurance and import duties, and Total. Everything below is worked out by the **pricing engine** and shown to staff on each order under "How it was priced".
 
 | Part | How it is worked out | Where you set it |
 | --- | --- | --- |
-| **Items** | UK price in pounds × quantity, converted to cedis at the **effective rate** (your rate plus your markup). | Admin → Pricing (exchange rate and markup) |
-| **Service charge** | Your fee for buying on the customer's behalf: a percentage (with a minimum), a flat amount, or tiered bands by item total. Always shown as its own line. | Admin → Pricing |
-| **Shipping to Ghana** | From the chosen shipping method's **rate card**, by chargeable weight (the larger of actual and volumetric weight; today items carry their actual weight, so that is what is used). A parcel up to a bracket's weight costs that bracket's price; above the largest bracket there is a charge per extra kilogram; there is a minimum charge. | Admin → Shipping |
-| **Delivery in Ghana** | A flat fee for the chosen delivery area. | Admin → Delivery areas |
+| **Items** | UK price in pounds × quantity, converted to cedis at the **customer rate**: the market rate plus a margin that grows when the rate has been moving. The **service charge** (marginal bands of 12% / 9% / 6%, a minimum and a cap) is folded into the item prices, and the shop says so on the page. | Admin → Pricing (market and customs rate), Admin → Pricing engine |
+| **Shipping to Ghana** | By **billable weight** (the larger of actual and volumetric weight, in half-kilogram steps) from the weight bands in the configuration. Air freight only at present; economy sea is built but switched off. | Admin → Pricing engine |
+| **Insurance** | A small percentage of the goods value, with a minimum. | Admin → Pricing engine |
+| **Import duties and taxes** | Prepaid at the port for the customer: the goods value plus shipping and insurance (CIF) times the duty rate for the **kind of item**, plus the levy and the VAT stack, with a safety buffer, at the customs exchange rate. Each item has a **duty category** (worked out from its name, or set by hand on the item). An item that cannot be placed is charged at the highest planning rate and the order is flagged. | Admin → Pricing engine, Admin → Items |
+| **Delivery in Ghana** | By delivery area, scaled by weight, from the configuration. Each area in Admin → Delivery areas points at one delivery price. | Admin → Delivery areas, Admin → Pricing engine |
 
-All money is stored as whole units (pence for pounds, pesewas for cedis), so there are no rounding drifts. The same calculation runs on the product page, the cart, checkout and when the order is saved, so the figure a customer sees is the figure they are charged. The order stores the rate, markup and every amount at the moment it was placed, so later changes to your settings never alter an old order.
+A **contribution floor** tops the service charge up when an order would otherwise earn less than the minimum, and the order is flagged. The shop's own costs and contribution are shown to staff with the right to see them and never reach the browser of a customer.
 
-**Starting values** for a new database (change them on first day): service charge 10% with a GH₵30 minimum; exchange rate GH₵15.20 per £1 with a 3% markup; minimum order £10 of items; two shipping methods (Air freight, 8 to 12 days; Express air, 4 to 7 days) with sample rate cards; five delivery areas from GH₵30 to GH₵120.
+All money is stored as whole units (pence for pounds, pesewas for cedis), so there are no rounding drifts. The same calculation runs on the product page, the cart, checkout and when the order is saved, so the figure a customer sees is the figure they are charged. The order stores the rate and every amount (including insurance, duties and the flags) at the moment it was placed, so later changes to your settings never alter an old order.
+
+**Starting values** for a new database come from the shipped configuration (`src/lib/pricing-config.default.json`): market rate GH₵15.20 per £1, a minimum order of GH₵400 of items, air freight only, and five delivery areas. The duty rates are **planning values**: confirm each with your licensed customs agent and recalibrate from real assessments.
 
 Customs duty and taxes charged in Ghana are **not** included in the total. The shop says so at checkout.
 
@@ -67,8 +72,8 @@ Shops that **block** automated reading (many large retailers do) are served by *
 | **Catalogue source** | One place the importer is allowed to read a shop's products from. |
 | **Link order** | An order for an item the customer found elsewhere and sent as a link, priced by a quote. |
 | **Quote** | The UK price and weight of one item, entered by your team or filled in automatically, plus a private pay link for the customer. |
-| **Effective rate** | The exchange rate customers actually pay: your rate with your markup added. |
-| **Rate card** | The shipping price list for one method, by weight. |
+| **Customer rate** | The exchange rate customers actually pay: the market rate plus the engine's margin. |
+| **Pricing engine** | The calculation, and the configuration it reads, that prices every order. |
 | **Chargeable weight** | The larger of the real weight and the volumetric weight, used for shipping. |
 | **Super admin** | The developer's sign-in; not stored in the database. |
 | **Right (permission)** | One thing a staff account may do, such as "Update orders". |

@@ -43,12 +43,12 @@ const RATE_RETURN = new Set(["/admin", "/admin/pricing"]);
 export async function setRateAction(f: FormData): Promise<void> {
   const who = await requirePermission("pricing.manage");
   const to = RATE_RETURN.has(str(f, "returnTo")) ? str(f, "returnTo") : "/admin";
-  const before = getSettings().fx;
+  const before = getSettings().market.mid;
   const rate = num(f, "fxRate");
-  const markup = num(f, "fxMarkup");
-  const res = setExchangeRate(rate, markup, str(f, "note"));
+  // the markup is no longer typed in: the pricing configuration sets it from how much the rate moved
+  const res = setExchangeRate(rate, 0, str(f, "note"));
   if (!res.ok) back(to, { error: res.error }, "#rate");
-  adminAudit(who, "rate.update", "exchange rate", `GH₵${before.rate} (+${before.markupPct}%) to GH₵${rate} (+${markup}%)`);
+  adminAudit(who, "rate.update", "exchange rate", `GH₵${before} to GH₵${rate}`);
   back(to, { saved: "rate" }, "#rate");
 }
 

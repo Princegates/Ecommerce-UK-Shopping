@@ -10,7 +10,9 @@ import { relatedProducts, featuredProducts, type Product } from "@/lib/catalog";
 import { gbp, ghs } from "@/lib/money";
 import { getShopper } from "@/lib/shopper";
 import { gbpToGhsMinor } from "@/lib/pricing";
-import { getSettings, getShippingMethods, getZones } from "@/lib/settings";
+import { buildQuoteConfig } from "@/lib/quote-table";
+import { quoteKey } from "@/lib/quote-config";
+import { getSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your cart" };
@@ -40,23 +42,23 @@ export default async function CartPage() {
     );
   }
 
-  const cfg = {
-    fx: settings.fx,
-    serviceFee: settings.serviceFee,
-    methods: getShippingMethods().map((m) => ({ code: m.code, name: m.name, eta: m.eta, rateCard: m.rateCard })),
-    zones: getZones().map((z) => ({ id: z.id, name: z.name, areas: z.areas, feeMinor: z.feeMinor, eta: z.eta })),
-  };
-  const items = lines.map((l) => ({
-    id: String(l.itemId),
-    unitPriceMinor: l.product.priceMinor,
-    quantity: l.quantity,
-    weightGrams: l.product.weightGrams,
-  }));
+  const cfg = buildQuoteConfig(
+    lines.map((l) => ({
+      id: String(l.itemId),
+      unitPriceMinor: l.product.priceMinor,
+      quantity: l.quantity,
+      weightGrams: l.product.weightGrams,
+      category: l.product.dutyCategory,
+    })),
+  );
+  // the prices shown beside each item are for the first delivery area and method; they differ only by a few pesewas between areas
+  const firstQuote = cfg.quotes[quoteKey(cfg.zones[0]?.id ?? 0, cfg.methods[0]?.code ?? "")];
 
   const itemsGbp = lines.reduce((n, l) => n + l.product.priceMinor * l.quantity, 0);
-  const minGbp = settings.minOrderGbpMinor;
-  const reached = itemsGbp >= minGbp;
-  const pct = minGbp > 0 ? Math.min(100, Math.round((itemsGbp / minGbp) * 100)) : 100;
+  const itemsGoodsMinor = gbpToGhsMinor(itemsGbp, settings.fx);
+  const minMinor = cfg.minOrderMinor;
+  const reached = itemsGoodsMinor >= minMinor;
+  const pct = minMinor > 0 ? Math.min(100, Math.round((itemsGoodsMinor / minMinor) * 100)) : 100;
 
   const inCart = new Set(lines.map((l) => l.product.id));
   const picks: Product[] = [];
@@ -72,12 +74,12 @@ export default async function CartPage() {
 
   return (
     <div className="mx-auto max-w-[90rem] px-3 py-4 md:px-4">
-      {minGbp > 0 && (
+      {minMinor > 0 && (
         <div className="mb-3 rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(15,17,17,0.12)]" role="status">
           <p className={`text-sm font-bold ${reached ? "text-green" : ""}`}>
             {reached
               ? "✓ You have reached the minimum order. You can check out."
-              : `Add ${gbp(minGbp - itemsGbp)} (about ${ghs(gbpToGhsMinor(minGbp - itemsGbp, settings.fx))}) more of items to check out.`}
+              : `Add ${ghs(minMinor - itemsGoodsMinor)} more of items to check out (the minimum order is ${ghs(minMinor)} of items).`}
           </p>
           <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-paper" aria-hidden>
             <div className={`h-full rounded-full transition-all duration-700 ${reached ? "bg-green" : "bg-spark"}`} style={{ width: `${pct}%` }} />
@@ -93,9 +95,9 @@ export default async function CartPage() {
           </div>
           <ul>
             {lines.map((l) => {
-              const unit = gbpToGhsMinor(l.product.priceMinor, settings.fx);
               const lineGbp = l.product.priceMinor * l.quantity;
-              const lineTotal = gbpToGhsMinor(lineGbp, settings.fx);
+              const lineTotal = firstQuote?.lines.find((x) => x.id === String(l.itemId))?.ghsMinor ?? gbpToGhsMinor(lineGbp, settings.fx);
+              const unit = Math.round(lineTotal / l.quantity);
               return (
                 <li key={l.itemId} className="grid grid-cols-[6rem_1fr] gap-4 border-b border-line py-4 last:border-0 sm:grid-cols-[9rem_1fr_auto]">
                   <Link href={`/products/${l.product.slug}`} className="block overflow-hidden rounded-lg border border-line">
@@ -143,12 +145,12 @@ export default async function CartPage() {
             })}
           </ul>
           <p className="border-t border-line pt-3 text-right text-sm">
-            Items ({lines.reduce((n, l) => n + l.quantity, 0)}): <span className="num font-bold">{ghs(gbpToGhsMinor(itemsGbp, settings.fx))}</span>{" "}
-            <span className="num text-ink-soft">({gbp(itemsGbp)})</span>
+            Items ({lines.reduce((n, l) => n + l.quantity, 0)}): <span className="num font-bold">{ghs(firstQuote?.itemsMinor ?? itemsGoodsMinor)}</span>{" "}
+            <span className="num text-ink-soft">({gbp(itemsGbp)} in the UK)</span>
           </p>
         </section>
 
-        <CartSummary items={items} cfg={cfg} minOrderGbpMinor={settings.minOrderGbpMinor} />
+        <CartSummary cfg={cfg} />
       </div>
 
       <div className="-mx-3 md:-mx-4">

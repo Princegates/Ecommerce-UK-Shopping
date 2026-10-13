@@ -15,7 +15,8 @@ import { listDepartments, listShops, newArrivals, productsByIds, queryProducts, 
 import { gbp, ghs } from "@/lib/money";
 import { listOrdersForCustomer, reorderableItems } from "@/lib/orders";
 import { STATUS_LABEL } from "@/lib/order-status";
-import { gbpToGhsMinor, ghsToGbpMinor, priceOrder } from "@/lib/pricing";
+import { customerOf, priceOrder } from "@/lib/price-order";
+import { gbpToGhsMinor, ghsToGbpMinor } from "@/lib/pricing";
 import { getShopper } from "@/lib/shopper";
 import { getSettings, getShippingMethods, getZones } from "@/lib/settings";
 
@@ -23,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 const STEPS = [
   ["01", "Pick from the shops", "Browse UK shops and add what you want to your cart."],
-  ["02", "See the full price", "Items, service charge, shipping and delivery, in cedis, before you pay."],
+  ["02", "See the full price", "Items, delivery, insurance and import duties, in cedis, before you pay."],
   ["03", "Pay once in cedis", "Mobile Money or card. No UK card or UK address needed."],
   ["04", "We buy, ship, deliver", "We order it, bring it to Ghana and track it to your door."],
 ] as const;
@@ -49,9 +50,12 @@ export default async function HomePage() {
 
   // sample cost for the hero receipt, from the live settings
   const method = getShippingMethods()[0];
-  const zone = getZones()[1] ?? getZones()[0];
+  const zone = getZones().find((z) => z.pricingKey === "accra_central") ?? getZones()[0];
   const sample = method && zone
-    ? priceOrder({ items: [{ id: "s", unitPriceMinor: 8000, quantity: 1, weightGrams: 900 }], fx: settings.fx, serviceFee: settings.serviceFee, rateCard: method.rateCard, deliveryFeeMinor: zone.feeMinor })
+    ? customerOf(priceOrder({
+        items: [{ id: "s", unitPriceMinor: 8000, quantity: 1, weightGrams: 2000, category: "kitchen_home" }],
+        pricing: settings.pricing, market: settings.market, zoneKey: zone.pricingKey, service: "air",
+      }))
     : null;
 
   const orders = shopper.customer ? listOrdersForCustomer(shopper.customer.id) : [];
@@ -87,9 +91,9 @@ export default async function HomePage() {
           {sample && method && zone && (
             <div className="receipt hidden p-5 text-ink md:block md:-rotate-1">
               <p className="font-bold">Example order</p>
-              <p className="mt-1 text-sm text-ink-soft">1 item at {gbp(8000)} · 900 g · {method.name} to {zone.name}</p>
+              <p className="mt-1 text-sm text-ink-soft">1 kitchen item at {gbp(8000)} · 2 kg · {method.name} to {zone.name}</p>
               <hr />
-              <Breakdown b={sample} combinedLabel="Service, shipping and delivery" approxGbpMinor={ghsToGbpMinor(sample.totalMinor, settings.fx)} />
+              <Breakdown b={sample} approxGbpMinor={ghsToGbpMinor(sample.totalMinor, settings.fx)} />
             </div>
           )}
         </div>

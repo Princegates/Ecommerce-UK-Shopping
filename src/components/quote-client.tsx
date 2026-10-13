@@ -1,32 +1,12 @@
 "use client";
 
-import { priceOrder, type FxConfig, type PriceableItem, type PriceBreakdown, type RateCard, type ServiceFeeRule } from "@/lib/pricing";
-import { ghs } from "@/lib/money";
+import { quoteKey, type CustomerBreakdown, type QuoteConfig } from "@/lib/quote-config";
 
-export type QuoteConfig = {
-  fx: FxConfig;
-  serviceFee: ServiceFeeRule;
-  methods: { code: string; name: string; eta: string; rateCard: RateCard }[];
-  zones: { id: number; name: string; areas: string; feeMinor: number; eta: string }[];
-};
+export type { QuoteConfig };
 
-/** Same pricing code the server uses, so the figure on screen is the figure charged. */
-export function computeQuote(
-  items: PriceableItem[],
-  cfg: QuoteConfig,
-  zoneId: number,
-  code: string,
-): PriceBreakdown | null {
-  const method = cfg.methods.find((m) => m.code === code);
-  const zone = cfg.zones.find((z) => z.id === zoneId);
-  if (!method || !zone) return null;
-  return priceOrder({
-    items,
-    fx: cfg.fx,
-    serviceFee: cfg.serviceFee,
-    rateCard: method.rateCard,
-    deliveryFeeMinor: zone.feeMinor,
-  });
+/** The customer amounts the server worked out for this delivery area and shipping method. */
+export function pickQuote(cfg: Pick<QuoteConfig, "quotes">, zoneId: number, code: string): CustomerBreakdown | null {
+  return cfg.quotes[quoteKey(zoneId, code)] ?? null;
 }
 
 export function DeliverySelectors({
@@ -58,7 +38,7 @@ export function DeliverySelectors({
         >
           {cfg.zones.map((z) => (
             <option key={z.id} value={z.id}>
-              {z.name} · {ghs(z.feeMinor)}
+              {z.name}
             </option>
           ))}
         </select>

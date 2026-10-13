@@ -13,13 +13,13 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const orders = listOrders({ status: url.searchParams.get("status") ?? undefined, q: url.searchParams.get("q") ?? undefined });
   const money = (m: number) => (m / 100).toFixed(2);
-  const header = ["Order", "Placed (UTC)", "Status", "Payment", "Customer", "Phone", "Email", "Area", "Shipping", "Items GHS", "Service charge GHS", "Shipping GHS", "Delivery GHS", "Total GHS", "Rate GHS per GBP", "Chargeable grams"];
+  const header = ["Order", "Placed (UTC)", "Status", "Payment", "Customer", "Phone", "Email", "Area", "Shipping", "Items GHS", "Service charge GHS", "Shipping GHS", "Insurance GHS", "Import duties GHS", "Delivery GHS", "Total GHS", "Rate GHS per GBP", "Chargeable grams"];
   const lines = [header.map(csvCell).join(",")];
   for (const o of orders) {
     lines.push(
       [
         o.number, o.createdAt, o.status, o.paymentStatus, o.customerName, o.phone, o.email, o.zoneName, o.shippingName,
-        money(o.itemsGhsMinor), money(o.serviceFeeMinor), money(o.shippingMinor), money(o.deliveryMinor), money(o.totalMinor),
+        money(o.itemsGhsMinor), money(o.serviceFeeMinor), money(o.shippingMinor), money(o.insuranceMinor), money(o.dutyMinor), money(o.deliveryMinor), money(o.totalMinor),
         (o.fxRate * (1 + o.fxMarkupPct / 100)).toFixed(4), o.chargeableGrams,
       ].map(csvCell).join(","),
     );

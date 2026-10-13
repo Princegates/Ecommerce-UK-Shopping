@@ -2,7 +2,7 @@ import type Database from "better-sqlite3";
 import { randomBytes } from "node:crypto";
 import { db } from "./db";
 import type { CartLine } from "./cart";
-import { priceOrder, type PriceBreakdown } from "./pricing";
+import { priceOrder, type PriceBreakdown } from "./price-order";
 import { getSettings, getShippingMethod, getZone } from "./settings";
 import { canStaffTransition, isOrderStatus, type OrderStatus } from "./order-status";
 import { enqueueOrderEvent } from "./notify/outbox";
@@ -44,9 +44,16 @@ export type OrderRow = {
   itemsGhsMinor: number;
   serviceFeeMinor: number;
   shippingMinor: number;
+  insuranceMinor: number;
+  /** Import duties and taxes the shop prepaid for the customer. */
+  dutyMinor: number;
   deliveryMinor: number;
   totalMinor: number;
   chargeableGrams: number;
+  /** Reasons staff should look at the order, set when it was priced (an unknown category, a high-value phone, ...). */
+  flags: string[];
+  /** The shop's own cost working for the order, as JSON. Staff only. */
+  quoteInternal: string;
   createdAt: string;
 };
 
@@ -67,8 +74,8 @@ type RawOrder = Record<string, unknown> & {
   id: number; number: string; status: string; payment_status: string; payment_ref: string; customer_name: string;
   phone: string; email: string; zone_name: string; address: string; landmark: string; notes: string;
   shipping_name: string; fx_rate: number; fx_markup_pct: number; items_gbp_minor: number; items_ghs_minor: number;
-  service_fee_minor: number; shipping_minor: number; delivery_minor: number; total_minor: number;
-  chargeable_grams: number; created_at: string;
+  service_fee_minor: number; shipping_minor: number; insurance_minor: number; duty_minor: number; delivery_minor: number; total_minor: number;
+  chargeable_grams: number; quote_flags: string; quote_internal: string; created_at: string;
 };
 
 function toOrder(r: RawOrder): OrderRow {
@@ -78,8 +85,8 @@ function toOrder(r: RawOrder): OrderRow {
     email: r.email, zoneName: r.zone_name, address: r.address, landmark: r.landmark, notes: r.notes,
     shippingName: r.shipping_name, fxRate: r.fx_rate, fxMarkupPct: r.fx_markup_pct,
     itemsGbpMinor: r.items_gbp_minor, itemsGhsMinor: r.items_ghs_minor, serviceFeeMinor: r.service_fee_minor,
-    shippingMinor: r.shipping_minor, deliveryMinor: r.delivery_minor, totalMinor: r.total_minor,
-    chargeableGrams: r.chargeable_grams, createdAt: r.created_at,
+    shippingMinor: r.shipping_minor, insuranceMinor: r.insurance_minor ?? 0, dutyMinor: r.duty_minor ?? 0, deliveryMinor: r.delivery_minor, totalMinor: r.total_minor,
+    chargeableGrams: r.chargeable_grams, flags: (r.quote_flags ?? "").split(",").filter(Boolean), quoteInternal: r.quote_internal ?? "", createdAt: r.created_at,
   };
 }
 
@@ -94,7 +101,7 @@ export function quoteCart(
   zoneId: number | null,
   shippingCode: string | null,
   d: Db = db(),
-): { ok: true; breakdown: PriceBreakdown; shippingName: string; zoneName: string } | QuoteError {
+): { ok: true; breakdown: PriceBreakdown; shippingCode: string; shippingName: string; zoneName: string } | QuoteError {
   const settings = getSettings(d);
   const method = shippingCode ? getShippingMethod(shippingCode, d) : null;
   const zone = zoneId ? getZone(zoneId, d) : null;
@@ -106,13 +113,16 @@ export function quoteCart(
       unitPriceMinor: l.product.priceMinor,
       quantity: l.quantity,
       weightGrams: l.product.weightGrams,
+      category: l.product.dutyCategory,
     })),
-    fx: settings.fx,
-    serviceFee: settings.serviceFee,
-    rateCard: method.rateCard,
-    deliveryFeeMinor: zone.feeMinor,
+    pricing: settings.pricing,
+    market: settings.market,
+    zoneKey: zone.pricingKey,
+    service: method.code,
   });
-  return { ok: true, breakdown, shippingName: method.name, zoneName: zone.name };
+  // economy sea needs a heavy enough order; a lighter one went by air, and says so
+  const used = breakdown.service === "sea" ? method : getShippingMethod("air", d) ?? method;
+  return { ok: true, breakdown, shippingCode: used.code, shippingName: used.name, zoneName: zone.name };
 }
 
 export function createOrder(
@@ -125,11 +135,11 @@ export function createOrder(
   const quote = quoteCart(lines, details.zoneId, details.shippingCode, d);
   if (!quote.ok) return quote;
   const b = quote.breakdown;
-  if (b.itemsGbpMinor < settings.minOrderGbpMinor) {
-    return {
-      ok: false,
-      error: `The minimum order is £${(settings.minOrderGbpMinor / 100).toFixed(2)} of items.`,
-    };
+  if (b.below.minimumOrder) {
+    return { ok: false, error: `The minimum order is GH₵${settings.pricing.minOrderGhs.toLocaleString("en-GB")} of items.` };
+  }
+  if (b.below.overWeight) {
+    return { ok: false, error: `One of the items is too heavy to ship (the limit is ${settings.pricing.shipping.maxKgPerParcel} kg for one item). Please contact us.` };
   }
 
   const paymentRef = `pay_${randomBytes(12).toString("hex")}`;
@@ -138,10 +148,11 @@ export function createOrder(
       .prepare(
         `INSERT INTO orders (number, status, payment_status, payment_ref, customer_name, phone, email, zone_id, zone_name,
            address, landmark, notes, shipping_code, shipping_name, fx_rate, fx_markup_pct, items_gbp_minor, items_ghs_minor,
-           service_fee_minor, shipping_minor, delivery_minor, total_minor, chargeable_grams, notify_sms, notify_email, notify_whatsapp, customer_id)
+           service_fee_minor, shipping_minor, insurance_minor, duty_minor, delivery_minor, total_minor, chargeable_grams, quote_flags, quote_internal,
+           notify_sms, notify_email, notify_whatsapp, customer_id)
          VALUES (@number, 'AWAITING_PAYMENT', 'PENDING', @ref, @name, @phone, @email, @zoneId, @zoneName,
            @address, @landmark, @notes, @shippingCode, @shippingName, @fx, @markup, @itemsGbp, @itemsGhs,
-           @service, @shipping, @delivery, @total, @grams, @nSms, @nEmail, @nWhatsapp, @customerId)`,
+           @service, @shipping, @insurance, @duty, @delivery, @total, @grams, @flags, @internal, @nSms, @nEmail, @nWhatsapp, @customerId)`,
       )
       .run({
         number: `TEMP-${paymentRef}`,
@@ -154,7 +165,7 @@ export function createOrder(
         address: details.address,
         landmark: details.landmark,
         notes: details.notes,
-        shippingCode: details.shippingCode,
+        shippingCode: quote.shippingCode,
         shippingName: quote.shippingName,
         fx: settings.fx.rate,
         markup: settings.fx.markupPct,
@@ -162,9 +173,13 @@ export function createOrder(
         itemsGhs: b.itemsGhsMinor,
         service: b.serviceFeeMinor,
         shipping: b.shippingMinor,
+        insurance: b.insuranceMinor,
+        duty: b.dutyMinor,
         delivery: b.deliveryMinor,
         total: b.totalMinor,
         grams: b.chargeableGrams,
+        flags: b.flags.join(","),
+        internal: JSON.stringify(b.internal),
         nSms: details.notifySms === false ? 0 : 1,
         nEmail: details.notifyEmail === false ? 0 : 1,
         nWhatsapp: details.notifyWhatsapp ? 1 : 0,

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Flash, PageHead } from "@/components/admin/ui";
 import ProductForm from "@/components/admin/ProductForm";
 import { allProductsAdmin, listShops } from "@/lib/catalog";
+import { getSettings } from "@/lib/settings";
 
 export default async function EditItem({
   params,
@@ -26,7 +27,7 @@ export default async function EditItem({
         </span>
       </PageHead>
       <Flash saved={sp.saved} error={sp.error} />
-      <ProductForm product={product} shops={listShops({ includeInactive: true })} />
+      <ProductForm product={product} shops={listShops({ includeInactive: true })} categories={getSettings().pricing.categories} />
     </>
   );
 }

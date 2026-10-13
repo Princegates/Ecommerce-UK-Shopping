@@ -1,0 +1,260 @@
+{
+  "version": "2026-10-12-v4-partner-led",
+  "notes": "Planning values. Duty rates are ECOWAS CET planning rates by category; confirm each against HS codes with your licensed customs agent and recalibrate monthly from real ICUMS assessments.",
+  "fx": {
+    "baseMarkup": 0.03,
+    "volTiers": [
+      {
+        "maxMove3d": 0.01,
+        "add": 0.0
+      },
+      {
+        "maxMove3d": 0.02,
+        "add": 0.005
+      },
+      {
+        "maxMove3d": 10,
+        "add": 0.01
+      }
+    ],
+    "assumedConversionCost": 0.015,
+    "minOverCost": 0.015,
+    "quoteTtlMinutes": 30,
+    "divergenceFreezePct": 0.015
+  },
+  "minOrderGhs": 400,
+  "serviceCharge": {
+    "marginalTiers": [
+      {
+        "upToGhs": 1000,
+        "pct": 0.12
+      },
+      {
+        "upToGhs": 5000,
+        "pct": 0.09
+      },
+      {
+        "upToGhs": null,
+        "pct": 0.06
+      }
+    ],
+    "minGhs": 60,
+    "capGhs": 600
+  },
+  "shipping": {
+    "bands": [
+      {
+        "maxKg": 0.5,
+        "ghs": 160
+      },
+      {
+        "maxKg": 1,
+        "ghs": 230
+      },
+      {
+        "maxKg": 2,
+        "ghs": 340
+      },
+      {
+        "maxKg": 3,
+        "ghs": 430
+      },
+      {
+        "maxKg": 5,
+        "ghs": 560
+      },
+      {
+        "maxKg": 10,
+        "ghs": 950
+      }
+    ],
+    "perKgAbove10Ghs": 95,
+    "stepKg": 0.5,
+    "volumetricDivisor": 5000,
+    "maxKgPerParcel": 30,
+    "declaredFreightGbpPerKg": 4.0,
+    "benchmarkNote": "Priced just under published market minimums: GIG Logistics GBP37.50 for 0.5-5kg and GBP65 for 5.1-10kg; MyUS from USD19.35. Customers never see bands; they see one all-in delivery-and-import line.",
+    "sea": {
+      "enabled": true,
+      "ratePerKgGhs": 60,
+      "minGhs": 240,
+      "minBillableKg": 3,
+      "declaredFreightGbpPerKg": 2.0,
+      "transit": "4-6 weeks door to door",
+      "note": "Economy (sea) for heavy or bulky orders. Diaspora door-to-door operators sell sea boxes at about GBP90-140 per box plus the box (Paco image) and quote 3-6 weeks. Needs a partner sailing schedule and written quote before enabling."
+    },
+    "airTransit": "5-10 working days door to door (partner air 3-5 working days from collection, plus weekly consolidation)"
+  },
+  "insurance": {
+    "pct": 0.006,
+    "minGhs": 3,
+    "costPct": 0.005
+  },
+  "delivery": {
+    "east_legon_airport": 30,
+    "accra_central": 40,
+    "tema_spintex": 45,
+    "kasoa_west_accra": 55,
+    "other_regions": {
+      "base": 70,
+      "perKgOver2": 10
+    }
+  },
+  "tax": {
+    "levyPctOfCif": 0.022,
+    "vatStackPct": 0.2,
+    "bufferPct": 0.06,
+    "actualVsPlanning": 0.98,
+    "notes": "levyPctOfCif = ECOWAS 0.5% + AU 0.2% + EXIM/EDIF 0.5% + processing 1.0%. vatStackPct = VAT 15% + NHIL 2.5% + GETFund 2.5% on CIF + duty."
+  },
+  "internalCosts": {
+    "forwarderGbpPerKg": 4.5,
+    "clearanceGhsPerOrder": 15,
+    "pspPct": 0.0195,
+    "lossProvisionPct": 0.015,
+    "vatOnFees": true,
+    "vatInclusiveFactor": 0.1666667,
+    "lastMileGhs": {
+      "east_legon_airport": 25,
+      "accra_central": 32,
+      "tema_spintex": 36,
+      "kasoa_west_accra": 44,
+      "other_regions": 80
+    },
+    "supportGhsPerOrder": 10,
+    "marketingGbpPerOrder": 2.5,
+    "seaForwarderGbpPerKg": 2.8
+  },
+  "categories": [
+    {
+      "id": "books_stationery",
+      "label": "Books and stationery",
+      "duty": 0.0,
+      "flags": [
+        "confirm_vat_exemption"
+      ]
+    },
+    {
+      "id": "phones_tablets",
+      "label": "Phones and tablets",
+      "duty": 0.1,
+      "flags": [
+        "high_value_review"
+      ]
+    },
+    {
+      "id": "laptops_computers",
+      "label": "Laptops and computers",
+      "duty": 0.1,
+      "flags": [
+        "high_value_review"
+      ]
+    },
+    {
+      "id": "audio_wearables",
+      "label": "Headphones, earbuds, smartwatches, small electronics",
+      "duty": 0.2,
+      "flags": [
+        "battery"
+      ]
+    },
+    {
+      "id": "computer_accessories",
+      "label": "Computer accessories and peripherals",
+      "duty": 0.2,
+      "flags": []
+    },
+    {
+      "id": "cameras_photo",
+      "label": "Cameras and photo gear",
+      "duty": 0.2,
+      "flags": [
+        "high_value_review"
+      ]
+    },
+    {
+      "id": "kitchen_home",
+      "label": "Kitchen, home and furnishing",
+      "duty": 0.2,
+      "flags": []
+    },
+    {
+      "id": "clothing_apparel",
+      "label": "Clothing and apparel",
+      "duty": 0.2,
+      "flags": [
+        "some_textiles_35pct"
+      ]
+    },
+    {
+      "id": "footwear",
+      "label": "Footwear",
+      "duty": 0.2,
+      "flags": []
+    },
+    {
+      "id": "bags_luggage",
+      "label": "Bags and luggage",
+      "duty": 0.2,
+      "flags": []
+    },
+    {
+      "id": "watches_jewellery",
+      "label": "Watches and jewellery",
+      "duty": 0.2,
+      "flags": [
+        "high_value_review"
+      ]
+    },
+    {
+      "id": "beauty_personal_care",
+      "label": "Beauty and personal care",
+      "duty": 0.2,
+      "flags": [
+        "fda_rules"
+      ]
+    },
+    {
+      "id": "health_devices",
+      "label": "Health devices and massagers",
+      "duty": 0.2,
+      "flags": [
+        "fda_rules",
+        "manual_review"
+      ]
+    },
+    {
+      "id": "baby_kids_toys",
+      "label": "Baby, kids and toys",
+      "duty": 0.2,
+      "flags": []
+    },
+    {
+      "id": "pets",
+      "label": "Pet supplies",
+      "duty": 0.2,
+      "flags": []
+    },
+    {
+      "id": "auto_accessories",
+      "label": "Car accessories",
+      "duty": 0.2,
+      "flags": []
+    },
+    {
+      "id": "sports_outdoor",
+      "label": "Sports and outdoor",
+      "duty": 0.2,
+      "flags": []
+    },
+    {
+      "id": "unknown",
+      "label": "Unclassified (manual review)",
+      "duty": 0.35,
+      "flags": [
+        "manual_review"
+      ]
+    }
+  ],
+  "contributionFloorGhs": 100
+}

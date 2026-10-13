@@ -1,6 +1,5 @@
 import type Database from "better-sqlite3";
 import { slugify } from "./slug";
-import type { RateCard, ServiceFeeRule } from "./pricing";
 
 /**
  * A new database starts with the settings, shipping rates and delivery areas, and ONE shop: eBay UK, which the eBay
@@ -87,38 +86,13 @@ const PRODUCTS: SeedProduct[] = [
   ["Torque Tools", "Laser Measure, 40m", "Torque", "Hand tools", 19.0, 220, [], "Compact laser distance meter."],
 ];
 
-const SERVICE_FEE: ServiceFeeRule = { mode: "percent", percent: 10, minMinor: 3000 };
-
-const AIR_STANDARD: RateCard = {
-  brackets: [
-    { upToGrams: 500, priceMinor: 6000 },
-    { upToGrams: 1000, priceMinor: 9000 },
-    { upToGrams: 2000, priceMinor: 15000 },
-    { upToGrams: 5000, priceMinor: 33000 },
-    { upToGrams: 10000, priceMinor: 60000 },
-  ],
-  extraPerKgMinor: 6000,
-  minChargeMinor: 7000,
-};
-
-const AIR_EXPRESS: RateCard = {
-  brackets: [
-    { upToGrams: 500, priceMinor: 9500 },
-    { upToGrams: 1000, priceMinor: 14000 },
-    { upToGrams: 2000, priceMinor: 23000 },
-    { upToGrams: 5000, priceMinor: 50000 },
-    { upToGrams: 10000, priceMinor: 90000 },
-  ],
-  extraPerKgMinor: 9000,
-  minChargeMinor: 11000,
-};
-
-const ZONES: [name: string, areas: string, feeMinor: number, eta: string][] = [
-  ["Accra Central", "Osu, Adabraka, Ridge, Cantonments, Labone", 3000, "1 to 2 days"],
-  ["East Legon & Airport", "East Legon, Airport Residential, Madina, Adenta", 4000, "1 to 2 days"],
-  ["Tema & Spintex", "Tema, Spintex, Teshie, Nungua", 5000, "2 to 3 days"],
-  ["Kasoa & West Accra", "Kasoa, Weija, Dansoman, Kaneshie", 6000, "2 to 3 days"],
-  ["Other regions", "Kumasi, Takoradi, Tamale and elsewhere in Ghana", 12000, "3 to 6 days"],
+/** The delivery price for each area comes from the pricing configuration, by key. */
+const ZONES: [name: string, areas: string, pricingKey: string, eta: string][] = [
+  ["Accra Central", "Osu, Adabraka, Ridge, Cantonments, Labone", "accra_central", "1 to 2 days"],
+  ["East Legon & Airport", "East Legon, Airport Residential, Madina, Adenta", "east_legon_airport", "1 to 2 days"],
+  ["Tema & Spintex", "Tema, Spintex, Teshie, Nungua", "tema_spintex", "2 to 3 days"],
+  ["Kasoa & West Accra", "Kasoa, Weija, Dansoman, Kaneshie", "kasoa_west_accra", "2 to 3 days"],
+  ["Other regions", "Kumasi, Takoradi, Tamale and elsewhere in Ghana", "other_regions", "3 to 6 days"],
 ];
 
 export const EBAY_SHOP = {
@@ -165,22 +139,13 @@ export function seedIfEmpty(db: Database.Database, opts: { sample?: boolean } = 
       });
     }
 
-    const insertMethod = db.prepare(
-      "INSERT INTO shipping_methods (code, name, eta, rate_card, sort) VALUES (?, ?, ?, ?, ?)",
-    );
-    insertMethod.run("air", "Air freight", "8 to 12 days from UK dispatch", JSON.stringify(AIR_STANDARD), 0);
-    insertMethod.run("express", "Express air", "4 to 7 days from UK dispatch", JSON.stringify(AIR_EXPRESS), 1);
-
     const insertZone = db.prepare(
-      "INSERT INTO delivery_zones (name, areas, fee_minor, eta, sort) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO delivery_zones (name, areas, fee_minor, pricing_key, eta, sort) VALUES (?, ?, 0, ?, ?, ?)",
     );
-    ZONES.forEach(([n, a, f, e], i) => insertZone.run(n, a, f, e, i));
+    ZONES.forEach(([n, a, k, e], i) => insertZone.run(n, a, k, e, i));
 
     setSetting.run("site_name", JSON.stringify("YenkoExpress"));
     setSetting.run("fx_rate", JSON.stringify(15.2));
-    setSetting.run("fx_markup_pct", JSON.stringify(3));
-    setSetting.run("service_fee", JSON.stringify(SERVICE_FEE));
-    setSetting.run("min_order_gbp_minor", JSON.stringify(1000));
     setSetting.run("support_whatsapp", JSON.stringify(""));
   });
   run();

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { gbp, ghs } from "@/lib/money";
+import { ghs } from "@/lib/money";
 
 type Summary = {
   count: number;
   itemsGbpMinor: number;
   itemsGhsMinor: number;
-  minOrderGbpMinor: number;
+  /** The minimum order of items in pesewas. */
+  minOrderMinor: number;
   items: { id: number; slug: string; name: string; shop: string; accent: string; imageUrl: string | null; quantity: number; options: string; lineGhsMinor: number }[];
 };
 
@@ -53,8 +54,8 @@ export default function CartDrawer() {
   }, [open]);
 
   if (!open) return null;
-  const short = data ? Math.max(0, data.minOrderGbpMinor - data.itemsGbpMinor) : 0;
-  const progress = data && data.minOrderGbpMinor > 0 ? Math.min(100, (data.itemsGbpMinor / data.minOrderGbpMinor) * 100) : 100;
+  const short = data ? Math.max(0, data.minOrderMinor - data.itemsGhsMinor) : 0;
+  const progress = data && data.minOrderMinor > 0 ? Math.min(100, (data.itemsGhsMinor / data.minOrderMinor) * 100) : 100;
 
   return (
     <>
@@ -71,10 +72,10 @@ export default function CartDrawer() {
           {data && data.items.length === 0 && <p>Your cart is empty.</p>}
           {data && data.items.length > 0 && (
             <>
-              {data.minOrderGbpMinor > 0 && (
+              {data.minOrderMinor > 0 && (
                 <div className="box mb-4 p-3 text-sm" role="status">
                   {short > 0 ? (
-                    <p>Add <strong>{gbp(short)}</strong> more of items to reach the {gbp(data.minOrderGbpMinor)} minimum order.</p>
+                    <p>Add <strong>{ghs(short)}</strong> more of items to reach the {ghs(data.minOrderMinor)} minimum order.</p>
                   ) : (
                     <p className="font-semibold text-green">You have reached the minimum order. You are good to check out.</p>
                   )}
@@ -106,7 +107,7 @@ export default function CartDrawer() {
         {data && data.items.length > 0 && (
           <footer className="grid gap-3 border-t border-line bg-paper-3 p-4">
             <p className="flex items-baseline justify-between"><span className="font-semibold">Items subtotal</span><span className="num display text-2xl">{ghs(data.itemsGhsMinor)}</span></p>
-            <p className="hint">Service charge, shipping and delivery are added at the next step.</p>
+            <p className="hint">Delivery, insurance and import duties are added at the next step.</p>
             <div className="grid grid-cols-2 gap-3">
               <Link href="/cart" className="btn" onClick={() => setOpen(false)}>View cart</Link>
               <Link href="/checkout" className="btn btn-primary" onClick={() => setOpen(false)}>Checkout</Link>

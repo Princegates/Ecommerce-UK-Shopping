@@ -5,6 +5,8 @@ import { confirmPaymentManuallyAction, setOrderStatusAction } from "@/app/admin/
 import { addTrackingAction, deleteTrackingAction, saveCostsAction } from "@/app/admin/ops-actions";
 import { Flash, PageHead } from "@/components/admin/ui";
 import Breakdown from "@/components/Breakdown";
+import { describeFlags, needsLookingAt } from "@/lib/order-flags";
+import { customerOfOrder } from "@/lib/quote-config";
 import StatusChip from "@/components/StatusChip";
 import { can, requirePermission } from "@/lib/auth";
 import { getCustomerById } from "@/lib/customers";
@@ -55,6 +57,15 @@ export default async function AdminOrder({
   const owner = (db().prepare("SELECT customer_id AS id FROM orders WHERE id = ?").get(order.id) as { id: number | null }).id;
   const customer = owner ? getCustomerById(owner) : null;
   const fromLink = getRequestForOrder(order.id);
+  const flags = describeFlags(order.flags);
+  const lookAt = needsLookingAt(flags);
+  type Working = { contributionGhs: number; contributionPctOfTotal: number; totalCostsGhs: number; costs: Record<string, number> };
+  let working: Working | null = null;
+  try { working = order.quoteInternal ? (JSON.parse(order.quoteInternal) as Working) : null; } catch { working = null; }
+  const COST_LABEL: Record<string, string> = {
+    goods: "Goods and UK delivery", freight: "Freight to Ghana", clearance: "Clearance", insurance: "Cargo insurance", lastMile: "Last-mile delivery",
+    dutyActual: "Import duties and taxes (expected)", psp: "Payment provider fee", provision: "Loss provision", vatOnFees: "VAT on our fees", supportAndReferral: "Support and marketing",
+  };
 
   return (
     <>
@@ -62,6 +73,13 @@ export default async function AdminOrder({
         <Link href="/admin/orders" className="link">← All orders</Link>
       </PageHead>
       <Flash saved={sp.saved} error={sp.error} />
+
+      {lookAt.length > 0 && (
+        <section className="box mb-6 grid gap-1 !border-red bg-red/10 p-4 text-sm" role="note">
+          <p className="font-bold">Check before buying</p>
+          <ul className="list-disc pl-5">{lookAt.map((f) => <li key={f.kind}>{f.label}</li>)}</ul>
+        </section>
+      )}
 
       {fromLink && (
         <section className="box mb-6 grid gap-1 !border-gold bg-gold/25 p-4 text-sm">
@@ -231,10 +249,36 @@ export default async function AdminOrder({
         <div className="grid content-start gap-8">
           <section className="receipt p-5">
             <h2 className="!text-xl">Customer paid</h2>
-            <div className="mt-3"><Breakdown b={order} /></div>
+            <div className="mt-3"><Breakdown b={customerOfOrder(order)} /></div>
             <hr />
             <p className="text-xs">Rate £1 = GH₵{(order.fxRate * (1 + order.fxMarkupPct / 100)).toFixed(4)} · {order.chargeableGrams} g chargeable · {order.shippingName}</p>
           </section>
+
+          {canCosts && working && (
+          <section id="working" className="box p-5">
+            <h2 className="text-xl">How it was priced</h2>
+            <p className="mb-3 mt-1 text-sm text-ink-soft">Staff only. The planned costs the price was built from, and the margin they leave.</p>
+            <dl className="receipt p-4">
+              <div className="row"><dt>Items at the rate</dt><dd className="num">{ghs(order.itemsGhsMinor)}</dd></div>
+              <div className="row"><dt>Service charge</dt><dd className="num">{ghs(order.serviceFeeMinor)}</dd></div>
+              <div className="row"><dt>Shipping to Ghana</dt><dd className="num">{ghs(order.shippingMinor)}</dd></div>
+              <div className="row"><dt>Cargo insurance</dt><dd className="num">{ghs(order.insuranceMinor)}</dd></div>
+              <div className="row"><dt>Import duties and taxes (prepaid)</dt><dd className="num">{ghs(order.dutyMinor)}</dd></div>
+              <div className="row"><dt>Delivery in Ghana</dt><dd className="num">{ghs(order.deliveryMinor)}</dd></div>
+              <hr />
+              <div className="row total"><dt>Customer total</dt><dd className="num">{ghs(order.totalMinor)}</dd></div>
+            </dl>
+            <h3 className="mt-4 text-base font-bold">Planned costs</h3>
+            <dl className="mt-2 grid gap-1 text-sm">
+              {Object.entries(working.costs).map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-3"><dt>{COST_LABEL[k] ?? k}</dt><dd className="num">{ghs(Math.round(v * 100))}</dd></div>
+              ))}
+              <div className="flex justify-between gap-3 border-t border-line pt-1 font-semibold"><dt>Total planned costs</dt><dd className="num">{ghs(Math.round(working.totalCostsGhs * 100))}</dd></div>
+              <div className="flex justify-between gap-3 font-semibold"><dt>Planned contribution</dt><dd className="num">{ghs(Math.round(working.contributionGhs * 100))} ({(working.contributionPctOfTotal * 100).toFixed(1)}% of the total)</dd></div>
+            </dl>
+            {flags.length > 0 && <ul className="mt-3 list-disc pl-5 text-sm text-ink-soft">{flags.map((f) => <li key={f.kind}>{f.label}</li>)}</ul>}
+          </section>
+          )}
 
           {canCosts && (
           <section id="costs" className="box p-5 scroll-mt-24">

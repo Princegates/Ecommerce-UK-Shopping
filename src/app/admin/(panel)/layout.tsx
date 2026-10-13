@@ -36,6 +36,7 @@ const NAV: { heading: string; items: { href: string; label: string; need: Permis
     items: [
       { href: "/admin/pricing", label: "Pricing", need: "pricing.manage" },
       { href: "/admin/shipping", label: "Shipping", need: "pricing.manage" },
+      { href: "/admin/pricing-engine", label: "Pricing engine", need: "pricing.manage" },
       { href: "/admin/zones", label: "Delivery areas", need: "pricing.manage" },
     ],
   },

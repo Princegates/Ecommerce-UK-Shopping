@@ -89,7 +89,7 @@ export function getMarketRate(d: Db = db()): MarketRate | null {
 export function drift(d: Db = db()): number | null {
   const m = getMarketRate(d);
   if (!m) return null;
-  const ours = getSettings(d).fx.rate;
+  const ours = getSettings(d).market.mid;
   return (ours - m.rate) / m.rate;
 }
 
@@ -120,7 +120,7 @@ export function applyMarketRate(d: Db = db(), manual = false): { applied: boolea
   const policy = getFxPolicy(d);
   const market = getMarketRate(d);
   if (!market) return { applied: false, reason: "No market rate yet." };
-  const current = getSettings(d).fx;
+  const current = { rate: getSettings(d).market.mid, markupPct: 0 };
   const move = Math.abs(market.rate - current.rate) / current.rate;
   if (move < 0.0005) return { applied: false, reason: "Already in line with the market." };
   if (!manual) {

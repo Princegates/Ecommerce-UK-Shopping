@@ -1,17 +1,24 @@
 import { requirePermission } from "@/lib/auth";
 import { deleteZoneAction, saveZoneAction } from "@/app/admin/actions";
 import { Check, Flash, PageHead, Text } from "@/components/admin/ui";
-import { minorToInput } from "@/lib/money";
-import { getZones } from "@/lib/settings";
+import { ghs } from "@/lib/money";
+import { getSettings, getZones } from "@/lib/settings";
+import { deliveryFee } from "@/lib/quote-engine";
 
-function ZoneForm({ z }: { z?: ReturnType<typeof getZones>[number] }) {
+function ZoneForm({ z, keys }: { z?: ReturnType<typeof getZones>[number]; keys: string[] }) {
   const k = `zone-${z?.id ?? "new"}`;
   return (
     <form action={saveZoneAction} className="grid gap-4">
       <input type="hidden" name="id" value={z?.id ?? 0} />
       <div className="grid gap-4 sm:grid-cols-2">
         <Text label="Area name" name="name" id={`${k}-name`} defaultValue={z?.name} required />
-        <Text label="Delivery fee (GH₵)" name="fee" id={`${k}-fee`} inputMode="decimal" defaultValue={minorToInput(z?.feeMinor ?? 5000)} />
+        <div className="field">
+          <label className="label" htmlFor={`${k}-key`}>Delivery price</label>
+          <select id={`${k}-key`} name="pricingKey" className="select" defaultValue={z?.pricingKey ?? "other_regions"}>
+            {keys.map((key) => <option key={key} value={key}>{key.replace(/_/g, " ")}</option>)}
+          </select>
+          <p className="hint">Which delivery price in the pricing engine applies here.</p>
+        </div>
       </div>
       <Text label="Places included" name="areas" id={`${k}-areas`} defaultValue={z?.areas} placeholder="Osu, Ridge, Cantonments" />
       <div className="grid gap-4 sm:grid-cols-2">
@@ -28,25 +35,27 @@ export default async function ZonesPage({ searchParams }: { searchParams: Promis
   await requirePermission("pricing.manage");
   const sp = await searchParams;
   const zones = getZones(false);
+  const pricing = getSettings().pricing;
+  const keys = Object.keys(pricing.delivery);
   return (
     <>
       <PageHead title="Delivery areas" />
-      <p className="mb-6 max-w-2xl text-ink-soft">These are the areas customers choose from at checkout, with the delivery fee added to their total. Change a fee, rename an area, add one with &ldquo;+ Add a delivery area&rdquo;, or delete one. Changes show at checkout straight away.</p>
+      <p className="mb-6 max-w-2xl text-ink-soft">These are the areas customers choose from at checkout. The delivery price for each comes from the pricing engine, and is part of the one delivery line customers see. Change a fee, rename an area, add one with &ldquo;+ Add a delivery area&rdquo;, or delete one. Changes show at checkout straight away.</p>
       <Flash saved={sp.saved} error={sp.error} />
       <div className="grid gap-6">
         {zones.map((z) => (
           <details key={z.id} className="box box-shadow">
             <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 p-4 text-xl font-bold">
               <span>{z.name} {!z.active && <span className="tag ml-2">Hidden</span>}</span>
-              <span className="num mono text-base font-medium">GH₵{minorToInput(z.feeMinor)}</span>
+              <span className="num mono text-base font-medium">{z.pricingKey.replace(/_/g, " ")} · from {ghs(Math.round(deliveryFee(z.pricingKey, 2, pricing) * 100))}</span>
             </summary>
             <div className="grid gap-6 border-t border-line p-5">
-              <ZoneForm z={z} />
+              <ZoneForm z={z} keys={keys} />
               <form action={deleteZoneAction} className="grid gap-3 border-t border-line pt-5">
                 <input type="hidden" name="id" value={z.id} />
                 <h3 className="text-lg font-bold">Delete this area</h3>
                 <p className="text-sm text-ink-soft">
-                  Customers can no longer choose <strong>{z.name}</strong>. Orders already placed keep the area and fee they were charged. To keep it for later, untick
+                  Customers can no longer choose <strong>{z.name}</strong>. Orders already placed keep the area and price they were charged. To keep it for later, untick
                   &ldquo;Deliver to this area&rdquo; above instead.
                 </p>
                 <Check label={`Yes, delete ${z.name}`} name="confirm" />
@@ -57,7 +66,7 @@ export default async function ZonesPage({ searchParams }: { searchParams: Promis
         ))}
         <details className="box box-shadow">
           <summary className="cursor-pointer p-4 text-xl font-bold">+ Add a delivery area</summary>
-          <div className="border-t border-line p-5"><ZoneForm /></div>
+          <div className="border-t border-line p-5"><ZoneForm keys={keys} /></div>
         </details>
       </div>
     </>

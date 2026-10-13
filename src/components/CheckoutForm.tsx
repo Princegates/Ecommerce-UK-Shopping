@@ -1,25 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useState } from "react";
 import { placeOrderAction, type CheckoutState } from "@/app/actions/checkout";
-import Breakdown from "@/components/Breakdown";
-import { computeQuote, DeliverySelectors, type QuoteConfig } from "@/components/quote-client";
+import Breakdown, { BREAKDOWN_NOTE } from "@/components/Breakdown";
+import { DeliverySelectors, pickQuote, type QuoteConfig } from "@/components/quote-client";
 import { ghs } from "@/lib/money";
-import { ghsToGbpMinor, type PriceableItem } from "@/lib/pricing";
+import { ghsToGbpMinor } from "@/lib/pricing";
 
 type Summary = { itemId: string; name: string; shop: string; options: string; quantity: number; lineGhsMinor: number };
 type Addr = { id: number; label: string; recipient: string; phone: string; zoneId: number | null; address: string; landmark: string; isDefault: boolean };
 type Profile = { name: string; phone: string; email: string; notifySms: boolean; notifyEmail: boolean; notifyWhatsapp: boolean };
 
 export default function CheckoutForm({
-  items, summary, cfg, initialZone, initialShip, profile, addresses, selectedAddressId, submitAction = placeOrderAction, hidden = {},
+  summary, cfg, initialZone, initialShip, profile, addresses, selectedAddressId, submitAction = placeOrderAction, hidden = {},
 }: {
   /** replaces the normal cart checkout, for example when paying a quoted link request */
   submitAction?: (prev: CheckoutState, formData: FormData) => Promise<CheckoutState>;
   /** extra hidden fields sent with the form */
   hidden?: Record<string, string>;
-  items: PriceableItem[];
   summary: Summary[];
   cfg: QuoteConfig;
   initialZone: number;
@@ -37,7 +36,7 @@ export default function CheckoutForm({
   const [phone, setPhone] = useState(first?.phone ?? profile.phone);
   const [address, setAddress] = useState(first?.address ?? "");
   const [landmark, setLandmark] = useState(first?.landmark ?? "");
-  const quote = useMemo(() => computeQuote(items, cfg, zoneId, code), [items, cfg, zoneId, code]);
+  const quote = pickQuote(cfg, zoneId, code);
   const v = state.values ?? {};
 
   function pick(next: number | "new") {
@@ -146,16 +145,15 @@ export default function CheckoutForm({
                   <span className="font-semibold">{s.quantity} × {s.name}</span>
                   <span className="block text-ink-soft">{s.shop}{s.options ? ` · ${s.options}` : ""}</span>
                 </span>
-                <span className="num whitespace-nowrap">{ghs(s.lineGhsMinor)}</span>
+                <span className="num whitespace-nowrap">{ghs(quote?.lines.find((l) => l.id === s.itemId)?.ghsMinor ?? s.lineGhsMinor)}</span>
               </li>
             ))}
           </ul>
           <hr />
           {quote ? <Breakdown b={quote} approxGbpMinor={ghsToGbpMinor(quote.totalMinor, cfg.fx)} /> : <p>Choose a delivery area and shipping method.</p>}
           <hr />
-          <p className="text-xs text-ink-soft">
-            Import duty charged by customs, if any, is not included. You pay us in cedis; we buy the items from the UK shops for you.
-          </p>
+          <p className="text-xs text-ink-soft">{BREAKDOWN_NOTE} You pay us in cedis; we buy the items from the UK shops for you.</p>
+          {quote && <p className="text-xs text-ink-soft">Expected delivery: {quote.estimatedDelivery}.</p>}
         </div>
 
         <div aria-live="polite">{state.error && <p className="error-text" role="alert">{state.error}</p>}</div>

@@ -11,13 +11,14 @@ export const RANGES: RangeDays[] = [7, 30, 90];
 export const parseRange = (v: string | undefined): RangeDays => (RANGES.find((r) => String(r) === v) ?? 30) as RangeDays;
 
 
-type Totals = { orders: number; revenue: number; items: number; service: number; shipping: number; delivery: number };
+type Totals = { orders: number; revenue: number; items: number; service: number; shipping: number; insurance: number; duty: number; delivery: number };
 
 function totals(from: string, to: string, d: Db): Totals {
   const r = d
     .prepare(
       `SELECT COUNT(*) AS orders, COALESCE(SUM(total_minor), 0) AS revenue, COALESCE(SUM(items_ghs_minor), 0) AS items,
-              COALESCE(SUM(service_fee_minor), 0) AS service, COALESCE(SUM(shipping_minor), 0) AS shipping, COALESCE(SUM(delivery_minor), 0) AS delivery
+              COALESCE(SUM(service_fee_minor), 0) AS service, COALESCE(SUM(shipping_minor), 0) AS shipping, COALESCE(SUM(insurance_minor), 0) AS insurance, COALESCE(SUM(duty_minor), 0) AS duty,
+              COALESCE(SUM(delivery_minor), 0) AS delivery
        FROM orders o WHERE o.payment_status = 'PAID' AND o.created_at >= datetime('now', ?) AND o.created_at < datetime('now', ?)`,
     )
     .get(from, to) as Totals;
@@ -31,6 +32,8 @@ export type Kpis = {
   serviceFeeMinor: number;
   itemsMinor: number;
   shippingMinor: number;
+  insuranceMinor: number;
+  dutyMinor: number;
   deliveryMinor: number;
   newCustomers: number;
   previous: { orders: number; revenueMinor: number; averageOrderMinor: number; newCustomers: number };
@@ -44,7 +47,7 @@ export function kpis(range: RangeDays, d: Db = db()): Kpis {
   const aov = (t: Totals) => (t.orders ? Math.round(t.revenue / t.orders) : 0);
   return {
     orders: now.orders, revenueMinor: now.revenue, averageOrderMinor: aov(now), serviceFeeMinor: now.service, itemsMinor: now.items,
-    shippingMinor: now.shipping, deliveryMinor: now.delivery, newCustomers: nc(`-${range} days`, "+1 day"),
+    shippingMinor: now.shipping, insuranceMinor: now.insurance, dutyMinor: now.duty, deliveryMinor: now.delivery, newCustomers: nc(`-${range} days`, "+1 day"),
     previous: { orders: before.orders, revenueMinor: before.revenue, averageOrderMinor: aov(before), newCustomers: nc(`-${range * 2} days`, `-${range} days`) },
   };
 }

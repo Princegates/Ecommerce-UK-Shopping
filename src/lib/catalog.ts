@@ -1,5 +1,6 @@
 import type Database from "better-sqlite3";
 import { db } from "./db";
+import { inferDutyCategory } from "./duty-category";
 
 type Db = Database.Database;
 
@@ -41,6 +42,8 @@ export type Product = {
   shopCategory: string;
   compareAtMinor: number | null;
   dealEndsAt: string | null;
+  /** The import-duty category (an id from the pricing configuration), set by hand or worked out from the name. */
+  dutyCategory: string;
   reviewCount: number;
   ratingAvg: number | null;
   createdAt: string;
@@ -55,7 +58,7 @@ type ProductRow = {
   id: number; slug: string; name: string; brand: string; category: string; description: string;
   price_minor: number; weight_grams: number; options: string; image_url: string | null; source_url: string;
   active: number; shop_id: number; shop_slug: string; shop_name: string; shop_accent: string; shop_logo: string; shop_category: string;
-  compare_at_minor: number | null; deal_ends_at: string | null; review_count: number; review_avg: number | null; created_at: string;
+  compare_at_minor: number | null; deal_ends_at: string | null; duty_category: string; review_count: number; review_avg: number | null; created_at: string;
 };
 
 const SHOP_SQL = `
@@ -91,7 +94,7 @@ const toProduct = (r: ProductRow): Product => ({
   imageUrl: r.image_url, sourceUrl: r.source_url, active: r.active === 1,
   shopId: r.shop_id, shopSlug: r.shop_slug, shopName: r.shop_name, shopAccent: r.shop_accent, shopLogoUrl: r.shop_logo, shopCategory: r.shop_category,
   compareAtMinor: r.compare_at_minor && r.compare_at_minor > r.price_minor ? r.compare_at_minor : null,
-  dealEndsAt: r.deal_ends_at, reviewCount: r.review_count, ratingAvg: r.review_avg === null ? null : Math.round(r.review_avg * 10) / 10,
+  dealEndsAt: r.deal_ends_at, dutyCategory: r.duty_category || inferDutyCategory(r.name, r.category), reviewCount: r.review_count, ratingAvg: r.review_avg === null ? null : Math.round(r.review_avg * 10) / 10,
   createdAt: r.created_at,
 });
 

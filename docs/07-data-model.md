@@ -35,11 +35,11 @@ Important choices:
 
 | Table | Purpose |
 | --- | --- |
-| `settings` | Key/value site settings: site name, exchange rate and markup, service charge rule, minimum order, support WhatsApp, theme, exchange-rate policy, automatic-quote rules, item types, notification rules. |
+| `settings` | Key/value site settings: site name, market and customs exchange rates, the pricing engine configuration, support WhatsApp, theme, exchange-rate policy, automatic-quote rules, item types, notification rules. |
 | `shops` | The shops shown on the site. `category` is the department. `logo_url` is an uploaded file or a link. |
 | `products` | Items for sale: price, weight, size/colour options (JSON), photo, source link, active flag, last-synced time. |
 | `carts`, `cart_items` | A visitor's cart, found by a cookie token. |
-| `shipping_methods` | Shipping methods and their rate cards (JSON). |
+| `shipping_methods` | Not used for pricing any more: shipping comes from the pricing engine configuration. Kept so old databases open. |
 | `delivery_zones` | Delivery areas and their fees. |
 | `orders` | One row per order: status, payment status, payment reference, customer and delivery details, rate used, every amount, chargeable grams, notification choices, owning customer. |
 | `order_items` | The lines of an order, as bought. |

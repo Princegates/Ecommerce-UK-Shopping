@@ -81,7 +81,7 @@ describe("deleting a delivery area", () => {
     for (const z of rest.slice(0, -1)) expect(deleteZone(z.id, d)).toMatchObject({ ok: true });
     const last = getZones(true, d)[0];
     expect(deleteZone(last.id, d)).toMatchObject({ ok: false });
-    upsertZone({ id: 0, name: "New area", areas: "", feeMinor: 5000, eta: "", active: true, sort: 1 }, d);
+    upsertZone({ id: 0, name: "New area", areas: "", pricingKey: "accra_central", eta: "", active: true, sort: 1 }, d);
     expect(deleteZone(last.id, d)).toMatchObject({ ok: true });
   });
 });

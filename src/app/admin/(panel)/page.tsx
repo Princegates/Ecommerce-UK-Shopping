@@ -165,6 +165,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               { label: "Items", value: k.itemsMinor, color: "var(--green)" },
               { label: "Service charge", value: k.serviceFeeMinor, color: "var(--gold)" },
               { label: "Shipping", value: k.shippingMinor, color: "var(--ink)" },
+              { label: "Insurance", value: k.insuranceMinor, color: "var(--green-2, var(--green))" },
+              { label: "Import duties", value: k.dutyMinor, color: "var(--red, var(--ink))" },
               { label: "Delivery", value: k.deliveryMinor, color: "var(--kraft)" },
             ]}
           />
@@ -211,6 +213,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               <p className="hint">Customers are quoted at this rate until you change it.</p>
             </div>
             <p className="display num text-3xl">£1 = GH₵{effectiveRate(settings.fx).toFixed(4)}</p>
+            <p className="hint w-full">Market rate GH₵{settings.market.mid}; the customer rate adds the markup set in the pricing engine ({(((settings.fx.rate / settings.market.mid) - 1) * 100).toFixed(2)}% now).</p>
           </div>
           {stale && (
             <p role="alert" className="box mt-4 border-red bg-red/10 p-3 text-sm font-semibold text-red">
@@ -243,14 +246,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           </div>
           <form action={setRateAction} className="mt-4 grid gap-4">
             <input type="hidden" name="returnTo" value="/admin" />
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="field">
-                <label className="label" htmlFor="fxRate">GH₵ for £1</label>
-                <input id="fxRate" name="fxRate" className="input" inputMode="decimal" defaultValue={settings.fx.rate} required />
-              </div>
-              <div className="field">
-                <label className="label" htmlFor="fxMarkup">Markup (%)</label>
-                <input id="fxMarkup" name="fxMarkup" className="input" inputMode="decimal" defaultValue={settings.fx.markupPct} required />
+                <label className="label" htmlFor="fxRate">Market rate: GH₵ for £1</label>
+                <input id="fxRate" name="fxRate" className="input" inputMode="decimal" defaultValue={settings.market.mid} required />
               </div>
               <div className="field">
                 <label className="label" htmlFor="note">Note (optional)</label>
@@ -259,7 +258,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <button className="btn btn-primary">Update rate</button>
-              <span className="hint">Existing orders keep the rate they were quoted. The markup covers movement before you buy.</span>
+              <span className="hint">Existing orders keep the rate they were quoted. The markup is added automatically, and rises in a volatile week.</span>
             </div>
           </form>
           {history.length > 0 && (

@@ -68,7 +68,7 @@ Your own rate (set on **Pricing**) always decides prices. A feed can only sugges
 Policy (Integrations → Exchange rate feed):
 - **Manual**: the feed is ignored.
 - **Suggest** (default): the Dashboard and Integrations show the market rate and the gap; you apply it yourself. The dashboard warns when the gap passes the **alert** percentage (default 3%).
-- **Automatic**: the rate moves to the market rate **only if the move is within the limit** (default 5%); bigger moves wait for you. Your **markup** always applies on top.
+- **Automatic**: the rate moves to the market rate **only if the move is within the limit** (default 5%); bigger moves wait for you. The engine's margin always applies on top.
 
 Every change is recorded in the rate history and the activity log. To update on a schedule, call `GET /api/cron/fx` hourly or daily with the cron secret.
 

@@ -1,53 +1,39 @@
 import { gbp, ghs } from "@/lib/money";
-import type { PriceBreakdown } from "@/lib/pricing";
 
-/** Itemised landed cost: items + service charge + shipping + delivery, or with `combinedLabel` the last three as one line. */
+/** What a customer sees of an order's cost: items, one all-in delivery line, and the total. */
+export type BreakdownAmounts = {
+  itemsGbpMinor: number;
+  /** Items at the customer rate, with the service charge included in the item prices. */
+  itemsMinor: number;
+  /** Shipping, cargo insurance, import duties and taxes, and delivery to the door. */
+  deliveryAndImportMinor: number;
+  totalMinor: number;
+};
+
+/** Said wherever a total is shown, so the customer knows what it covers and that nothing is due on delivery. */
+export const BREAKDOWN_NOTE =
+  "Item prices include our service charge. The delivery line covers shipping to Ghana, cargo insurance, import duties and taxes, and delivery to your door, so there is nothing more to pay on delivery.";
+
 export default function Breakdown({
   b,
-  serviceLabel = "Service charge",
-  shippingLabel = "Shipping to Ghana",
-  deliveryLabel = "Delivery in Ghana",
   showGbp = true,
   approxGbpMinor,
-  combinedLabel,
 }: {
-  b: Pick<PriceBreakdown, "itemsGbpMinor" | "itemsGhsMinor" | "serviceFeeMinor" | "shippingMinor" | "deliveryMinor" | "totalMinor">;
-  serviceLabel?: string;
-  shippingLabel?: string;
-  deliveryLabel?: string;
+  b: BreakdownAmounts;
   showGbp?: boolean;
   /** The total in pounds at the same rate, shown under the cedi total. */
   approxGbpMinor?: number;
-  /** When set, service charge, shipping and delivery are shown as one line with this label (for example on the home page example). */
-  combinedLabel?: string;
 }) {
   return (
     <dl>
       <div className="row">
         <dt>Items{showGbp ? ` (${gbp(b.itemsGbpMinor)})` : ""}</dt>
-        <dd className="num">{ghs(b.itemsGhsMinor)}</dd>
+        <dd className="num">{ghs(b.itemsMinor)}</dd>
       </div>
-      {combinedLabel ? (
-        <div className="row">
-          <dt>{combinedLabel}</dt>
-          <dd className="num">{ghs(b.serviceFeeMinor + b.shippingMinor + b.deliveryMinor)}</dd>
-        </div>
-      ) : (
-        <>
-          <div className="row">
-            <dt>{serviceLabel}</dt>
-            <dd className="num">{ghs(b.serviceFeeMinor)}</dd>
-          </div>
-          <div className="row">
-            <dt>{shippingLabel}</dt>
-            <dd className="num">{ghs(b.shippingMinor)}</dd>
-          </div>
-          <div className="row">
-            <dt>{deliveryLabel}</dt>
-            <dd className="num">{ghs(b.deliveryMinor)}</dd>
-          </div>
-        </>
-      )}
+      <div className="row">
+        <dt>Delivery, insurance and import duties</dt>
+        <dd className="num">{ghs(b.deliveryAndImportMinor)}</dd>
+      </div>
       <hr />
       <div className="row total">
         <dt>Total to pay</dt>

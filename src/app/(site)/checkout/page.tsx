@@ -6,6 +6,7 @@ import { getCart } from "@/lib/cart";
 import { requireCustomer } from "@/lib/customer-session";
 import { listAddresses } from "@/lib/customers";
 import { gbpToGhsMinor } from "@/lib/pricing";
+import { buildQuoteConfig } from "@/lib/quote-table";
 import { getSettings, getShippingMethods, getZones } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
@@ -35,22 +36,18 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
 
   const addresses = listAddresses(customer.id);
   const preferred = addresses.find((a) => a.isDefault) ?? null;
-  const cfg = {
-    fx: settings.fx,
-    serviceFee: settings.serviceFee,
-    methods: methods.map((m) => ({ code: m.code, name: m.name, eta: m.eta, rateCard: m.rateCard })),
-    zones: zones.map((z) => ({ id: z.id, name: z.name, areas: z.areas, feeMinor: z.feeMinor, eta: z.eta })),
-  };
-  const fromQuery = zones.find((z) => String(z.id) === sp.zone)?.id;
-  const initialZone = fromQuery ?? (preferred?.zoneId && zones.some((z) => z.id === preferred.zoneId) ? preferred.zoneId : null) ?? customer.defaultZoneId ?? zones[0].id;
-  const initialShip = methods.find((m) => m.code === sp.ship)?.code ?? methods[0].code;
-
   const items = lines.map((l) => ({
     id: String(l.itemId),
     unitPriceMinor: l.product.priceMinor,
     quantity: l.quantity,
     weightGrams: l.product.weightGrams,
+    category: l.product.dutyCategory,
   }));
+  const cfg = buildQuoteConfig(items);
+  const fromQuery = zones.find((z) => String(z.id) === sp.zone)?.id;
+  const initialZone = fromQuery ?? (preferred?.zoneId && zones.some((z) => z.id === preferred.zoneId) ? preferred.zoneId : null) ?? customer.defaultZoneId ?? zones[0].id;
+  const initialShip = methods.find((m) => m.code === sp.ship)?.code ?? methods[0].code;
+
   const summary = lines.map((l) => ({
     itemId: String(l.itemId),
     name: l.product.name,
@@ -68,7 +65,6 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         <Link href="/cart" className="link">← Back to cart</Link>
       </p>
       <CheckoutForm
-        items={items}
         summary={summary}
         cfg={cfg}
         initialZone={zones.some((z) => z.id === initialZone) ? initialZone : zones[0].id}

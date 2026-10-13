@@ -2,9 +2,13 @@ import { saveProductAction } from "@/app/admin/actions";
 import { Area, Check, Select, Text } from "@/components/admin/ui";
 import { optionGroupsToText } from "@/lib/admin-parse";
 import type { Product, Shop } from "@/lib/catalog";
+import { inferDutyCategory } from "@/lib/duty-category";
 import { minorToInput } from "@/lib/money";
+import type { PricingConfig } from "@/lib/quote-engine";
 
-export default function ProductForm({ product, shops }: { product?: Product; shops: Shop[] }) {
+export default function ProductForm({ product, shops, categories }: { product?: Product; shops: Shop[]; categories: PricingConfig["categories"] }) {
+  // the catalogue fills in the guessed category, so only show a choice when it differs from the guess
+  const dutyChoice = product && product.dutyCategory !== inferDutyCategory(product.name, product.category) ? product.dutyCategory : "";
   return (
     <form action={saveProductAction} className="grid max-w-3xl gap-5">
       <input type="hidden" name="id" value={product?.id ?? 0} />
@@ -20,6 +24,10 @@ export default function ProductForm({ product, shops }: { product?: Product; sho
         <Text label="UK shop price (£)" name="price" inputMode="decimal" defaultValue={product ? minorToInput(product.priceMinor) : ""} required hint="The price on the UK shop, with no markup." />
         <Text label="Weight (grams)" name="weightGrams" inputMode="numeric" defaultValue={product?.weightGrams ?? 500} required hint="Packed weight. Drives shipping." />
       </div>
+      <Select label="Import duty category" name="dutyCategory" defaultValue={dutyChoice} hint="Sets the import duty in the price. Leave on Automatic to work it out from the name and category. Items we cannot place are priced at the highest rate and flagged for you to check.">
+        <option value="">Automatic (from the name)</option>
+        {categories.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
+      </Select>
       <Area label="Description" name="description" defaultValue={product?.description} rows={4} />
       <Area
         label="Options customers choose"

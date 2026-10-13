@@ -15,10 +15,10 @@ Cancel the order (allowed up to *Buying from the UK shop*), refund the customer 
 That is the "Paid orders that need a refund" reminder. Refund and mark it refunded.
 
 ### I changed the exchange rate: do old orders change?
-No. Each order stores the rate, markup and every amount at the time it was placed.
+No. Each order stores the rate and every amount at the time it was placed.
 
 ### Prices on the site look wrong
-Prices are the **UK price × effective rate** (rate plus markup) plus service charge, shipping and delivery. Open **Admin → Pricing → What customers pay now** to see a worked example, and check **Shipping** (rate card) and **Delivery areas**. Imported prices come from the source; check the source and its last run.
+Prices come from the **pricing engine**: the UK price at the customer rate with the service charge folded in, plus shipping, insurance, import duties and delivery. Open **Admin → Pricing engine** and price the item in the tester to see every part, and check the item's **duty category** and the **Delivery areas**. Imported prices come from the source; check the source and its last run.
 
 ### A product has no photo
 A grey icon shows when an item has no photo or the photo link is dead. Upload a photo in **Items**, or check the feed's image column. Imported images are linked from the source.
@@ -79,10 +79,10 @@ To **check out**, yes. You can browse and look up an order without one.
 You pay on the payment partner's own page. We never see or store your card details.
 
 ### Why is there a service charge?
-It covers buying, handling and arranging shipment for you. It is shown as its own line.
+It covers buying, handling and arranging shipment for you. It is included in the item prices, and the cart says so.
 
 ### Are customs duties included?
-No. Any duty or taxes charged by customs in Ghana are not included in the total.
+Yes. Import duties and taxes are worked out when we quote and are included in the total. We pay them at the port, so there is nothing more to pay on delivery.
 
 ### I pasted a link and it said it could not read the page
 Some shops do not allow automatic reading. Choose **Request it anyway**: we check the price and send you a link to pay.
@@ -100,7 +100,7 @@ Use **Forgot password** on the sign-in page. The link works for 60 minutes.
 | "Too many attempts. Try again in 15 minutes." | Sign-in is temporarily blocked after repeated failures. Wait, or ask the super admin to reset the password. |
 | "That email and password do not match an active staff account." | Wrong details, or the account is switched off or deleted. |
 | "No access" | Your account does not have the right for that page. |
-| "The minimum order is £…" | The items total is below the minimum set on **Pricing**. |
+| "The minimum order is £…" | The items total is below the minimum order in the **Pricing engine** configuration. |
 | "This quote has expired…" | A link-order price was held for its set days and the time passed. Ask for a fresh one. |
 | "Online payment is not set up yet." | No gateway is configured, or `APP_URL` is not an `https` address. |
 | "Admin is locked. Set ADMIN_PASSWORD and ADMIN_SECRET…" | Those two settings are missing on the server. |

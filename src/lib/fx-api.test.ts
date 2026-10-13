@@ -50,7 +50,7 @@ describe("refreshing and applying", () => {
     const r = await refreshMarketRate(d, env, feed(15.4) as never);
     expect(r).toMatchObject({ ok: true, rate: 15.4, provider: "exchangerate_api" });
     expect(getMarketRate(d)?.rate).toBe(15.4);
-    expect(getSettings(d).fx.rate).toBe(15);
+    expect(getSettings(d).market.mid).toBe(15);
     expect(drift(d)).toBeCloseTo((15 - 15.4) / 15.4);
   });
   it("needs an active provider and ignores absurd jumps", async () => {
@@ -61,12 +61,12 @@ describe("refreshing and applying", () => {
     expect(await refreshMarketRate(d2, env, feed(40) as never)).toMatchObject({ ok: false });
     expect(getMarketRate(d2)?.rate).toBe(15);
   });
-  it("applies the market rate on request and keeps the admin's markup", async () => {
+  it("applies the market rate on request and stores the new market rate", async () => {
     const d = withProvider();
     setExchangeRate(15, 4, "", d);
     await refreshMarketRate(d, env, feed(15.8) as never);
     expect(applyMarketRate(d, true)).toMatchObject({ applied: true });
-    expect(getSettings(d).fx).toEqual({ rate: 15.8, markupPct: 4 });
+    expect(getSettings(d).market.mid).toBe(15.8);
     expect(applyMarketRate(d, true)).toMatchObject({ applied: false }); // already in line
   });
   it("only applies automatically in auto mode and within the limit", async () => {
@@ -76,12 +76,12 @@ describe("refreshing and applying", () => {
     expect(applyMarketRate(d, false).applied).toBe(false); // default mode only suggests
     expect(saveFxPolicy({ mode: "auto", maxChangePct: 5, alertPct: 3 }, d).ok).toBe(true);
     expect(applyMarketRate(d, false).applied).toBe(true);
-    expect(getSettings(d).fx.rate).toBe(15.3);
+    expect(getSettings(d).market.mid).toBe(15.3);
     await refreshMarketRate(d, env, feed(17) as never); // +11%
     const held = applyMarketRate(d, false);
     expect(held.applied).toBe(false);
     expect(held.reason).toContain("limit");
-    expect(getSettings(d).fx.rate).toBe(15.3);
+    expect(getSettings(d).market.mid).toBe(15.3);
     expect(saveFxPolicy({ mode: "manual", maxChangePct: 5, alertPct: 3 }, d).ok).toBe(true);
     expect(applyMarketRate(d, false).applied).toBe(false);
   });
@@ -90,7 +90,7 @@ describe("refreshing and applying", () => {
     setExchangeRate(15, 3, "", d);
     saveFxPolicy({ mode: "auto", maxChangePct: 5, alertPct: 3 }, d);
     expect(await syncRates(d, env, feed(15.2) as never)).toMatchObject({ ok: true, applied: true });
-    expect(getSettings(d).fx.rate).toBe(15.2);
+    expect(getSettings(d).market.mid).toBe(15.2);
   });
   it("validates policy values and tests a provider without storing anything", async () => {
     const d = withProvider();

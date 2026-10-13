@@ -1,25 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { goToCheckoutAction } from "@/app/actions/cart";
-import Breakdown from "@/components/Breakdown";
-import { computeQuote, DeliverySelectors, type QuoteConfig } from "@/components/quote-client";
-import { gbp } from "@/lib/money";
-import { ghsToGbpMinor, type PriceableItem } from "@/lib/pricing";
+import Breakdown, { BREAKDOWN_NOTE } from "@/components/Breakdown";
+import { DeliverySelectors, pickQuote, type QuoteConfig } from "@/components/quote-client";
+import { ghs } from "@/lib/money";
+import { ghsToGbpMinor } from "@/lib/pricing";
 
-export default function CartSummary({
-  items,
-  cfg,
-  minOrderGbpMinor,
-}: {
-  items: PriceableItem[];
-  cfg: QuoteConfig;
-  minOrderGbpMinor: number;
-}) {
+export default function CartSummary({ cfg }: { cfg: QuoteConfig }) {
   const [zoneId, setZoneId] = useState(cfg.zones[0]?.id ?? 0);
   const [code, setCode] = useState(cfg.methods[0]?.code ?? "");
-  const quote = useMemo(() => computeQuote(items, cfg, zoneId, code), [items, cfg, zoneId, code]);
-  const belowMin = quote ? quote.itemsGbpMinor < minOrderGbpMinor : false;
+  const quote = pickQuote(cfg, zoneId, code);
+  const belowMin = quote?.belowMinimumOrder ?? false;
 
   return (
     <form action={goToCheckoutAction} className="receipt grid content-start gap-4 p-5 lg:sticky lg:top-36 lg:self-start">
@@ -31,15 +23,14 @@ export default function CartSummary({
       {quote ? <Breakdown b={quote} approxGbpMinor={ghsToGbpMinor(quote.totalMinor, cfg.fx)} /> : <p>Delivery options are not available right now.</p>}
       {belowMin && (
         <p className="error-text" role="alert">
-          The minimum order is {gbp(minOrderGbpMinor)} of items. Add a little more to continue.
+          The minimum order is {ghs(cfg.minOrderMinor)} of items. Add a little more to continue.
         </p>
       )}
-      <button className="btn btn-gold w-full !min-h-11 !text-base" disabled={!quote || belowMin}>
+      {quote?.overWeight && <p className="error-text" role="alert">One of the items is too heavy for us to ship. Please contact us.</p>}
+      <button className="btn btn-gold w-full !min-h-11 !text-base" disabled={!quote || belowMin || quote.overWeight}>
         Proceed to checkout
       </button>
-      <p className="text-xs text-ink-soft">
-        Import duty charged by customs, if any, is not included. You will confirm your address on the next step.
-      </p>
+      <p className="text-xs text-ink-soft">{BREAKDOWN_NOTE} You will confirm your address on the next step.</p>
     </form>
   );
 }

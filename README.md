@@ -3,9 +3,9 @@
 A storefront where Ghanaian shoppers browse listed UK shops, add items to a cart here and pay once in
 cedis. You buy from the UK retailer, ship to Ghana, and a courier delivers. The customer's total is:
 
-    items (at the UK price, converted at your rate) + service charge + shipping to Ghana + delivery in Ghana
+    items (at the UK price, converted at the customer rate, service charge included) + shipping to Ghana + insurance + import duties and taxes + delivery in Ghana
 
-You set the exchange rate, markup, service charge, shipping rate cards and delivery areas in the admin.
+You set the market rate in the admin, and every other pricing number (service charge, shipping, insurance, duty rates, delivery) in the pricing engine configuration.
 
 Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind 4 and SQLite (better-sqlite3).
 
@@ -55,7 +55,7 @@ that go stale. See [Catalogue sources](#catalogue-sources) below.
 **Customer sign-in:** besides phone or email and a password, customers can sign in with **Google, Facebook or Apple**. You register an app with each (Admin > Integrations > Customer sign-in shows the redirect address to give them); the buttons show once a provider is set up and `APP_URL` is https. A first-time person adds a phone number; accounts are matched only by the provider's id or an email the provider has verified. See [Integrations](docs/09-integrations.md).
 
 **Exchange rate:** set by you. An optional feed (ExchangeRate-API, Open Exchange Rates) can suggest or apply
-rates inside guardrails; your markup always applies on top.
+rates inside guardrails; the engine's margin always applies on top.
 
 **Admin** (`/admin`): dashboard with sales, margin and attention list; orders and status changes; customers;
 link requests; shops and items; reviews moderation; pricing, shipping and delivery areas;
@@ -120,7 +120,7 @@ Items from shops you do not list (Amazon, Argos and so on) are handled as **link
 4. It is now an ordinary order (statuses, tracking, messages, refunds), linked back to the request. Expired or repeated quotes cannot be ordered twice.
 
 **Automatic quotes** (Admin > Link requests > Automatic quotes) let the system fill in the UK price and weight so the shopper can pay at once. The cost
-to the customer always comes from your own exchange rate, service charge, shipping rates and delivery fee. By default the system only quotes by itself when
+to the customer always comes from your own exchange rate and the pricing engine. By default the system only quotes by itself when
 it read the price from the shop's own web page. You can also let it use the price the shopper typed (with a safety margin you set), set a limit above which
 a person must quote, and edit the item types and default weights shoppers choose from. Link orders show a banner on the order page, saying how the price was
 found, as a reminder to check the shop's price before buying.

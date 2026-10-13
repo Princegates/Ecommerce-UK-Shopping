@@ -21,8 +21,8 @@ Tests live next to the code they check (`src/lib/*.test.ts`, `src/lib/ingest/*.t
 
 | Area | What is checked |
 | --- | --- |
-| **Pricing** | Service charge modes, rate cards and brackets, rounding, exchange rate and markup, chargeable weight, full order totals. |
-| **Orders** | Quote and creation, minimum order, payment confirmed once, tracking by number plus contact, legal status steps only, refunds. |
+| **Pricing** | The quote engine, proven against 16 reference quotes from the supplied engine; duty categories; configuration checks; the order price adapter; rounding; exchange rates; full order totals. |
+| **Orders** | Quote and creation, minimum order, weight limit, insurance and duties stored on the order, payment confirmed once, tracking by number plus contact, legal status steps only, refunds. |
 | **Payments** | Gateway adapters, webhook signatures, amount and currency matching, events applied once. |
 | **Messages** | Wording for every status, per-status rules, customer preferences, retries, phone and email handling. |
 | **Customers** | Registration, sign-in, sessions, password reset, addresses, wishlist, account deletion. |

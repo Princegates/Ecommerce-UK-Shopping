@@ -12,18 +12,19 @@ import {
   requirePermission, startAdminSession,
 } from "@/lib/auth";
 import { isUploadUrl, saveImage } from "@/lib/uploads";
-import { parseBrackets, parseOptionGroups, parseTiers, safeUrl, isHexColour } from "@/lib/admin-parse";
+import { parseOptionGroups, safeUrl, isHexColour } from "@/lib/admin-parse";
+import { parsePricingConfig } from "@/lib/quote-engine";
 import { quoteRequest, getLinkRequest } from "@/lib/link-orders";
 import { normalizeRequestUrl } from "@/lib/amazon-links";
 import { parseItemTypes, saveItemTypes, saveLinkAuto } from "@/lib/link-auto";
 import { appUrl } from "@/lib/app-url";
 import { enqueueDirect } from "@/lib/notify/outbox";
 import { renderQuoteMessage } from "@/lib/notify/templates";
-import { deleteShop, deleteZone, updateLinkRequest, upsertMethod, upsertProduct, upsertShop, upsertZone } from "@/lib/admin";
+import { deleteShop, deleteZone, updateLinkRequest, upsertProduct, upsertShop, upsertZone } from "@/lib/admin";
 import { parseMinor } from "@/lib/money";
 import { setExchangeRate } from "@/lib/fx";
 import { staffSetStatus } from "@/lib/orders";
-import { serviceFeeSchema, setSetting } from "@/lib/settings";
+import { setSetting } from "@/lib/settings";
 import { db } from "@/lib/db";
 import { adminAudit, audit } from "@/lib/audit";
 import { kickOutbox } from "@/lib/notify/kick";
@@ -108,85 +109,67 @@ export async function savePricingAction(f: FormData): Promise<void> {
   const legalName = str(f, "legalName");
   if (legalName.length > 80) done(path, "The business name must be 80 characters or fewer.");
   const fxRate = num(f, "fxRate");
-  if (!Number.isFinite(fxRate) || fxRate <= 0 || fxRate > 1000) done(path, "Enter the exchange rate as GH₵ per £1, for example 15.20.");
-  const markup = num(f, "fxMarkup");
-  if (!Number.isFinite(markup) || markup < 0 || markup > 50) done(path, "The exchange-rate markup must be between 0 and 50 percent.");
-  const minOrder = money(f, "minOrder", "The minimum order");
-  if (typeof minOrder === "string") done(path, minOrder);
-
-  const mode = str(f, "feeMode");
-  let candidate: unknown;
-  if (mode === "percent") {
-    const min = money(f, "feeMin", "The minimum service charge");
-    if (typeof min === "string") done(path, min);
-    candidate = { mode, percent: num(f, "feePercent"), minMinor: min };
-  } else if (mode === "fixed") {
-    const fixed = money(f, "feeFixed", "The flat service charge");
-    if (typeof fixed === "string") done(path, fixed);
-    candidate = { mode, fixedMinor: fixed };
-  } else if (mode === "tiered") {
-    const tiers = parseTiers(str(f, "feeTiers"));
-    if (!tiers.ok) done(path, tiers.error);
-    const min = money(f, "tierMin", "The minimum service charge");
-    if (typeof min === "string") done(path, min);
-    candidate = { mode, tiers: tiers.value, minMinor: min };
-  } else {
-    done(path, "Choose how the service charge is worked out.");
-  }
-  const fee = serviceFeeSchema.safeParse(candidate);
-  if (!fee.success) done(path, "The service charge values are not valid. Percentages must be between 0 and 100.");
+  if (!Number.isFinite(fxRate) || fxRate <= 0 || fxRate > 1000) done(path, "Enter the market exchange rate as GH₵ per £1, for example 15.20.");
+  const customsRaw = str(f, "customsRate");
+  const customs = customsRaw === "" ? null : Number(customsRaw);
+  if (customs !== null && (!Number.isFinite(customs) || customs <= 0 || customs > 1000)) done(path, "Enter the customs rate as GH₵ per £1, or leave it empty to use the market rate.");
 
   const before = getSettings();
   setSetting("site_name", siteName);
-  if (fxRate !== before.fx.rate || markup !== before.fx.markupPct) {
-    setExchangeRate(fxRate, markup, "Changed on the Pricing page");
-    adminAudit(who, "rate.update", "exchange rate", `GH₵${before.fx.rate} (+${before.fx.markupPct}%) to GH₵${fxRate} (+${markup}%)`);
+  if (fxRate !== before.market.mid) {
+    setExchangeRate(fxRate, 0, "Changed on the Pricing page");
+    adminAudit(who, "rate.update", "exchange rate", `GH₵${before.market.mid} to GH₵${fxRate}`);
   }
-  setSetting("min_order_gbp_minor", minOrder);
-  setSetting("service_fee", fee.data);
-  adminAudit(who, "pricing.update", "service charge", JSON.stringify(fee.data).slice(0, 300));
+  if (customs !== (before.market.customs === before.market.mid ? null : before.market.customs)) {
+    setSetting("customs_rate", customs);
+    adminAudit(who, "pricing.customs-rate", "customs rate", customs === null ? "same as the market rate" : `GH₵${customs}`);
+  }
   setSetting("support_whatsapp", str(f, "whatsapp").replace(/[^\d+]/g, "").slice(0, 20));
   setSetting("support_email", supportEmail);
   setSetting("legal_name", legalName);
   done(path);
 }
 
-// --------------------------------------------------------------- shipping
-
-export async function saveMethodAction(f: FormData): Promise<void> {
+/** Saves the pricing configuration: every number the quote engine uses. Checked before it is saved, so a typo cannot price the shop wrongly. */
+export async function savePricingEngineAction(f: FormData): Promise<void> {
   const who = await requirePermission("pricing.manage");
-  const path = "/admin/shipping";
-  const id = num(f, "id") || 0;
-  const name = str(f, "name");
-  if (name.length < 2 || name.length > 40) done(path, "Give the method a name (2 to 40 characters).");
-  const brackets = parseBrackets(str(f, "brackets"));
-  if (!brackets.ok) done(path, brackets.error);
-  const extra = money(f, "extraPerKg", "The charge per extra kg");
-  if (typeof extra === "string") done(path, extra);
-  const min = money(f, "minCharge", "The minimum charge");
-  if (typeof min === "string") done(path, min);
-  const res = upsertMethod({
-    id, code: "", name, eta: str(f, "eta").slice(0, 80),
-    rateCard: { brackets: brackets.value, extraPerKgMinor: extra, minChargeMinor: min },
-    active: checked(f, "active"), sort: Math.trunc(num(f, "sort")) || 0,
-  });
-  if (!res.ok) done(path, res.error);
-  adminAudit(who, "shipping.save", name, `${brackets.value.length} bracket(s)`);
+  const path = "/admin/pricing-engine";
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(str(f, "config"));
+  } catch {
+    done(path, "That is not valid JSON. Check for a missing comma or bracket.");
+  }
+  const r = parsePricingConfig(parsed);
+  if (!r.ok) done(path, `Not saved. ${r.error}`);
+  setSetting("pricing_config", r.value);
+  adminAudit(who, "pricing.engine", "pricing configuration", `version ${r.value.version}`);
   done(path);
 }
+
+export async function resetPricingEngineAction(f: FormData): Promise<void> {
+  const who = await requirePermission("pricing.manage");
+  const path = "/admin/pricing-engine";
+  if (!checked(f, "confirm")) done(path, "Tick the box to confirm you want to go back to the shipped pricing configuration.");
+  db().prepare("DELETE FROM settings WHERE key = 'pricing_config'").run();
+  adminAudit(who, "pricing.engine", "pricing configuration", "restored the shipped configuration");
+  done(path);
+}
+
+// --------------------------------------------------------------- shipping
 
 export async function saveZoneAction(f: FormData): Promise<void> {
   const who = await requirePermission("pricing.manage");
   const path = "/admin/zones";
   const name = str(f, "name");
   if (name.length < 2 || name.length > 60) done(path, "Give the area a name (2 to 60 characters).");
-  const fee = money(f, "fee", "The delivery fee");
-  if (typeof fee === "string") done(path, fee);
+  const pricingKey = str(f, "pricingKey");
+  if (!(pricingKey in getSettings().pricing.delivery)) done(path, "Choose which delivery price applies to this area.");
   upsertZone({
-    id: num(f, "id") || 0, name, areas: str(f, "areas").slice(0, 200), feeMinor: fee,
+    id: num(f, "id") || 0, name, areas: str(f, "areas").slice(0, 200), pricingKey,
     eta: str(f, "eta").slice(0, 60), active: checked(f, "active"), sort: Math.trunc(num(f, "sort")) || 0,
   });
-  adminAudit(who, "zone.save", name, `fee ${fee}`);
+  adminAudit(who, "zone.save", name, `delivery price: ${pricingKey}`);
   done(path);
 }
 
@@ -262,6 +245,8 @@ export async function saveProductAction(f: FormData): Promise<void> {
   if (!Number.isFinite(weight) || weight < 0 || weight > 100000) done(path, "Weight must be in grams, between 0 and 100000.");
   const options = parseOptionGroups(str(f, "options"));
   if (!options.ok) done(path, options.error);
+  const dutyCategory = str(f, "dutyCategory");
+  if (dutyCategory && !getSettings().pricing.categories.some((k) => k.id === dutyCategory)) done(path, "Choose a duty category from the list.");
   const rawImage = str(f, "imageUrl");
   let image = isUploadUrl(rawImage) ? rawImage : safeUrl(rawImage);
   const source = safeUrl(str(f, "sourceUrl"));
@@ -278,6 +263,7 @@ export async function saveProductAction(f: FormData): Promise<void> {
     description: str(f, "description").slice(0, 2000), priceMinor: price, weightGrams: weight,
     options: options.value, imageUrl: image, sourceUrl: source, active: checked(f, "active"),
     compareAtMinor: null, dealEndsAt: null, // the shop makes no "was" price or discount claims
+    dutyCategory,
   });
   adminAudit(who, "item.save", name, `price ${price}${checked(f, "active") ? "" : ", hidden"}`);
   revalidatePath("/", "layout");

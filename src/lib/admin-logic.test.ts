@@ -38,7 +38,7 @@ describe("exchange rate", () => {
     expect(setExchangeRate(-1, 0, "", d).ok).toBe(false);
     expect(rateAgeDays(d)).toBeNull();
     expect(setExchangeRate(16.1, 2.5, "Market moved", d).ok).toBe(true);
-    expect(getSettings(d).fx).toEqual({ rate: 16.1, markupPct: 2.5 });
+    expect(getSettings(d).market.mid).toBe(16.1);
     expect(rateHistory(10, d)[0]).toMatchObject({ rate: 16.1, markupPct: 2.5, note: "Market moved" });
     expect(rateAgeDays(d)).toBe(0);
     d.prepare("UPDATE fx_rate_history SET changed_at = datetime('now', '-4 days')").run();

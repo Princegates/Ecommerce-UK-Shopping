@@ -1,61 +1,39 @@
+import Link from "next/link";
+import { PageHead } from "@/components/admin/ui";
 import { requirePermission } from "@/lib/auth";
-import { saveMethodAction } from "@/app/admin/actions";
-import { Area, Check, Flash, PageHead, Text } from "@/components/admin/ui";
-import { bracketsToText } from "@/lib/admin-parse";
-import { minorToInput } from "@/lib/money";
-import { getShippingMethods } from "@/lib/settings";
+import { ghs } from "@/lib/money";
+import { shippingPrice } from "@/lib/quote-engine";
+import { getSettings } from "@/lib/settings";
 
-function MethodForm({ m }: { m?: ReturnType<typeof getShippingMethods>[number] }) {
-  return (
-    <form action={saveMethodAction} className="grid gap-4">
-      <input type="hidden" name="id" value={m?.id ?? 0} />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Text label="Name" name="name" defaultValue={m?.name} required />
-        <Text label="Delivery time shown to customers" name="eta" defaultValue={m?.eta} placeholder="8 to 12 days from UK dispatch" />
-      </div>
-      <Area
-        label="Weight brackets: “grams, price (GH₵)” on each line"
-        name="brackets"
-        mono
-        rows={5}
-        defaultValue={m ? bracketsToText(m.rateCard.brackets) : "500, 60.00\n1000, 90.00\n2000, 150.00"}
-        hint="A parcel up to 500 g costs the first price, up to 1000 g the second, and so on."
-      />
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Text label="Per extra kg above the last bracket (GH₵)" name="extraPerKg" inputMode="decimal" defaultValue={minorToInput(m?.rateCard.extraPerKgMinor ?? 6000)} />
-        <Text label="Minimum charge (GH₵)" name="minCharge" inputMode="decimal" defaultValue={minorToInput(m?.rateCard.minChargeMinor ?? 7000)} />
-        <Text label="Order on the page" name="sort" inputMode="numeric" defaultValue={m ? 0 : 5} hint="Lower shows first." />
-      </div>
-      <Check label="Offer this method to customers" name="active" defaultChecked={m?.active ?? true} />
-      <div><button className="btn btn-primary">{m ? "Save method" : "Add method"}</button></div>
-    </form>
-  );
-}
-
-export default async function ShippingPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
+export default async function ShippingPage() {
   await requirePermission("pricing.manage");
-  const sp = await searchParams;
-  const methods = getShippingMethods(false);
+  const { shipping } = getSettings().pricing;
+  const weights = [0.5, 1, 2, 3, 5, 10, 15];
   return (
     <>
       <PageHead title="Shipping to Ghana" />
       <p className="mb-6 max-w-2xl text-ink-soft">
-        Shipping is charged by the parcel&rsquo;s total weight in grams. Rates are in cedis and apply to the whole order.
+        Shipping rates now live in the <Link href="/admin/pricing-engine" className="link font-semibold">pricing engine</Link>, with insurance, import duties and delivery, so they are all set in one place and checked together. This page shows what is in force.
       </p>
-      <Flash saved={sp.saved} error={sp.error} />
-      <div className="grid gap-8">
-        {methods.map((m) => (
-          <details key={m.id} className="box box-shadow" open={methods.length === 1}>
-            <summary className="cursor-pointer p-4 text-xl font-bold">
-              {m.name} {!m.active && <span className="tag ml-2">Hidden</span>}
-            </summary>
-            <div className="border-t border-line p-5"><MethodForm m={m} /></div>
-          </details>
-        ))}
-        <details className="box box-shadow">
-          <summary className="cursor-pointer p-4 text-xl font-bold">+ Add a shipping method</summary>
-          <div className="border-t border-line p-5"><MethodForm /></div>
-        </details>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="box box-shadow p-5">
+          <h2 className="text-xl">Air freight</h2>
+          <p className="mt-1 text-sm text-ink-soft">{shipping.airTransit}</p>
+          <table className="table mt-3">
+            <thead><tr><th>Parcel weight</th><th className="text-right">Shipping price</th></tr></thead>
+            <tbody>
+              {weights.map((kg) => <tr key={kg}><td>up to {kg} kg</td><td className="num text-right">{ghs(Math.round(shippingPrice(kg, getSettings().pricing) * 100))}</td></tr>)}
+            </tbody>
+          </table>
+          <p className="hint mt-2">Weight is counted in steps of {shipping.stepKg} kg. Above 10 kg it is {ghs(Math.round(shipping.perKgAbove10Ghs * 100))} per kg. The most one item may weigh is {shipping.maxKgPerParcel} kg.</p>
+        </section>
+        <section className="box box-shadow p-5">
+          <h2 className="text-xl">Economy sea freight {shipping.sea.enabled ? <span className="tag tag-green ml-2">On</span> : <span className="tag ml-2">Off</span>}</h2>
+          <p className="mt-1 text-sm text-ink-soft">{shipping.sea.transit}. For orders of {shipping.sea.minBillableKg} kg or more, at {ghs(Math.round(shipping.sea.ratePerKgGhs * 100))} per kg (at least {ghs(Math.round(shipping.sea.minGhs * 100))}).</p>
+          <p className="hint mt-3">
+            {shipping.sea.enabled ? "Customers can choose it at checkout when their order is heavy enough." : "Customers cannot choose it. Turn it on in the pricing engine (shipping, sea, enabled) only once you have a partner's sailing schedule and a written quote."}
+          </p>
+        </section>
       </div>
     </>
   );

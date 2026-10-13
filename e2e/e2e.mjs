@@ -137,26 +137,33 @@ try {
   must((await page.getByText(/Buying|being bought|purchas/i).count()) > 0, "updates feed shows the status change");
   step("customer sees the status change in the account and updates feed");
 
-  // 7. admin changes service charge; storefront follows
+  // 7. admin changes the pricing engine; storefront follows
   await page.goto(base + PRODUCT);
   await page.locator("label.pill").filter({ hasText: /^UK 8$/ }).click();
   await page.locator("label.pill").filter({ hasText: /^Red$/ }).click();
   await page.getByRole("button", { name: "Add to cart" }).first().click();
   await page.getByText("Added to your cart.").waitFor();
-  await ap.goto(base + "/admin/pricing");
-  await ap.getByLabel("Flat amount per order").check();
-  await ap.getByLabel("Amount (GH₵)").fill("100.00");
-  await ap.getByRole("button", { name: "Save pricing" }).click();
+  await page.goto(base + "/cart");
+  await page.getByText("Order summary").waitFor();
+  const totalBefore = await page.locator(".receipt .row.total dd").innerText();
+  await ap.goto(base + "/admin/pricing-engine");
+  const cfg = JSON.parse(await ap.getByLabel("Pricing configuration (JSON)").inputValue());
+  cfg.serviceCharge.minGhs = 300;
+  cfg.serviceCharge.capGhs = 600;
+  await ap.getByLabel("Pricing configuration (JSON)").fill(JSON.stringify(cfg));
+  await ap.getByRole("button", { name: "Save configuration" }).click();
   await ap.getByText("Saved.").waitFor();
   await page.goto(base + "/cart");
   await page.getByText("Order summary").waitFor();
-  const svc = await page.locator(".receipt .row", { hasText: "Service charge" }).locator("dd").innerText();
-  must(svc === "GH₵100.00", "storefront uses the new service charge, got " + svc);
-  step("storefront now charges " + svc);
+  const totalAfter = await page.locator(".receipt .row.total dd").innerText();
+  must(totalAfter !== totalBefore, "storefront uses the new service charge, still " + totalAfter);
+  must((await page.locator(".receipt .row", { hasText: "Service charge" }).count()) === 0, "the customer never sees a separate service charge line");
+  must((await page.locator(".receipt .row", { hasText: "Delivery, insurance and import duties" }).count()) === 1, "the customer sees one delivery, insurance and duties line");
+  step("storefront total moved from " + totalBefore + " to " + totalAfter + " after a pricing engine change");
 
   // 8. exchange rate set by admin reaches the storefront
   await ap.goto(base + "/admin/pricing");
-  await ap.getByLabel("GH₵ for £1").fill("16.00");
+  await ap.getByLabel("Market rate").fill("16.00");
   await ap.getByRole("button", { name: "Save pricing" }).click();
   await ap.getByText("Saved.").first().waitFor();
   await page.goto(base + "/");
@@ -164,12 +171,17 @@ try {
   step("admin exchange rate reaches the storefront ribbon");
 
   // 9. invalid admin input
-  await ap.goto(base + "/admin/pricing");
-  await ap.getByLabel("Tiered by the item total in pounds").check();
-  await ap.getByLabel(/Bands/).fill("50, 15");
-  await ap.getByRole("button", { name: "Save pricing" }).click();
-  await ap.getByText(/last band must be/).waitFor();
-  step("an invalid tier setup is rejected with a clear message");
+  await ap.goto(base + "/admin/pricing-engine");
+  await ap.getByLabel("Pricing configuration (JSON)").fill("{ not json");
+  await ap.getByRole("button", { name: "Save configuration" }).click();
+  await ap.getByText(/not valid JSON/).waitFor();
+  await ap.goto(base + "/admin/pricing-engine");
+  const bad = JSON.parse(await ap.getByLabel("Pricing configuration (JSON)").inputValue());
+  bad.serviceCharge.marginalTiers = [{ upToGhs: 1000, pct: 0.12 }]; // no open last band
+  await ap.getByLabel("Pricing configuration (JSON)").fill(JSON.stringify(bad));
+  await ap.getByRole("button", { name: "Save configuration" }).click();
+  await ap.getByText(/Not saved/).waitFor();
+  step("an invalid pricing configuration is rejected with a clear message");
 
   // 9a. a source cannot be switched on without confirming the shop's terms
   await ap.goto(base + "/admin/sources/new");
@@ -279,11 +291,11 @@ try {
   await page.getByText("File Import Teapot").first().waitFor();
   step("file import puts uploaded rows on the shop");
 
-  // 9a7. delivery areas: add one with its own fee, then delete it only after confirming
+  // 9a7. delivery areas: add one with its own delivery price, then delete it only after confirming
   await ap.goto(base + "/admin/zones");
   await ap.locator("summary", { hasText: "+ Add a delivery area" }).click();
   await ap.locator("#zone-new-name").fill("E2E Test Area");
-  await ap.locator("#zone-new-fee").fill("77");
+  await ap.locator("#zone-new-key").selectOption("tema_spintex");
   await ap.locator("form").filter({ has: ap.locator("#zone-new-name") }).getByRole("button", { name: "Add area" }).click();
   await ap.waitForURL("**/admin/zones?saved=1");
   await ap.locator("summary", { hasText: "E2E Test Area" }).click();
@@ -776,9 +788,9 @@ try {
   // 9q. the home page example order is three lines, from the live prices
   await page.goto(base + "/");
   const sample = page.locator(".receipt").first();
-  await sample.getByText("Service, shipping and delivery").waitFor();
+  await sample.getByText("Delivery, insurance and import duties").waitFor();
   must((await sample.locator(".row").count()) >= 3 && (await sample.getByText("Service charge").count()) === 0, "the example shows one combined line");
-  step("the home page example order shows items, one combined line and the total");
+  step("the home page example order shows items, one delivery, insurance and duties line, and the total");
 
   // 10. wishlist + sign out
   await page.goto(base + PRODUCT);

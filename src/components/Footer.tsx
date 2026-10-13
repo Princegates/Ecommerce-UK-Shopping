@@ -38,8 +38,8 @@ export default function Footer() {
           </nav>
           <div className={col}>
             <p className="mb-1 text-base font-bold">Good to know</p>
-            <p className="text-white/80">Your total covers the items, our service charge, shipping to Ghana and delivery to your address. Prices are shown in pounds and cedis.</p>
-            <p className="text-white/80">Import duty and taxes charged by customs, if any, are not included.</p>
+            <p className="text-white/80">Your total covers the items (our service charge is included in their prices), shipping to Ghana, insurance, import duties and taxes, and delivery to your address. There is nothing more to pay on delivery.</p>
+            <p className="text-white/80">Prices are shown in cedis, with pounds where it helps.</p>
           </div>
         </div>
       </div>

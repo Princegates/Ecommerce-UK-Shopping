@@ -88,17 +88,15 @@ The cart should clearly show what the customer is buying and the expected charge
 
 - Product name and quantity.
 - UK price.
-- Service charge.
-- Shipping to Ghana.
-- Ghana delivery fee.
+- Delivery, insurance and import duties (one line).
 - Estimated total in Ghana cedis and relevant UK-pound values.
 - Ability to change quantity or remove an item.
 
 ## 10. Pricing
 
-The customer's total is based on the product cost plus the applicable service, international shipping and Ghana delivery charges.
+The customer's total is based on the product cost (with the service charge included), international shipping, cargo insurance, import duties and taxes, and Ghana delivery. The customer sees three lines: Items, Delivery, insurance and import duties, and Total.
 
-Import duties and taxes are excluded from the customer total unless the business specifically decides otherwise.
+Import duties and taxes are worked out when the price is quoted, by kind of item, and are paid by the business at the port on the customer's behalf, so the customer has nothing more to pay on delivery.
 
 The system should calculate pricing consistently so customers and staff are working from the same figures.
 
@@ -106,21 +104,21 @@ The system should calculate pricing consistently so customers and staff are work
 
 UK product prices are stored in pounds (£). The system converts the UK price into Ghana cedis using the exchange rate configured by the business.
 
-The effective rate is the configured exchange rate plus any configured exchange-rate markup.
+The customer rate is the market exchange rate plus a margin set by the pricing configuration, which is larger when the rate has been moving.
 
 ## 12. Service Charge
 
-The business can configure a service charge. The charge should be included in the amount the customer sees before payment.
+The business can configure the service charge in bands, with a minimum and a cap. It is included in the item prices the customer sees before payment, and the shop says so.
 
 ## 13. Shipping From the UK to Ghana
 
-The system should support shipping rate cards. Shipping charges can be based on the relevant shipping method and chargeable weight.
+Shipping charges are based on the billable weight and the weight bands in the pricing configuration. Air freight is available now; economy sea freight can be switched on later.
 
-The business should be able to configure the available shipping methods and their rates.
+The business should be able to configure the shipping bands and rates.
 
 ## 14. Ghana Delivery
 
-The system should support delivery areas in Ghana, with a delivery fee for each area.
+The system should support delivery areas in Ghana, each with a delivery price from the pricing configuration.
 
 The customer selects the appropriate delivery area and address during checkout.
 
@@ -257,16 +255,13 @@ The system should highlight items that require staff action, such as new link re
 Authorized administrators should be able to configure the business pricing model.
 
 - Exchange rate.
-- Exchange-rate markup.
-- Service charge.
-- Minimum order amount.
-- Shipping rates.
-- Delivery charges.
+- Customs exchange rate.
+- The pricing configuration: service charge, minimum order, shipping, insurance, import-duty rates by kind of item and delivery prices.
 - Relevant quotation settings.
 
 ## 34. Shipping Management
 
-Administrators should be able to create and maintain shipping rate cards and shipping methods used by the platform.
+Administrators should be able to maintain the shipping bands and methods used by the platform in the pricing configuration.
 
 ## 35. Delivery Area Management
 
@@ -326,7 +321,7 @@ The platform may connect to payment gateways, messaging services, shipping/track
 The software supports business operations but does not itself provide legal compliance.
 
 - The business remains responsible for consumer-protection obligations.
-- The business remains responsible for VAT, import duties and taxes.
+- The business remains responsible for VAT, import duties and taxes, and for confirming the duty rates with a customs agent.
 - The business remains responsible for payment-service licensing requirements.
 - The business remains responsible for data-protection compliance.
 - The business must ensure lawful use of product information and images.
@@ -334,8 +329,8 @@ The software supports business operations but does not itself provide legal comp
 
 ## 44. Important Business Rules
 
-- Customer total = product cost + service charge + UK-to-Ghana shipping + Ghana delivery.
-- Duties/taxes are excluded unless otherwise configured.
+- Customer total = product cost (service charge included) + UK-to-Ghana shipping + insurance + import duties and taxes + Ghana delivery.
+- Duties and taxes are prepaid by the business and included in the total.
 - Only confirmed gateway payments count as paid.
 - Nothing is purchased before confirmed payment.
 - Staff normally move an order one step forward through its process.

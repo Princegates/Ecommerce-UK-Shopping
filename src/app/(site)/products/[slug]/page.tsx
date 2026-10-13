@@ -15,7 +15,8 @@ import { getProduct, relatedProducts } from "@/lib/catalog";
 import { landedMinor } from "@/lib/landed";
 import { gbp, ghs } from "@/lib/money";
 import { appUrl } from "@/lib/app-url";
-import { getSettings, getShippingMethods, getZones } from "@/lib/settings";
+import { buildQuoteConfig } from "@/lib/quote-table";
+import { getShippingMethods } from "@/lib/settings";
 import { gbpToGhsMinor, ghsToGbpMinor } from "@/lib/pricing";
 import { getShopper } from "@/lib/shopper";
 
@@ -41,14 +42,8 @@ export default async function ProductPage({ params }: Props) {
   const shopper = await getShopper();
   const { fx } = shopper;
   const methods = getShippingMethods();
-  const zones = getZones();
   const related = relatedProducts(product, 10);
-  const cfg = {
-    fx,
-    serviceFee: getSettings().serviceFee,
-    methods: methods.map((m) => ({ code: m.code, name: m.name, eta: m.eta, rateCard: m.rateCard })),
-    zones: zones.map((z) => ({ id: z.id, name: z.name, areas: z.areas, feeMinor: z.feeMinor, eta: z.eta })),
-  };
+  const cfg = buildQuoteConfig([{ id: String(product.id), unitPriceMinor: product.priceMinor, quantity: 1, weightGrams: product.weightGrams, category: product.dutyCategory }]);
 
   const details: [string, string][] = [
     ["Sold by", product.shopName],
@@ -113,7 +108,7 @@ export default async function ProductPage({ params }: Props) {
             </div>
             <hr className="my-3 border-line" />
             <Price gbpMinor={product.priceMinor} fx={fx} size="lg" />
-            <p className="mt-2 text-xs text-ink-soft">The price above is for the item only, at today&rsquo;s rate. Service charge, shipping and delivery are shown on the right before you pay.</p>
+            <p className="mt-2 text-xs text-ink-soft">The price above is for the item at today&rsquo;s rate. Delivery, insurance and import duties are shown on the right before you pay.</p>
             {door !== null && shopper.ctx && (
               <p className="mt-3 text-sm">
                 <span className="font-bold text-green">{ghs(door)} (about {gbp(ghsToGbpMinor(door, fx))}) delivered to {shopper.ctx.zoneName}</span>

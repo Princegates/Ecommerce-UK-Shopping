@@ -6,7 +6,7 @@ Written for shoppers, in plain language. Staff can copy any part of it into a he
 
 You choose items from UK shops. You pay us **once, in Ghana cedis**. We buy the items in the UK, ship them to Ghana, and a courier brings them to your address. You can follow every step.
 
-The price you see includes the items, our service charge, shipping to Ghana and delivery to your address. **Customs duty or taxes charged in Ghana, if any, are not included.**
+The price you see is the full price: the items (our service charge is included in their prices), shipping to Ghana, insurance, import duties and taxes, and delivery to your address. **We pay the import duties and taxes at the port for you, so there is nothing more to pay on delivery.**
 
 ## Finding something
 
@@ -49,12 +49,12 @@ Only **Amazon UK** (amazon.co.uk) links work, because we buy from UK shops. If y
 
 1. **Add to cart** (choose your size and colour first where there is a choice).
 2. **Checkout**. You need an account: your name, a phone number we can reach you on, and a password.
-3. Choose your **delivery area** and **shipping method** (for example Air freight or Express air). The total updates as you choose.
+3. Choose your **delivery area**. The total updates as you choose.
 4. Enter your delivery address and a landmark or GhanaPost GPS code if you have one.
 5. Choose how you want **updates**: SMS, email and/or WhatsApp.
 6. **Place order and pay.** You are sent to the payment page of our payment partner. We never see or store your card details.
 
-There is a **minimum order** (items only). The cart tells you how close you are.
+There is a **minimum order** (items only, in cedis). The cart tells you how close you are.
 
 ## Paying
 

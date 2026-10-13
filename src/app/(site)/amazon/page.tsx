@@ -41,7 +41,7 @@ export default function AmazonPage() {
         <li>
           <h2 className="text-2xl"><span className="num mr-2 text-green">3</span>We price it, you pay, we ship</h2>
           <p className="mt-2">
-            We check the price and stock on Amazon, then send you the full cost in cedis: the item, our service charge, shipping to Ghana and delivery to your door. Nothing is bought until you agree and pay.
+            We check the price and stock on Amazon, then send you the full cost in cedis: the item, shipping to Ghana, insurance, import duties and delivery to your door, with our service charge included. Nothing is bought until you agree and pay.
             Then you can follow your order in your <Link href="/account/orders" className="link">account</Link>.
           </p>
         </li>
@@ -52,7 +52,7 @@ export default function AmazonPage() {
         <ul className="mt-2 list-disc pl-5 text-sm">
           <li>Amazon&rsquo;s price can change at any moment, so the price you see is a guide. We confirm the real price before you pay.</li>
           <li>Links to Amazon&rsquo;s US or other country stores are not accepted. We buy from amazon.co.uk only. If the same item is sold on the UK store, use that link.</li>
-          <li>Import duty and taxes charged by customs, if any, are not included.</li>
+          <li>Import duties and taxes are included in the price we quote, so you have nothing to pay on delivery.</li>
           <li>Some items cannot be shipped (for example batteries on their own, liquids and aerosols). We will tell you if yours cannot.</li>
         </ul>
       </section>

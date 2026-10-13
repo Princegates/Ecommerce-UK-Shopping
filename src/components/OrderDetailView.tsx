@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { buyAgainAction } from "@/app/actions/cart";
-import Breakdown from "@/components/Breakdown";
+import Breakdown, { BREAKDOWN_NOTE } from "@/components/Breakdown";
 import StatusChip from "@/components/StatusChip";
 import StatusTracker from "@/components/StatusTracker";
 import { ghsToGbpMinor } from "@/lib/pricing";
@@ -8,6 +8,7 @@ import { ghs } from "@/lib/money";
 import type { OrderEvent, OrderItemRow, OrderRow, TrackingEntry } from "@/lib/orders";
 import { TRACKING_STAGE_LABEL } from "@/lib/orders";
 import { PROGRESS, STATUS_HELP, STATUS_LABEL, isOrderStatus } from "@/lib/order-status";
+import { customerOfOrder } from "@/lib/quote-config";
 
 const fmt = (iso: string) => iso.slice(0, 10);
 
@@ -143,10 +144,10 @@ export default function OrderDetailView({
         <aside className="grid content-start gap-8">
           <div className="receipt p-5">
             <h2 className="!text-xl">What you paid</h2>
-            <div className="mt-3"><Breakdown b={order} approxGbpMinor={ghsToGbpMinor(order.totalMinor, { rate: order.fxRate, markupPct: order.fxMarkupPct })} /></div>
+            <div className="mt-3"><Breakdown b={customerOfOrder(order)} approxGbpMinor={ghsToGbpMinor(order.totalMinor, { rate: order.fxRate, markupPct: order.fxMarkupPct })} /></div>
             <hr />
             <p className="text-xs text-ink-soft">
-              Priced at £1 = GH₵{(order.fxRate * (1 + order.fxMarkupPct / 100)).toFixed(4)} when you ordered. Import duty charged by customs, if any, is not included.
+              Priced at £1 = GH₵{(order.fxRate * (1 + order.fxMarkupPct / 100)).toFixed(4)} when you ordered. {BREAKDOWN_NOTE}
             </p>
           </div>
           <section className="box p-5">

@@ -1,7 +1,6 @@
 import type Database from "better-sqlite3";
 import { db } from "./db";
 import type { OptionGroup } from "./catalog";
-import type { RateCard } from "./pricing";
 import { slugify } from "./slug";
 
 type Db = Database.Database;
@@ -90,6 +89,8 @@ export type ProductInput = {
   compareAtMinor: number | null;
   /** UTC "YYYY-MM-DD HH:MM:SS" when the deal ends, or null for no end. */
   dealEndsAt: string | null;
+  /** The import-duty category (an id in the pricing configuration), or "" to work it out from the name. */
+  dutyCategory?: string;
 };
 
 export function upsertProduct(p: ProductInput, d: Db = db()): number {
@@ -97,6 +98,7 @@ export function upsertProduct(p: ProductInput, d: Db = db()): number {
   if (!shop) throw new Error("Unknown shop");
   const row = {
     ...p,
+    dutyCategory: p.dutyCategory ?? "",
     options: JSON.stringify(p.options),
     imageUrl: p.imageUrl || null,
     active: p.active ? 1 : 0,
@@ -105,21 +107,21 @@ export function upsertProduct(p: ProductInput, d: Db = db()): number {
     d.prepare(
       `UPDATE products SET shop_id=@shopId, name=@name, brand=@brand, category=@category, description=@description,
          price_minor=@priceMinor, weight_grams=@weightGrams, options=@options, image_url=@imageUrl,
-         source_url=@sourceUrl, active=@active, compare_at_minor=@compareAtMinor, deal_ends_at=@dealEndsAt WHERE id=@id`,
+         source_url=@sourceUrl, active=@active, compare_at_minor=@compareAtMinor, deal_ends_at=@dealEndsAt, duty_category=@dutyCategory WHERE id=@id`,
     ).run(row);
     return p.id;
   }
   const slug = uniqueSlug("products", `${shop.slug}-${p.name}`, 0, d);
   const info = d
     .prepare(
-      `INSERT INTO products (shop_id, slug, name, brand, category, description, price_minor, weight_grams, options, image_url, source_url, active, compare_at_minor, deal_ends_at)
-       VALUES (@shopId, @slug, @name, @brand, @category, @description, @priceMinor, @weightGrams, @options, @imageUrl, @sourceUrl, @active, @compareAtMinor, @dealEndsAt)`,
+      `INSERT INTO products (shop_id, slug, name, brand, category, description, price_minor, weight_grams, options, image_url, source_url, active, compare_at_minor, deal_ends_at, duty_category)
+       VALUES (@shopId, @slug, @name, @brand, @category, @description, @priceMinor, @weightGrams, @options, @imageUrl, @sourceUrl, @active, @compareAtMinor, @dealEndsAt, @dutyCategory)`,
     )
     .run({ ...row, slug });
   return Number(info.lastInsertRowid);
 }
 
-export type ZoneInput = { id: number; name: string; areas: string; feeMinor: number; eta: string; active: boolean; sort: number };
+export type ZoneInput = { id: number; name: string; areas: string; /** which delivery price in the pricing configuration applies */ pricingKey: string; eta: string; active: boolean; sort: number };
 
 /**
  * Deletes a delivery area. Orders already placed keep the area name and fee they were charged. The last active area cannot
@@ -136,32 +138,13 @@ export function deleteZone(id: number, d: Db = db()): { ok: true; name: string }
 }
 
 export function upsertZone(z: ZoneInput, d: Db = db()): void {
+  // fee_minor is no longer used (the delivery price comes from the pricing configuration), so it is stored as 0
   const row = { ...z, active: z.active ? 1 : 0 };
   if (z.id > 0) {
-    d.prepare("UPDATE delivery_zones SET name=@name, areas=@areas, fee_minor=@feeMinor, eta=@eta, active=@active, sort=@sort WHERE id=@id").run(row);
+    d.prepare("UPDATE delivery_zones SET name=@name, areas=@areas, pricing_key=@pricingKey, eta=@eta, active=@active, sort=@sort WHERE id=@id").run(row);
   } else {
-    d.prepare("INSERT INTO delivery_zones (name, areas, fee_minor, eta, active, sort) VALUES (@name, @areas, @feeMinor, @eta, @active, @sort)").run(row);
+    d.prepare("INSERT INTO delivery_zones (name, areas, fee_minor, pricing_key, eta, active, sort) VALUES (@name, @areas, 0, @pricingKey, @eta, @active, @sort)").run(row);
   }
-}
-
-export type MethodInput = { id: number; code: string; name: string; eta: string; rateCard: RateCard; active: boolean; sort: number };
-
-export function upsertMethod(m: MethodInput, d: Db = db()): { ok: true } | { ok: false; error: string } {
-  const card = JSON.stringify(m.rateCard);
-  if (m.id > 0) {
-    d.prepare("UPDATE shipping_methods SET name=?, eta=?, rate_card=?, active=?, sort=? WHERE id=?").run(
-      m.name, m.eta, card, m.active ? 1 : 0, m.sort, m.id,
-    );
-    return { ok: true };
-  }
-  const code = m.code || slugify(m.name);
-  if (d.prepare("SELECT id FROM shipping_methods WHERE code = ? OR LOWER(name) = LOWER(?)").get(code, m.name)) {
-    return { ok: false, error: "A shipping method with that name already exists." };
-  }
-  d.prepare("INSERT INTO shipping_methods (code, name, eta, rate_card, active, sort) VALUES (?, ?, ?, ?, ?, ?)").run(
-    code, m.name, m.eta, card, m.active ? 1 : 0, m.sort,
-  );
-  return { ok: true };
 }
 
 export type LinkRequest = {

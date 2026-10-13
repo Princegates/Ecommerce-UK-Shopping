@@ -41,7 +41,7 @@ This SRS specifies the requirements of **YenkoExpress**, a web system that lets 
 **Benefits.** Customers see the full cost in pounds and cedis before paying, pay with local methods, and can follow the order. The operator controls prices and costs, can serve almost any UK shop, and works from a phone.
 
 ### 1.3 Definitions
-See [Appendix C](#appendix-c-glossary). Key terms: **catalogue source**, **link order**, **quote**, **effective rate**, **rate card**, **super admin**, **staff account**, **right**.
+See [Appendix C](#appendix-c-glossary). Key terms: **catalogue source**, **link order**, **quote**, **customer rate**, **pricing engine**, **super admin**, **staff account**, **right**.
 
 ### 1.4 References
 - This documentation set: [Overview](01-overview.md), [Admin guide](02-admin-guide.md), [Customer guide](03-customer-guide.md), [Catalogue sources](04-catalogue-sources.md), [Deployment and operations](05-deployment-and-operations.md), [Architecture](06-architecture.md), [Data model](07-data-model.md), [Security and privacy](08-security.md), [Integrations](09-integrations.md), [Testing](10-testing.md).
@@ -113,7 +113,7 @@ A self-contained web application with no dependency on any other system of the b
 - **A-2** Customers have a Ghana mobile number; messages are delivered in English.
 - **A-3** The operator has permission, or a lawful basis, to show the catalogue data and images it imports.
 - **A-4** UK retailers accept orders delivered to a UK address controlled by the operator.
-- **A-5** The operator handles customs duty, VAT and consumer-law obligations outside the software.
+- **A-5** The operator confirms the duty rates with a customs agent, and handles VAT and consumer-law obligations outside the software.
 - **D-1** Payment, messaging, exchange-rate and eBay services are available and their keys valid.
 - **D-2** The host provides HTTPS, a persistent disk and a stable public address (`APP_URL`).
 
@@ -198,16 +198,16 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 
 | ID | Requirement | Pri | Status | Verified by |
 | --- | --- | --- | --- | --- |
-| FR-PRC-01 | The customer total shall equal items + service charge + shipping to Ghana + delivery in Ghana. | M | Implemented | `pricing.test.ts` |
-| FR-PRC-02 | Item prices shall be converted at the effective rate = admin rate × (1 + markup%). | M | Implemented | `pricing.test.ts` |
-| FR-PRC-03 | The service charge shall be configurable as a percentage with a minimum, a flat amount, or tiered bands on the item total, and shall be shown on its own line. | M | Implemented | `pricing.test.ts`; `admin-parse.test.ts` |
-| FR-PRC-04 | Shipping shall be taken from the chosen method's rate card: weight brackets, a charge per extra kilogram above the largest bracket, and a minimum charge, by chargeable weight (greater of actual and volumetric where known). | M | Implemented (items carry actual weight only) | `pricing.test.ts` |
-| FR-PRC-05 | Delivery shall be a flat fee per delivery area. | M | Implemented | `pricing.test.ts` |
-| FR-PRC-06 | The system shall enforce a minimum order value (items only, in pounds) set by the admin; default £10. | M | Implemented | `admin.test.ts` ("enforces the minimum order") |
-| FR-PRC-07 | One pure function shall price the product page, cart, checkout and the stored order, so the displayed amount equals the charged amount. | M | Implemented | `pricing.test.ts`; E2E "checkout total matches cart" |
-| FR-PRC-08 | An order shall store the rate, markup and every amount at the time it is placed; later setting changes shall not alter it. | M | Implemented | `admin.test.ts`; schema inspection |
-| FR-PRC-09 | The admin shall see a worked example of what customers pay while editing pricing. | C | Implemented | Inspection |
-| FR-PRC-10 | Import duty and taxes charged in Ghana shall not be included, and the system shall say so at checkout. | M | Implemented | Inspection |
+| FR-PRC-01 | The customer total shall equal items (service charge included) + shipping to Ghana + insurance + import duties and taxes + delivery in Ghana, and shall be shown as Items, Delivery, insurance and import duties, and Total. | M | Implemented | `quote-engine.test.ts`; `price-order.test.ts` |
+| FR-PRC-02 | Item prices shall be converted at the customer rate = market rate plus a margin that rises when the rate has moved over the last three days. | M | Implemented | `quote-engine.test.ts` |
+| FR-PRC-03 | The service charge shall be worked out in marginal bands with a minimum and a cap, and shall be included in the item prices shown to the customer, with a note saying so. | M | Implemented | `quote-engine.test.ts` (16 reference quotes) |
+| FR-PRC-04 | Shipping shall be taken from weight bands by billable weight (the greater of actual and volumetric, in half-kilogram steps), with a surcharge per kilogram above the top band; items over the weight limit shall be refused. | M | Implemented (items carry actual weight only) | `quote-engine.test.ts`; `admin.test.ts` |
+| FR-PRC-05 | Delivery shall be priced by delivery area, scaled by weight, from the pricing configuration. | M | Implemented | `quote-engine.test.ts`; `price-order.test.ts` |
+| FR-PRC-06 | The system shall enforce a minimum order value (items only, in cedis) set in the pricing configuration; default GH₵400. | M | Implemented | `admin.test.ts` ("enforces the minimum order") |
+| FR-PRC-07 | One function shall price the product page, cart, checkout and the stored order, so the displayed amount equals the charged amount. | M | Implemented | `price-order.test.ts`; E2E "checkout total matches cart" |
+| FR-PRC-08 | An order shall store the rate and every amount (including insurance, import duties and flags) at the time it is placed; later setting changes shall not alter it. | M | Implemented | `admin.test.ts`; schema inspection |
+| FR-PRC-09 | The admin shall see typical baskets priced with the saved settings, and a tester that prices any item with the customer view and the shop's own working. | C | Implemented | Inspection |
+| FR-PRC-10 | Import duties and taxes in Ghana shall be worked out by kind of item (a duty category), prepaid by the shop at the port and included in the total; an item that cannot be placed shall be priced at the highest planning rate and flagged for staff. | M | Implemented | `quote-engine.test.ts`; `duty-category.test.ts`; `price-order.test.ts` |
 
 ### 4.4 Customer accounts (FR-ACC)
 
@@ -341,8 +341,8 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | --- | --- | --- | --- | --- |
 | FR-ADM-01 | The dashboard shall show, for the last 7, 30 or 90 days, revenue, orders, average order, service charge earned, new customers (each compared with the previous period), sales by day, orders in progress by status, revenue composition, margin, top shops, items and areas, customers, the exchange rate, integrations status, latest orders and recent activity. | M | Implemented | `admin-logic.test.ts`; E2E |
 | FR-ADM-02 | The dashboard shall show a prioritised "needs attention" list: paid orders needing a refund, payments with wrong amount, paid orders to buy, new link requests, stale orders (5+ days), imported items to review, stopped sources, failed messages, unpaid orders over 24 hours, and an exchange-rate gap. | M | Implemented | `admin-logic.test.ts` |
-| FR-ADM-03 | Staff shall be able to set the exchange rate and markup, the service charge, the minimum order, the site name and the support WhatsApp number, with changes to the rate recorded in a history. | M | Implemented | `admin-logic.test.ts` ("exchange rate"); `admin.test.ts`; E2E |
-| FR-ADM-04 | Staff shall be able to create, edit, hide and price shipping methods and rate cards, with validation (for example ascending brackets). | M | Implemented | `admin-parse.test.ts`; `admin.test.ts` |
+| FR-ADM-03 | Staff shall be able to set the market exchange rate and the customs rate, the site name and the support WhatsApp number, with changes to the rate recorded in a history. | M | Implemented | `admin-logic.test.ts` ("exchange rate"); `admin.test.ts`; E2E |
+| FR-ADM-04 | Staff with the right shall be able to edit the whole pricing configuration (service charge, shipping, insurance, duty rates, delivery, minimum order and contribution floor) as a validated document, restore the shipped one, and set an item's duty category. | M | Implemented | `quote-engine.test.ts`; E2E |
 | FR-ADM-05 | Staff shall be able to create, edit, hide and delete delivery areas; the last active area shall not be deletable; orders shall keep the area name and fee charged. | M | Implemented | `shop-delete.test.ts`; E2E |
 | FR-ADM-06 | Staff shall be able to choose one of 15 colour themes for the whole shop. | S | Implemented | `themes.test.ts`; E2E |
 | FR-ADM-07 | Staff shall be able to enter, switch on, test and clear provider keys; keys shall be encrypted at rest, shown masked, never logged, and overridden by environment settings; a readiness summary shall list what is missing. | M | Implemented | `integrations.test.ts`; `secrets.test.ts` |
@@ -419,7 +419,7 @@ The browser run is the system's **acceptance test**. Each step below must pass f
 3. A guest adds two trainers to the cart; the cart total is right; checkout asks them to sign in; they register and return with the cart intact.
 4. They pay (demo payment) and the order shows in their account with an updates entry.
 5. The admin signs in (wrong password refused); every admin page loads; the admin moves the order; the customer sees the change.
-6. Changing the service charge and exchange rate reaches the storefront; an invalid tier setup is rejected clearly.
+6. Changing the pricing configuration and exchange rate reaches the storefront; an invalid configuration is rejected clearly.
 7. Catalogue sources need permission and refuse internal addresses; a source can be created and removed; the eBay, Diffbot, Shopify and file-import forms work.
 8. A shop and a delivery area can be added and deleted only after confirmation; a shop logo uploads and shows; fake images are refused.
 9. A colour theme chosen in the admin reaches the storefront.
@@ -539,9 +539,9 @@ The operator is responsible for consumer-protection terms and refund policy, VAT
 
 | ID | Rule |
 | --- | --- |
-| BR-01 | **Customer total** = items + service charge + shipping to Ghana + delivery in Ghana. Duties and taxes in Ghana are excluded. |
-| BR-02 | **Effective rate** = rate × (1 + markup%). Items are converted at the effective rate. |
-| BR-03 | **Minimum order**: items only, in pounds; default £10. Applies to link orders too. |
+| BR-01 | **Customer total** = items (service charge included) + shipping to Ghana + insurance + import duties and taxes + delivery in Ghana. Duties are prepaid by the shop. |
+| BR-02 | **Customer rate** = market rate plus the engine's margin (more in a volatile week). Items are converted at the customer rate; duties are valued at the customs rate. |
+| BR-03 | **Minimum order**: items only, in cedis; default GH₵400. Applies to link orders too. |
 | BR-04 | **Order status path**: Payment received → Buying from the UK shop → Bought from the UK shop → Received at our UK address → On its way to Ghana → Clearing customs → Out for delivery → Delivered. |
 | BR-05 | **Only a gateway-confirmed payment** with matching amount and currency makes an order *Payment received*. Staff cannot mark an order paid. |
 | BR-06 | Staff move an order **one step forward**; they may **cancel** up to *Buying from the UK shop*; a **paid and cancelled** order may be marked **Refunded** after the refund is made in the gateway. |
@@ -601,7 +601,7 @@ The operator is responsible for consumer-protection terms and refund policy, VAT
 
 ### UC-08 Set prices and delivery
 - **Actor:** Staff with *Change prices and delivery*. **Related:** FR-PRC, FR-ADM-03 to -05.
-- **Main flow:** 1. Open **Pricing**: set rate, markup, service charge, minimum order. 2. Open **Shipping**: rate cards. 3. Open **Delivery areas**: areas and fees. 4. Check "What customers pay now". 5. Save.
+- **Main flow:** 1. Open **Pricing**: set the market and customs rates. 2. Open **Pricing engine**: review the configuration, try prices in the tester, save. 3. Open **Delivery areas**: areas and their delivery price. 4. Check "What customers pay now".
 
 ### UC-09 Customer recovers a forgotten password
 - **Actor:** Customer. **Related:** FR-ACC-04.
@@ -638,13 +638,13 @@ See 2.5 (DC-1 to DC-6). Additionally: the importer's refusal to evade blocks is 
 | --- | --- | --- | --- | --- |
 | R-1 | A retailer's terms forbid collecting or showing its data, or it blocks the importer. | Legal exposure; missing products. | Permission confirmation, `robots.txt`, stop-on-refusal, affiliate feeds, link orders. | Operator must check terms and licences. |
 | R-2 | A link-order price read or typed is wrong (several prices on a page, a typo, an old price). | Margin loss on a paid order. | Quote validity, safety margin, automatic limit, per-order banner, staff verify before buying, cancel and refund. | Verification before buying is manual (FR-LNK-11). |
-| R-3 | Exchange-rate movement between quote and purchase. | Margin loss. | Markup on the rate, optional feed with alert and limits, quote expiry. | Operator discipline on the rate. |
+| R-3 | Exchange-rate movement between quote and purchase. | Margin loss. | Margin on the rate that grows with volatility, optional feed with alert and limits, quote expiry. | Operator discipline on the rate. |
 | R-4 | Data loss (disk failure, deletion). | Loss of orders and customers. | Backup API, documented procedure, restore rehearsal. | **Backups are the operator's duty.** |
 | R-5 | Leak of keys or the super admin password. | Fraud, data exposure. | Encryption at rest, masked display, separate encryption key, rotation runbook, audit log. | No two-step sign-in. |
 | R-6 | Payment mismatch or fraud. | Shipping unpaid goods. | Amount and currency verification, signed webhooks, wrong-amount alert. | Gateway-side fraud checks are the gateway's. |
 | R-7 | Single instance outage. | Shop unavailable. | Health check, auto-restart by the host. | No redundancy by design. |
 | R-8 | Staff misuse of access. | Data or price tampering. | Least-privilege rights, audit log, immediate switch-off. | Trust in the super admin. |
-| R-9 | Customs duty, VAT or consumer-law non-compliance. | Fines, disputes. | Total excludes duty and says so. | Needs professional advice (A-5). |
+| R-9 | Customs duty, VAT or consumer-law non-compliance; duty rates that are only planning values. | Fines, disputes, margin loss. | Duty is prepaid and priced by kind of item, with a safety buffer; unplaceable items are flagged. | Rates must be confirmed with a customs agent (A-5). |
 | R-10 | Image or data licensing breaches. | Takedown claims. | Source terms confirmation; images linked from source. | Operator responsibility (A-3). |
 | R-11 | Third-party API changes or outages. | Features stop. | Isolated adapters, clear errors, retries, manual fall-backs. | Provider dependence. |
 | R-12 | SQLite or in-process timers limit growth. | Scaling ceiling. | Documented single-instance rule. | Re-architecture needed for scale. |
@@ -716,16 +716,16 @@ Items below are **not implemented** or only **partial**. They are the honest edg
 | --- | --- |
 | **Catalogue source** | A place the importer is allowed to read a shop's products from. |
 | **Chargeable weight** | The larger of actual and volumetric weight, used to price shipping. |
-| **Effective rate** | Exchange rate plus the admin's markup; the rate customers pay. |
+| **Customer rate** | The market rate plus the engine's margin; the rate customers pay. |
 | **Gateway** | A payment provider: Stripe, Paystack or Flutterwave. |
 | **Held item** | An imported item waiting for staff review. |
 | **Link order** | An order for an item the customer found elsewhere and sent as a link. |
 | **Outbox** | The queue of messages awaiting delivery, with retries. |
 | **Quote** | The UK price and weight of one item, with a private pay link and expiry. |
-| **Rate card** | A shipping price list by weight. |
+| **Pricing engine** | The calculation and configuration that prices every order. |
 | **Right** | One thing a staff account may do. |
 | **Role** | A preset set of rights. |
-| **Service charge** | The operator's fee for buying on the customer's behalf. |
+| **Service charge** | The operator's fee for buying on the customer's behalf, included in the item prices. |
 | **Staff account** | An admin sign-in created by the super admin with limited rights. |
 | **Super admin** | The developer's sign-in using `ADMIN_PASSWORD`; unlimited and the only one managing staff. |
 | **SRS** | Software Requirements Specification (this document). |

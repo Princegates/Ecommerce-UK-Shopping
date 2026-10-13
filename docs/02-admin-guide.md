@@ -31,8 +31,8 @@ For the people who run the shop. Everything is under **/admin**. What you can se
 
 Do these in order before announcing the shop.
 
-1. **Pricing** (Admin → Pricing): set the exchange rate, your markup, the service charge and the minimum order. Set the site name.
-2. **Shipping** (Admin → Shipping): replace the sample rate cards with your real prices per weight bracket.
+1. **Pricing** (Admin → Pricing): set the market exchange rate and, if you know it, the customs rate. Set the site name.
+2. **Pricing engine** (Admin → Pricing engine): check the service charge, shipping, insurance, duty rates and delivery prices against your real costs. Confirm the duty rates with your customs agent.
 3. **Delivery areas** (Admin → Delivery areas): your real areas and delivery fees.
 4. **Integrations** (Admin → Integrations): add **at least one payment gateway**, then message providers (SMS, WhatsApp, email). Use each card's **Test** button. Without a gateway customers cannot pay.
 5. **Shops and catalogue sources**: create shops, then add sources so they fill with products ([Catalogue sources](04-catalogue-sources.md)).
@@ -100,14 +100,16 @@ Items waiting for a person: odd prices (under 50p, over £10,000), names that lo
 Customer reviews, filterable by **All / Published / Hidden**. Only customers whose order was **delivered** can review that item, once. Hide a review to remove it from the product page.
 
 ### Pricing
-- **Service charge**: percentage with a minimum, a flat amount, or tiered bands ("up to £50 pay 15%…"). Only the chosen method is used.
-- **Exchange rate and minimum order**: GH₵ per £1, the markup, and the smallest order (items only, in £).
+- **Exchange rate**: the market rate (GH₵ per £1) and, optionally, the customs rate. Customers are charged the market rate plus the engine's margin.
 - **Site**: site name, the support WhatsApp number, a **contact email** and the **registered business name**. The email and business name appear in the public [privacy policy](#legal-pages-privacy-terms-and-data-deletion) and terms, so fill them in before you submit the policy links to Facebook, Google or Apple.
-- **What customers pay now**: a live example so you can see the effect of a change before saving.
+- **What customers pay now**: typical baskets priced with the saved settings, so you can see the effect of a change.
 - The **exchange-rate feed** policy (manual, suggest or automatic, with a maximum automatic move and an alert gap) is under Integrations.
 
+### Pricing engine
+One page holds every number used to price an order, as a checked JSON configuration: the minimum order, the service charge bands, shipping by weight, insurance, delivery prices, the duty rate for each kind of item, and the minimum contribution. If a change is wrong it is refused with the reason and nothing is saved. A tester prices any item with the customer's three lines, plus the shop's working, so you can see a change before customers do. "Restore" puts back the shipped configuration. Changes apply to new quotes at once; orders already placed keep their price.
+
 ### Shipping
-Shipping methods and their **rate cards**: weight brackets with a price each, a charge per extra kilogram above the biggest bracket, and a minimum charge. Add a method, edit one, or hide one.
+A read-only page showing the shipping methods in use (air freight; economy sea only if switched on in the configuration). Prices are in the pricing engine.
 
 ### Delivery areas
 The areas customers choose at checkout, each with a name, the places included, the Ghana delivery fee, the usual delivery time, order and whether it is offered. You can add, edit and **delete** areas. You cannot delete the **last active** area (checkout needs somewhere to deliver). Orders already placed keep the area name and fee they were charged.
@@ -188,7 +190,7 @@ A customer can describe an item in words instead of pasting a link. Those reques
 
 ### Limits to be aware of
 - Amazon-style pages can show several prices (other sellers, other sizes). A single read may pick the wrong one. Check a few real items before relying on automatic quotes for a shop.
-- Item-type weights are estimates; a heavy or bulky item may cost more to ship than the rate card suggests.
+- Item-type weights are estimates; a heavy or bulky item may cost more to ship than the weight bands suggest.
 
 ## 6. Using the admin on a phone
 On a phone the sidebar becomes a top bar with a **Menu** button. The menu lists every page you can open, plus **View the site**, **Signed in as…** and **Sign out**, and closes when you choose a page. Orders, customers and items appear as cards with labelled fields instead of wide tables. Long forms scroll down; nothing needs sideways scrolling.
@@ -218,7 +220,7 @@ Picking a role ticks its rights. Changing any tick switches the role to **Custom
 | Manage catalogue sources (sources.manage) | Feeds, Shopify, WooCommerce, eBay, Diffbot and file imports. | ✔ |  |  | ✔ |  |  |
 | Review imported items (import.review) | Approve or reject items waiting in Import review. | ✔ |  |  | ✔ |  |  |
 | Moderate reviews (reviews.manage) | Publish or hide customer reviews. | ✔ |  |  | ✔ |  |  |
-| Change prices and delivery (pricing.manage) | Service charge, exchange rate, shipping rates and delivery areas. | ✔ |  |  |  |  |  |
+| Change prices and delivery (pricing.manage) | Exchange rate, the pricing engine and delivery areas. | ✔ |  |  |  |  |  |
 | Change the look of the site (appearance.manage) | Colour themes. | ✔ |  |  |  |  |  |
 | Confirm a payment by hand (orders.confirm_payment) | Mark an unpaid order as paid when the money arrived outside the payment flow. Sensitive: it starts the buying. | ✔ |  |  |  |  |  |
 | Manage integrations and keys (integrations.manage) | Payment, SMS, email and other service keys. Very sensitive. | ✔ |  |  |  |  |  |

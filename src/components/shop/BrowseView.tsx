@@ -155,7 +155,7 @@ export default function BrowseView({
               {p.page < pages && <Link href={href({ page: p.page + 1 })} className="btn btn-small">Next →</Link>}
             </nav>
           )}
-          {total > 0 && <p className="hint mt-6">Prices are shown in cedis at £1 = GH₵{(fx.rate * (1 + fx.markupPct / 100)).toFixed(2)}. {shopper.ctx && <>Delivered prices include service charge, shipping and delivery to {shopper.ctx.zoneName}; import duty, if any, is extra. Lowest price shown: {ghs(gbpToGhsMinor(facets.priceMinGbp, fx))}.</>}</p>}
+          {total > 0 && <p className="hint mt-6">Prices are shown in cedis at £1 = GH₵{(fx.rate * (1 + fx.markupPct / 100)).toFixed(2)}. {shopper.ctx && <>Delivered prices include shipping, insurance, import duties and delivery to {shopper.ctx.zoneName}. Lowest price shown: {ghs(gbpToGhsMinor(facets.priceMinGbp, fx))}.</>}</p>}
         </section>
       </div>
     </div>

@@ -40,6 +40,19 @@ export function migrate(d: Db): void {
 
   add("customer_id", "customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL");
 
+  // pricing with import duties and cargo insurance included: the two new parts of an order's total, the shop's own working (never shown to
+  // customers) and the review flags raised when the order was priced
+  add("insurance_minor", "insurance_minor INTEGER NOT NULL DEFAULT 0");
+  add("duty_minor", "duty_minor INTEGER NOT NULL DEFAULT 0");
+  add("quote_internal", "quote_internal TEXT NOT NULL DEFAULT ''");
+  add("quote_flags", "quote_flags TEXT NOT NULL DEFAULT ''");
+  if (!has("delivery_zones").includes("pricing_key")) {
+    d.exec("ALTER TABLE delivery_zones ADD COLUMN pricing_key TEXT NOT NULL DEFAULT 'other_regions'");
+    // match the areas that were already set up to the delivery prices in the pricing configuration
+    const keyFor = (name: string) => (/legon|airport/i.test(name) ? "east_legon_airport" : /central/i.test(name) ? "accra_central" : /tema|spintex/i.test(name) ? "tema_spintex" : /kasoa|west accra/i.test(name) ? "kasoa_west_accra" : "other_regions");
+    for (const z of d.prepare("SELECT id, name FROM delivery_zones").all() as { id: number; name: string }[]) d.prepare("UPDATE delivery_zones SET pricing_key = ? WHERE id = ?").run(keyFor(z.name), z.id);
+  }
+
   // 0 for an account made with Google, Facebook or Apple, whose password is a random one nobody knows
   if (!has("customers").includes("password_set")) d.exec("ALTER TABLE customers ADD COLUMN password_set INTEGER NOT NULL DEFAULT 1");
   if (!has("customers").includes("updates_seen_at")) d.exec("ALTER TABLE customers ADD COLUMN updates_seen_at TEXT");
@@ -48,6 +61,8 @@ export function migrate(d: Db): void {
   const productCols = has("products");
   if (!productCols.includes("compare_at_minor")) d.exec("ALTER TABLE products ADD COLUMN compare_at_minor INTEGER");
   if (!productCols.includes("deal_ends_at")) d.exec("ALTER TABLE products ADD COLUMN deal_ends_at TEXT");
+  // empty means "work it out from the name"; an item can be set by hand in the admin
+  if (!productCols.includes("duty_category")) d.exec("ALTER TABLE products ADD COLUMN duty_category TEXT NOT NULL DEFAULT ''");
   if (!productCols.includes("last_synced_at")) d.exec("ALTER TABLE products ADD COLUMN last_synced_at TEXT");
   if (!has("link_requests").includes("customer_id")) d.exec("ALTER TABLE link_requests ADD COLUMN customer_id INTEGER");
   for (const [col, ddl] of [

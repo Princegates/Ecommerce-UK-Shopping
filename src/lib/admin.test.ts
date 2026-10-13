@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { openForTest } from "./db";
-import { upsertMethod, upsertProduct, upsertShop, upsertZone } from "./admin";
+import { upsertProduct, upsertShop, upsertZone } from "./admin";
 import { listProducts, listShops } from "./catalog";
 import { getSettings, setSetting, getShippingMethods, getZones } from "./settings";
 import { createOrder, getOrderByRef, markPaid, staffSetStatus, findOrderForTracking, quoteCart } from "./orders";
@@ -26,13 +26,6 @@ describe("admin writes", () => {
     upsertShop({ id: shop.id, name: shop.name, tagline: shop.tagline, category: shop.category, websiteUrl: "", description: "", accent: shop.accent, active: false, sort: 0 }, d);
     expect(listProducts({}, d).length).toBe(before - shop.productCount);
   });
-
-  it("rejects duplicate shipping method names", () => {
-    const d = openForTest();
-    const card = { brackets: [{ upToGrams: 1000, priceMinor: 100 }], extraPerKgMinor: 0, minChargeMinor: 0 };
-    expect(upsertMethod({ id: 0, code: "", name: "Air freight", eta: "", rateCard: card, active: true, sort: 5 }, d).ok).toBe(false);
-    expect(upsertMethod({ id: 0, code: "", name: "Sea freight", eta: "", rateCard: card, active: true, sort: 5 }, d).ok).toBe(true);
-  });
 });
 
 function lineFor(d: ReturnType<typeof openForTest>, productId: number, quantity: number): CartLine {
@@ -41,21 +34,34 @@ function lineFor(d: ReturnType<typeof openForTest>, productId: number, quantity:
 }
 
 describe("orders", () => {
-  it("prices from live settings: items + service charge + shipping + delivery", () => {
+  it("prices from the quote engine: the parts add up to the total", () => {
     const d = openForTest();
-    setSetting("fx_rate", 10, d);
-    setSetting("fx_markup_pct", 0, d);
-    setSetting("service_fee", { mode: "fixed", fixedMinor: 5000 }, d);
     const product = listProducts({}, d)[0];
     const zone = getZones(true, d)[0];
     const method = getShippingMethods(true, d)[0];
     const q = quoteCart([lineFor(d, product.id, 2)], zone.id, method.code, d);
     expect(q.ok).toBe(true);
     if (!q.ok) return;
-    expect(q.breakdown.itemsGhsMinor).toBe(product.priceMinor * 2 * 10);
-    expect(q.breakdown.serviceFeeMinor).toBe(5000);
-    expect(q.breakdown.deliveryMinor).toBe(zone.feeMinor);
-    expect(q.breakdown.totalMinor).toBe(q.breakdown.itemsGhsMinor + 5000 + q.breakdown.shippingMinor + zone.feeMinor);
+    const b = q.breakdown;
+    expect(b.itemsGbpMinor).toBe(product.priceMinor * 2);
+    expect(b.serviceFeeMinor).toBeGreaterThan(0);
+    expect(b.shippingMinor).toBeGreaterThan(0);
+    expect(b.insuranceMinor).toBeGreaterThan(0);
+    expect(b.dutyMinor).toBeGreaterThan(0);
+    expect(b.totalMinor).toBe(b.itemsGhsMinor + b.serviceFeeMinor + b.shippingMinor + b.insuranceMinor + b.dutyMinor + b.deliveryMinor);
+    // the customer's item lines carry the service charge, and add up to items plus service charge
+    expect(b.lines.reduce((n, l) => n + l.ghsMinor, 0)).toBe(b.itemsGhsMinor + b.serviceFeeMinor);
+  });
+
+  it("a dearer delivery area never costs less", () => {
+    const d = openForTest();
+    const product = listProducts({}, d)[0];
+    const zones = getZones(true, d);
+    const method = getShippingMethods(true, d)[0];
+    const near = quoteCart([lineFor(d, product.id, 1)], zones[0].id, method.code, d);
+    const far = quoteCart([lineFor(d, product.id, 1)], zones[zones.length - 1].id, method.code, d);
+    expect(near.ok && far.ok).toBe(true);
+    if (near.ok && far.ok) expect(far.breakdown.deliveryMinor).toBeGreaterThanOrEqual(near.breakdown.deliveryMinor);
   });
 
   it("creates an order that is paid exactly once and tracked by number plus contact", () => {
@@ -71,6 +77,10 @@ describe("orders", () => {
     if (!res.ok) return;
     expect(res.number).toMatch(/^UKG-\d{4}-\d{6}$/);
     expect(getOrderByRef(res.paymentRef, d)?.status).toBe("AWAITING_PAYMENT");
+    const placed = getOrderByRef(res.paymentRef, d)!;
+    expect(placed.insuranceMinor).toBeGreaterThan(0);
+    expect(placed.dutyMinor).toBeGreaterThan(0);
+    expect(placed.totalMinor).toBe(placed.itemsGhsMinor + placed.serviceFeeMinor + placed.shippingMinor + placed.insuranceMinor + placed.dutyMinor + placed.deliveryMinor);
 
     expect(markPaid(res.paymentRef, d)).toBe(true);
     expect(markPaid(res.paymentRef, d)).toBe(false);
@@ -87,21 +97,30 @@ describe("orders", () => {
     expect(getOrderByRef(res.paymentRef, d)?.status).toBe("PURCHASING");
   });
 
-  it("enforces the minimum order and an empty cart", () => {
+  it("enforces the minimum order, the weight limit and an empty cart", () => {
     const d = openForTest();
-    setSetting("min_order_gbp_minor", 1_000_000, d);
     const product = listProducts({}, d)[0];
     const zone = getZones(true, d)[0];
     const method = getShippingMethods(true, d)[0];
     const details = { customerName: "A B", phone: "0241234567", email: "", zoneId: zone.id, address: "12 Example St", landmark: "", notes: "", shippingCode: method.code };
-    expect(createOrder([lineFor(d, product.id, 1)], details, d).ok).toBe(false);
     expect(createOrder([], details, d).ok).toBe(false);
-    expect(getSettings(d).minOrderGbpMinor).toBe(1_000_000);
+
+    const cfg = { ...getSettings(d).pricing, minOrderGhs: 1_000_000 };
+    setSetting("pricing_config", cfg, d);
+    const tooSmall = createOrder([lineFor(d, product.id, 1)], details, d);
+    expect(tooSmall.ok).toBe(false);
+    if (!tooSmall.ok) expect(tooSmall.error).toMatch(/minimum order/i);
+
+    setSetting("pricing_config", { ...cfg, minOrderGhs: 0 }, d);
+    const heavy = { ...lineFor(d, product.id, 1), product: { ...getProductById(product.id, d)!, weightGrams: 90_000 } };
+    const tooHeavy = createOrder([heavy], details, d);
+    expect(tooHeavy.ok).toBe(false);
+    if (!tooHeavy.ok) expect(tooHeavy.error).toMatch(/too heavy/i);
   });
 
   it("zones can be added", () => {
     const d = openForTest();
-    upsertZone({ id: 0, name: "Test zone", areas: "", feeMinor: 100, eta: "", active: true, sort: 99 }, d);
+    upsertZone({ id: 0, name: "Test zone", areas: "", pricingKey: "accra_central", eta: "", active: true, sort: 99 }, d);
     expect(getZones(true, d).some((z) => z.name === "Test zone")).toBe(true);
   });
 });

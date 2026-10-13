@@ -9,6 +9,7 @@ import { getLinkRequestByToken, hostOf, quotedLine, quoteState } from "@/lib/lin
 import { gbp } from "@/lib/money";
 import { getOrderById } from "@/lib/orders";
 import { gbpToGhsMinor } from "@/lib/pricing";
+import { buildQuoteConfig } from "@/lib/quote-table";
 import { getSettings, getShippingMethods, getZones } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
@@ -62,12 +63,8 @@ export default async function QuotePage({ params }: { params: Promise<{ token: s
   const line = quotedLine(r);
   const addresses = listAddresses(customer.id);
   const preferred = addresses.find((a) => a.isDefault) ?? null;
-  const cfg = {
-    fx: settings.fx,
-    serviceFee: settings.serviceFee,
-    methods: methods.map((m) => ({ code: m.code, name: m.name, eta: m.eta, rateCard: m.rateCard })),
-    zones: zones.map((z) => ({ id: z.id, name: z.name, areas: z.areas, feeMinor: z.feeMinor, eta: z.eta })),
-  };
+  const items = [{ id: String(line.itemId), unitPriceMinor: line.product.priceMinor, quantity: line.quantity, weightGrams: line.product.weightGrams, category: line.product.dutyCategory }];
+  const cfg = buildQuoteConfig(items);
   const initialZone = preferred?.zoneId && zones.some((z) => z.id === preferred.zoneId) ? preferred.zoneId : (customer.defaultZoneId && zones.some((z) => z.id === customer.defaultZoneId) ? customer.defaultZoneId : zones[0].id);
 
   return (
@@ -87,7 +84,6 @@ export default async function QuotePage({ params }: { params: Promise<{ token: s
         {r.quoteExpiresAt && <p className="text-xs text-ink-soft">This price is held until {r.quoteExpiresAt.slice(0, 16)} UTC.</p>}
       </section>
       <CheckoutForm
-        items={[{ id: String(line.itemId), unitPriceMinor: line.product.priceMinor, quantity: line.quantity, weightGrams: line.product.weightGrams }]}
         summary={[{ itemId: String(line.itemId), name: line.product.name, shop: line.product.shopName, options: r.details, quantity: line.quantity, lineGhsMinor: gbpToGhsMinor(line.product.priceMinor * line.quantity, settings.fx) }]}
         cfg={cfg}
         initialZone={initialZone}

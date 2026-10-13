@@ -131,7 +131,8 @@ describe("landed cost previews", () => {
     const zones = getZones(true, d);
     const far = buildDeliveryContext(zones[zones.length - 1].id, d)!;
     expect(first.zoneId).toBe(zones[0].id);
-    expect(landedMinor(p, far) - landedMinor(p, first)).toBe(zones[zones.length - 1].feeMinor - zones[0].feeMinor);
+    expect(far.zoneKey).toBe(zones[zones.length - 1].pricingKey);
+    expect(landedMinor(p, far)).toBeGreaterThanOrEqual(landedMinor(p, first));
     expect(landedMinor(p, first, 2)).toBeGreaterThan(landedMinor(p, first));
     expect(buildDeliveryContext(99999, d)?.zoneId).toBe(zones[0].id);
   });

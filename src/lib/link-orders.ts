@@ -4,6 +4,7 @@ import { db } from "./db";
 import type { CartLine } from "./cart";
 import type { Product } from "./catalog";
 import { createOrder, getOrderById, type CheckoutDetails } from "./orders";
+import { dutyCategoryForItemType, inferDutyCategory } from "./duty-category";
 
 type Db = Database.Database;
 
@@ -110,6 +111,12 @@ export function hostOf(url: string): string {
   }
 }
 
+/** The duty category for a request: the kind of item the customer picked, else a guess from its title. */
+export function linkDutyCategory(itemType: string, title: string): string {
+  const byType = dutyCategoryForItemType(itemType);
+  return byType !== "unknown" ? byType : inferDutyCategory(title);
+}
+
 /** The quoted item as a cart line, so checkout and pricing treat it like any other item. It is not a product on the shop. */
 export function quotedLine(r: LinkRequestRow): CartLine {
   const host = hostOf(r.url);
@@ -117,6 +124,7 @@ export function quotedLine(r: LinkRequestRow): CartLine {
     id: 0, slug: "", name: r.title || `Item from ${host}`, brand: "", category: "", description: "",
     priceMinor: r.quotePriceMinor ?? 0, weightGrams: r.quoteWeightGrams ?? 500, options: [], imageUrl: null, sourceUrl: r.url, active: true,
     shopId: 0, shopSlug: "", shopName: host, shopAccent: "#0b5d3b", shopLogoUrl: "", shopCategory: "", compareAtMinor: null, dealEndsAt: null,
+    dutyCategory: linkDutyCategory(r.itemType, r.title),
     reviewCount: 0, ratingAvg: null, createdAt: r.createdAt,
   };
   return { itemId: -r.id, product, quantity: r.quantity, options: {} };

@@ -60,6 +60,12 @@ What was built and in what order. Every change below is a commit on the `claude/
 - **Request any item**: a customer can describe what they want with no link; staff get Amazon UK / Google UK searches, attach the link they find and quote.
 - Customer-typed price stays a guide; staff verify before buying. No Amazon data feed or paid service is used.
 
+## Pricing engine
+- **One quote engine prices everything**: the supplied engine and configuration were ported as they are, with all numbers in the configuration. The customer sees **Items / Delivery, insurance and import duties / Total**; the service charge is folded into the item prices, and the cart says so. The port is proven against 16 reference quotes from the supplied engine.
+- Import duties are prepaid by kind of item (each item has a **duty category**, worked out from its name or set by hand); items that cannot be placed are charged at the highest planning rate and flagged for staff. Insurance, duties, flags and the shop's working are stored on every order.
+- New admin page **Pricing engine** (checked JSON editor, restore, tester); Pricing now holds the market and customs rates; delivery areas point at a delivery price; the shipping page is read-only; sea freight is built but switched off.
+- Removed: the flat/percent/tiered service charge, shipping rate cards, express air and the exchange-rate markup setting.
+
 ## Staff and access
 - **Roles and access control**: the developer's password is the **super admin**; staff accounts are created by the super admin with roles or exact rights, forced first-time password change, switch-off with immediate sign-out, and an activity log that names the person. Every admin page and action checks a right, and a test enforces this.
 

@@ -28,8 +28,8 @@ export default function TermsPage() {
       <h2>3. Prices and what you pay</h2>
       <ul>
         <li>Item prices are set in pounds by the UK seller. We show them in pounds and in cedis, using an exchange rate we set, which may include a small markup to cover rate changes between your order and our purchase.</li>
-        <li>Your total is shown before you pay and covers the items, our service charge, shipping to Ghana and delivery to your address. Your total is always shown in cedis. If you pay by an international card, the card is charged the same amount in pounds, converted at the rate shown on your order, and your bank may add its own currency fee.</li>
-        <li><strong>Import duty, customs charges and taxes</strong> in Ghana, if any, are not included in the total. If you are asked to pay them, you are responsible for them.</li>
+        <li>Your total is shown before you pay and covers the items (the prices shown for the items include our service charge), shipping to Ghana, cargo insurance, import duties and taxes, and delivery to your address. Your total is always shown in cedis. If you pay by an international card, the card is charged the same amount in pounds, converted at the rate shown on your order, and your bank may add its own currency fee.</li>
+        <li><strong>Import duty, customs charges and taxes</strong> in Ghana are worked out when we quote and are included in your total. We pay them at the port for you, so you have nothing more to pay on delivery. Duty is estimated by kind of item. If we cannot price an item with confidence, we will tell you before you pay.</li>
         <li>Prices and stock on UK shops can change. The price we confirm to you before you pay is the price we use for your order.</li>
       </ul>
 
