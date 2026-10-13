@@ -74,6 +74,7 @@ Generate random values with `openssl rand -base64 32`.
 | Sign in with Facebook | `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET` |
 | Sign in with Apple | `APPLE_CLIENT_ID` (the Services ID), `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the .p8 contents; `\n` or one line is fine) |
 | ExchangeRate-API | `EXCHANGERATE_API_KEY` |
+| AllRatesToday | `ALLRATESTODAY_API_KEY` |
 | Open Exchange Rates | `OPENEXCHANGERATES_APP_ID` |
 
 Details of each provider are in [Integrations](09-integrations.md).
@@ -113,7 +114,7 @@ The site name shown to customers is **YenkoExpress** (Admin → Prices and setti
 | --- | --- | --- |
 | Catalogue sources | Built in, every 10 minutes (first run 1 minute after start) | Each source has its own interval (default 24 hours). To run elsewhere: `INGEST_AUTORUN=false` and call `GET /api/cron/ingest`. |
 | Message retries | Messages are also sent right after an event; failed ones are retried | Call `GET /api/cron/messages` every few minutes from a scheduler for reliability. |
-| Exchange-rate sync | Only if you use a rate feed | Call `GET /api/cron/fx` hourly or daily. |
+| Exchange-rate sync | Built in, every 30 minutes (first run 90 seconds after start) | Reads AllRatesToday, Open Exchange Rates and the Bank of Ghana. To run elsewhere: `FX_AUTORUN=false` and call `GET /api/cron/fx`. |
 
 Call cron endpoints with `Authorization: Bearer $CRON_SECRET`, for example:
 ```bash

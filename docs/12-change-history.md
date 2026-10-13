@@ -66,6 +66,11 @@ What was built and in what order. Every change below is a commit on the `claude/
 - New admin page **Pricing engine** (checked JSON editor, restore, tester); Pricing now holds the market and customs rates; delivery areas point at a delivery price; the shipping page is read-only; sea freight is built but switched off.
 - Removed: the flat/percent/tiered service charge, shipping rate cards, express air and the exchange-rate markup setting.
 
+## Exchange rates
+- **Three sources**: AllRatesToday (mid-market, first choice), Open Exchange Rates (backup and cross-check) and the Bank of Ghana's official rate (used for import duties). Read every 30 minutes by the server.
+- **Margin**: 3% over mid-market, +0.5% / +1.0% when the three-day move passes 1% / 2%, never below conversion cost + 1.5%.
+- **Quote lock**: each shopper's quote is held for 30 minutes, and an order whose price moved is refused with the new total. **Sanity check**: sources more than 1.5% apart freeze new quotes.
+
 ## Staff and access
 - **Roles and access control**: the developer's password is the **super admin**; staff accounts are created by the super admin with roles or exact rights, forced first-time password change, switch-off with immediate sign-out, and an activity log that names the person. Every admin page and action checks a right, and a test enforces this.
 

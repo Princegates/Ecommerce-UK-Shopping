@@ -2,8 +2,9 @@ import type Database from "better-sqlite3";
 import { randomBytes } from "node:crypto";
 import { db } from "./db";
 import type { CartLine } from "./cart";
+import { quoteMarket } from "./rate-lock";
 import { priceOrder, type PriceBreakdown } from "./price-order";
-import { getSettings, getShippingMethod, getZone } from "./settings";
+import { getSettings, getShippingMethod, getZone, type MarketContext } from "./settings";
 import { canStaffTransition, isOrderStatus, type OrderStatus } from "./order-status";
 import { enqueueOrderEvent } from "./notify/outbox";
 
@@ -101,6 +102,7 @@ export function quoteCart(
   zoneId: number | null,
   shippingCode: string | null,
   d: Db = db(),
+  market?: MarketContext,
 ): { ok: true; breakdown: PriceBreakdown; shippingCode: string; shippingName: string; zoneName: string } | QuoteError {
   const settings = getSettings(d);
   const method = shippingCode ? getShippingMethod(shippingCode, d) : null;
@@ -116,7 +118,7 @@ export function quoteCart(
       category: l.product.dutyCategory,
     })),
     pricing: settings.pricing,
-    market: settings.market,
+    market: market ?? settings.market,
     zoneKey: zone.pricingKey,
     service: method.code,
   });
@@ -125,16 +127,29 @@ export function quoteCart(
   return { ok: true, breakdown, shippingCode: used.code, shippingName: used.name, zoneName: zone.name };
 }
 
+export type CreateOrderOptions = {
+  /** Who the quote is held for (the cart, or a quoted link request), so the order is priced at the rate they were shown. */
+  lockKey?: string | null;
+  /** The total the shopper was shown, in pesewas. If the price has moved since, the order is not placed. */
+  expectedTotalMinor?: number;
+};
+
 export function createOrder(
   lines: CartLine[],
   details: CheckoutDetails,
   d: Db = db(),
+  opts: CreateOrderOptions = {},
 ): { ok: true; paymentRef: string; number: string } | QuoteError {
   if (lines.length === 0) return { ok: false, error: "Your cart is empty." };
   const settings = getSettings(d);
-  const quote = quoteCart(lines, details.zoneId, details.shippingCode, d);
+  const qm = quoteMarket(opts.lockKey ?? null, d);
+  if (qm.frozen) return { ok: false, error: "We are checking today's exchange rate and cannot confirm prices for a short while. Please try again soon." };
+  const quote = quoteCart(lines, details.zoneId, details.shippingCode, d, qm.market);
   if (!quote.ok) return quote;
   const b = quote.breakdown;
+  if (opts.expectedTotalMinor !== undefined && opts.expectedTotalMinor !== b.totalMinor) {
+    return { ok: false, error: `The price changed while you were checking out. The new total is GH₵${(b.totalMinor / 100).toLocaleString("en-GB", { minimumFractionDigits: 2 })}. Please refresh the prices, look it over and place your order again.` };
+  }
   if (b.below.minimumOrder) {
     return { ok: false, error: `The minimum order is GH₵${settings.pricing.minOrderGhs.toLocaleString("en-GB")} of items.` };
   }
@@ -167,7 +182,7 @@ export function createOrder(
         notes: details.notes,
         shippingCode: quote.shippingCode,
         shippingName: quote.shippingName,
-        fx: settings.fx.rate,
+        fx: b.effectiveRate,
         markup: settings.fx.markupPct,
         itemsGbp: b.itemsGbpMinor,
         itemsGhs: b.itemsGhsMinor,

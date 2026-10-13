@@ -7,6 +7,7 @@ import { clearCart, loadCart, readCartToken } from "@/lib/cart";
 import { getCustomer } from "@/lib/customer-session";
 import { kickOutbox } from "@/lib/notify/kick";
 import { saveAddress } from "@/lib/customers";
+import { db } from "@/lib/db";
 import { placeLinkOrder } from "@/lib/link-orders";
 import { createOrder, getOrderByRef, markPaid, markPaymentFailed } from "@/lib/orders";
 import { randomBytes } from "node:crypto";
@@ -52,7 +53,7 @@ export async function placeOrderAction(_prev: CheckoutState, formData: FormData)
     notifySms: formData.get("notifySms") === "on",
     notifyEmail: formData.get("notifyEmail") === "on",
     notifyWhatsapp: formData.get("notifyWhatsapp") === "on",
-  });
+  }, db(), { lockKey: token, expectedTotalMinor: expectedTotal(formData) });
   if (!res.ok) return { error: res.error, values };
   orderLimiter.record(key);
   if (formData.get("saveAddress") === "on") {
@@ -73,6 +74,12 @@ export async function placeOrderAction(_prev: CheckoutState, formData: FormData)
   redirect(`/pay/${res.paymentRef}`);
 }
 
+/** The total the shopper was shown, sent back with the form so a price that moved in the meantime is caught. */
+function expectedTotal(formData: FormData): number | undefined {
+  const n = Number(formData.get("expectedTotal"));
+  return Number.isInteger(n) && n > 0 ? n : undefined;
+}
+
 /** Pays for a link request the team has quoted: the same details as checkout, but the item comes from the quote. */
 export async function placeLinkOrderAction(_prev: CheckoutState, formData: FormData): Promise<CheckoutState> {
   const token = String(formData.get("token") ?? "");
@@ -90,7 +97,7 @@ export async function placeLinkOrderAction(_prev: CheckoutState, formData: FormD
   const res = placeLinkOrder(token, {
     ...parsed.data, customerId: customer.id,
     notifySms: formData.get("notifySms") === "on", notifyEmail: formData.get("notifyEmail") === "on", notifyWhatsapp: formData.get("notifyWhatsapp") === "on",
-  });
+  }, db(), Date.now(), { expectedTotalMinor: expectedTotal(formData) });
   if (!res.ok) return { error: res.error, values };
   if (!res.existing) orderLimiter.record(key);
   revalidatePath("/", "layout");

@@ -94,3 +94,21 @@ describe("configuration checks", () => {
     expect(parsePricingConfig("nope").ok).toBe(false);
   });
 });
+
+describe("the rate margin as specified", () => {
+  const mid = 16;
+  it("adds 3%, plus 0.5% above a 1% move and 1% above a 2% move", () => {
+    const r = (move: number) => customerRate(mid, move, DEFAULT_PRICING_CONFIG).rate;
+    expect(r(0.005)).toBeCloseTo(mid * 1.030225, 4); // 3%, lifted a touch by the cost floor below
+    expect(r(0.015)).toBeCloseTo(mid * 1.035, 4);
+    expect(r(0.025)).toBeCloseTo(mid * 1.04, 4);
+  });
+  it("never falls below the conversion cost plus 1.5%", () => {
+    const cfg = { ...DEFAULT_PRICING_CONFIG, fx: { ...DEFAULT_PRICING_CONFIG.fx, baseMarkup: 0 } };
+    expect(customerRate(mid, 0, cfg).rate).toBeCloseTo(mid * 1.015 * 1.015, 4);
+  });
+  it("holds a quote for 30 minutes and freezes at a 1.5% gap", () => {
+    expect(DEFAULT_PRICING_CONFIG.fx.quoteTtlMinutes).toBe(30);
+    expect(DEFAULT_PRICING_CONFIG.fx.divergenceFreezePct).toBe(0.015);
+  });
+});

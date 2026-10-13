@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import CheckoutForm from "@/components/CheckoutForm";
-import { getCart } from "@/lib/cart";
+import { getCart, readCartToken } from "@/lib/cart";
+import { quoteMarket } from "@/lib/rate-lock";
 import { requireCustomer } from "@/lib/customer-session";
 import { listAddresses } from "@/lib/customers";
 import { gbpToGhsMinor } from "@/lib/pricing";
 import { buildQuoteConfig } from "@/lib/quote-table";
-import { getSettings, getShippingMethods, getZones } from "@/lib/settings";
+import { getShippingMethods, getZones } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Checkout" };
@@ -22,7 +23,6 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
   if (sp.ship) qs.set("ship", sp.ship);
   const customer = await requireCustomer(`/checkout${qs.size ? `?${qs}` : ""}`);
 
-  const settings = getSettings();
   const methods = getShippingMethods();
   const zones = getZones();
   if (methods.length === 0 || zones.length === 0) {
@@ -43,7 +43,8 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     weightGrams: l.product.weightGrams,
     category: l.product.dutyCategory,
   }));
-  const cfg = buildQuoteConfig(items);
+  const qm = quoteMarket(await readCartToken());
+  const cfg = buildQuoteConfig(items, qm);
   const fromQuery = zones.find((z) => String(z.id) === sp.zone)?.id;
   const initialZone = fromQuery ?? (preferred?.zoneId && zones.some((z) => z.id === preferred.zoneId) ? preferred.zoneId : null) ?? customer.defaultZoneId ?? zones[0].id;
   const initialShip = methods.find((m) => m.code === sp.ship)?.code ?? methods[0].code;
@@ -54,7 +55,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     shop: l.product.shopName,
     options: Object.values(l.options).join(" / "),
     quantity: l.quantity,
-    lineGhsMinor: gbpToGhsMinor(l.product.priceMinor * l.quantity, settings.fx),
+    lineGhsMinor: gbpToGhsMinor(l.product.priceMinor * l.quantity, qm.fx),
   }));
 
   return (

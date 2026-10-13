@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "./db";
 import { THEMES } from "./themes";
 import type { FxConfig } from "./pricing";
+import { cleanSources, freshBog, type FxSources } from "./fx-sources";
 import { customerRate, DEFAULT_PRICING_CONFIG, parsePricingConfig, type PricingConfig } from "./quote-engine";
 
 type Db = Database.Database;
@@ -20,6 +21,10 @@ export type Settings = {
   fx: FxConfig;
   /** The market rate, the customs rate and the 3-day move, from which `fx` is worked out. */
   market: MarketContext;
+  /** Where the customs rate comes from: an admin's own figure, the Bank of Ghana's official rate, or (failing both) the market rate. */
+  customsSource: "manual" | "bank_of_ghana" | "market";
+  /** The latest reading from each exchange-rate source. */
+  fxSources: FxSources;
   /** Every number the pricing uses: service charge, shipping, insurance, duties, delivery and the shop's internal costs. */
   pricing: PricingConfig;
   supportWhatsapp: string;
@@ -64,13 +69,19 @@ export function getSettings(d: Db = db()): Settings {
   const rate = z.number().positive().safeParse(raw.fx_rate);
   const mid = rate.success ? rate.data : DEFAULTS.fx_rate;
   const customs = z.number().positive().safeParse(raw.customs_rate);
+  const fxSources = cleanSources(raw.fx_sources);
+  const bog = freshBog(fxSources, new Date());
+  const customsSource = customs.success ? "manual" : bog ? "bank_of_ghana" : "market";
+  const customsRate = customs.success ? customs.data : bog ? bog.rate : mid;
   const cfg = parsePricingConfig(raw.pricing_config);
   const pricing = cfg.ok ? cfg.value : DEFAULT_PRICING_CONFIG;
   const move3d = rateMove3d(mid, d);
   return {
     siteName: z.string().min(1).catch(DEFAULTS.site_name).parse(raw.site_name),
     fx: { rate: customerRate(mid, move3d, pricing).rate, markupPct: 0 },
-    market: { mid, customs: customs.success ? customs.data : mid, move3d },
+    market: { mid, customs: customsRate, move3d },
+    customsSource,
+    fxSources,
     pricing,
     supportWhatsapp: z.string().catch("").parse(raw.support_whatsapp),
     supportEmail: z.string().catch("").parse(raw.support_email),

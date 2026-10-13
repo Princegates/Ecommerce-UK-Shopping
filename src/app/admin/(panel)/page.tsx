@@ -12,7 +12,7 @@ import { adminConfig, can, requireAdmin } from "@/lib/auth";
 import { landingPage } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import { STALE_AFTER_DAYS, rateAgeDays, rateHistory } from "@/lib/fx";
-import { drift, getFxPolicy, getMarketRate } from "@/lib/fx-api";
+import { drift, getFxHealth, getFxPolicy, getMarketRate } from "@/lib/fx-api";
 import { CHANNEL_LABEL, getChannelProviderId, getIntegration, isConfigured, providersFor, readConfig } from "@/lib/integrations";
 import { ghs } from "@/lib/money";
 import { MESSAGE_CHANNELS, messageStats } from "@/lib/notify/outbox";
@@ -44,6 +44,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const msgs = messageStats(7);
   const history = rateHistory(6);
   const market = getMarketRate();
+  const fxHealth = getFxHealth();
   const gap = drift();
   const policy = getFxPolicy();
   const feedOn = Boolean(getChannelProviderId("rates"));
@@ -215,6 +216,12 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <p className="display num text-3xl">£1 = GH₵{effectiveRate(settings.fx).toFixed(4)}</p>
             <p className="hint w-full">Market rate GH₵{settings.market.mid}; the customer rate adds the markup set in the pricing engine ({(((settings.fx.rate / settings.market.mid) - 1) * 100).toFixed(2)}% now).</p>
           </div>
+          {fxHealth.frozen && (
+            <p role="alert" className="box mt-4 border-red bg-red/10 p-3 text-sm font-semibold text-red">
+              New quotes are on hold: the exchange-rate sources are {((fxHealth.spread ?? 0) * 100).toFixed(1)}% apart (the limit is {(fxHealth.limit * 100).toFixed(1)}%). Customers cannot place new orders until they agree.{" "}
+              <Link href="/admin/integrations#rates-feed" className="link">See the sources</Link>
+            </p>
+          )}
           {stale && (
             <p role="alert" className="box mt-4 border-red bg-red/10 p-3 text-sm font-semibold text-red">
               {age === null ? "You have not set the rate here yet." : `The rate was last set ${age} days ago.`} Check it against the market, because a stale rate costs money.

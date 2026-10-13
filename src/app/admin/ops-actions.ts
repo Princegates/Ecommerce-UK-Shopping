@@ -7,7 +7,7 @@ import { requirePermission } from "@/lib/auth";
 import { createResetToken, getCustomerById, setCustomerStatus } from "@/lib/customers";
 import { appUrl } from "@/lib/app-url";
 import { setExchangeRate } from "@/lib/fx";
-import { applyMarketRate, getFxPolicy, refreshMarketRate, saveFxPolicy, testRateProvider, type FxMode } from "@/lib/fx-api";
+import { applyMarketRate, getFxHealth, getFxPolicy, refreshMarketRate, saveFxPolicy, testRateProvider, type FxMode } from "@/lib/fx-api";
 import {
   clearField, getIntegration, providersFor, saveFields, setChannelProvider, setEnabled, type Channel, type ProviderId,
 } from "@/lib/integrations";
@@ -271,6 +271,7 @@ export async function refreshMarketRateAction(f: FormData): Promise<void> {
   if (!r.ok) back(to, { error: r.error }, "#rate");
   const a = applyMarketRate(db(), false);
   adminAudit(who, "rate.refresh", "market rate", `GH₵${r.rate} from ${r.provider}${a.applied ? ", applied automatically" : ""}`);
+  if (getFxHealth().frozen) back(to, { error: r.reason }, "#rate");
   back(to, { saved: a.applied ? "rate" : "market" }, "#rate");
 }
 

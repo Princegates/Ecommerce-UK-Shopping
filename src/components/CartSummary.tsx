@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { goToCheckoutAction } from "@/app/actions/cart";
 import Breakdown, { BREAKDOWN_NOTE } from "@/components/Breakdown";
-import { DeliverySelectors, pickQuote, type QuoteConfig } from "@/components/quote-client";
+import { DeliverySelectors, pickQuote, RateHold, type QuoteConfig } from "@/components/quote-client";
 import { ghs } from "@/lib/money";
 import { ghsToGbpMinor } from "@/lib/pricing";
 
@@ -21,13 +21,14 @@ export default function CartSummary({ cfg }: { cfg: QuoteConfig }) {
       </div>
       <hr className="!my-0" />
       {quote ? <Breakdown b={quote} approxGbpMinor={ghsToGbpMinor(quote.totalMinor, cfg.fx)} /> : <p>Delivery options are not available right now.</p>}
+      <RateHold cfg={cfg} />
       {belowMin && (
         <p className="error-text" role="alert">
           The minimum order is {ghs(cfg.minOrderMinor)} of items. Add a little more to continue.
         </p>
       )}
       {quote?.overWeight && <p className="error-text" role="alert">One of the items is too heavy for us to ship. Please contact us.</p>}
-      <button className="btn btn-gold w-full !min-h-11 !text-base" disabled={!quote || belowMin || quote.overWeight}>
+      <button className="btn btn-gold w-full !min-h-11 !text-base" disabled={!quote || belowMin || quote.overWeight || cfg.frozen}>
         Proceed to checkout
       </button>
       <p className="text-xs text-ink-soft">{BREAKDOWN_NOTE} You will confirm your address on the next step.</p>

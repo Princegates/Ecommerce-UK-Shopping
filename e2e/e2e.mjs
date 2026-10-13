@@ -146,6 +146,11 @@ try {
   await page.goto(base + "/cart");
   await page.getByText("Order summary").waitFor();
   const totalBefore = await page.locator(".receipt .row.total dd").innerText();
+  must((await page.getByText(/Your price is held until \d\d:\d\d \(Ghana time\)/).count()) === 1, "the cart says how long the price is held");
+  await ap.goto(base + "/admin/integrations");
+  for (const name of ["AllRatesToday (mid-market)", "Open Exchange Rates (mid-market)", "Bank of Ghana (official)"]) {
+    must((await ap.getByRole("cell", { name, exact: true }).count()) === 1, "the rate sources panel lists " + name);
+  }
   await ap.goto(base + "/admin/pricing-engine");
   const cfg = JSON.parse(await ap.getByLabel("Pricing configuration (JSON)").inputValue());
   cfg.serviceCharge.minGhs = 300;

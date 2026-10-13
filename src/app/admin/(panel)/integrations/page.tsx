@@ -1,8 +1,9 @@
 import { refreshMarketRateAction, saveFxPolicyAction, saveNotifyRulesAction, setChannelAction } from "@/app/admin/ops-actions";
 import { PageHead } from "@/components/admin/ui";
 import IntegrationCard from "@/components/admin/IntegrationCard";
+import FxSourcesPanel from "@/components/admin/FxSourcesPanel";
 import { appUrl } from "@/lib/app-url";
-import { getFxPolicy, getMarketRate } from "@/lib/fx-api";
+import { getFxPolicy } from "@/lib/fx-api";
 import { requirePermission } from "@/lib/auth";
 import {
   CHANNEL_LABEL, getChannelProviderId, isConfigured, providersFor, readConfig, type Channel, type IntegrationDef,
@@ -30,7 +31,6 @@ export default async function IntegrationsPage({
   const ratesDef = rateProviders.find((p) => p.id === chosenRates);
   const ratesReady = ratesDef ? (() => { const cfg = readConfig(ratesDef); return cfg.enabled && isConfigured(ratesDef, cfg, "rates"); })() : false;
   const policy = getFxPolicy();
-  const market = getMarketRate();
   const stats = messageStats(7);
   const canStoreKeys = encryptionPassphrase() !== null;
   const production = process.env.NODE_ENV === "production";
@@ -150,8 +150,9 @@ export default async function IntegrationsPage({
       <section id="rates-feed" aria-labelledby="rates-h" className="mb-12 scroll-mt-24">
         <h2 id="rates-h" className="text-3xl">Exchange rate feed</h2>
         <p className="mt-1 max-w-3xl text-ink-soft">
-          Pulls the live pound-to-cedi market rate. You stay in charge: customers are quoted at the rate and markup set on
-          your dashboard, and the feed only helps you keep it current.
+          Reads three sources: AllRatesToday for the mid-market pound-to-cedi rate (Open Exchange Rates or ExchangeRate-API step in if it is
+          down, and check it while it is up), and the Bank of Ghana&rsquo;s official rate, which import duty is valued at. Customers are quoted at
+          the market rate plus the margin in the pricing engine. If the sources disagree by more than the limit there, new quotes are held until they agree.
         </p>
         <div className="mt-6 grid gap-6 xl:grid-cols-2">
           <div className="box box-shadow grid content-start gap-4 p-5">
@@ -162,7 +163,7 @@ export default async function IntegrationsPage({
             <form action={setChannelAction} className="grid gap-3">
               <input type="hidden" name="channel" value="rates" />
               <div className="field">
-                <label className="label" htmlFor="ch-rates">Rate provider</label>
+                <label className="label" htmlFor="ch-rates">Preferred mid-market provider</label>
                 <select id="ch-rates" name="provider" className="select" defaultValue={chosenRates ?? ""}>
                   <option value="">None (set the rate by hand)</option>
                   {rateProviders.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -172,13 +173,11 @@ export default async function IntegrationsPage({
             </form>
             {flash.saved === "channel-rates" && <p role="status" className="text-sm font-semibold">Saved.</p>}
             <div className="border-t-2 border-solid border-line pt-4">
-              <p className="label">Latest market rate</p>
-              {market ? (
-                <p className="mt-1"><span className="display num text-2xl">£1 = GH₵{market.rate}</span> <span className="hint">from {market.provider}, fetched {market.fetchedAt.slice(0, 16).replace("T", " ")} UTC</span></p>
-              ) : <p className="hint mt-1">Not fetched yet.</p>}
+              <p className="label">Latest readings</p>
+              <FxSourcesPanel />
               <form action={refreshMarketRateAction} className="mt-3">
                 <input type="hidden" name="returnTo" value="/admin/integrations" />
-                <button className="btn btn-small" disabled={!ratesReady}>Fetch the market rate now</button>
+                <button className="btn btn-small">Read all the sources now</button>
               </form>
             </div>
           </div>
@@ -210,7 +209,7 @@ export default async function IntegrationsPage({
                 <input id="alertPct" name="alertPct" className="input" inputMode="decimal" defaultValue={policy.alertPct} />
               </div>
             </div>
-            <p className="hint">Automatic updates need a scheduler to call <span className="mono">/api/cron/fx</span> with your CRON_SECRET, once or twice a day. The markup you set is always kept.</p>
+            <p className="hint">The sources are read every 30 minutes by the server itself (set <span className="mono">FX_AUTORUN=false</span> to turn that off and call <span className="mono">/api/cron/fx</span> from a scheduler instead). The pricing engine&rsquo;s margin is always added on top.</p>
             <div><button className="btn btn-primary">Save</button></div>
           </form>
         </div>

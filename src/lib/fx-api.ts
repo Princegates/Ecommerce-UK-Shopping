@@ -3,8 +3,10 @@ import { db } from "./db";
 import { audit } from "./audit";
 import { setExchangeRate } from "./fx";
 import {
-  activeMessagingProvider, getIntegration, isConfigured, readConfig, type ProviderId,
+  getIntegration, getChannelProviderId, isConfigured, providersFor, readConfig, type ProviderId,
 } from "./integrations";
+import { cleanSources, fxHealth, MID_PRIORITY, type FxHealth, type FxSources, type SourceId } from "./fx-sources";
+import { BlockedError, HttpError, RobotsCache, UnsafeUrlError, bodyText, politeFetch, type PoliteDeps } from "./ingest/net";
 import { getSetting, getSettings, setSetting } from "./settings";
 
 type Db = Database.Database;
@@ -30,6 +32,21 @@ export async function fetchMarketRate(id: ProviderId, values: Record<string, str
       const j = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (j.result === "success" && typeof j.conversion_rate === "number") return sane(j.conversion_rate, iso(j.time_last_update_unix));
       return { ok: false, error: `ExchangeRate-API: ${typeof j["error-type"] === "string" ? j["error-type"] : `HTTP ${res.status}`}` };
+    }
+    if (id === "allratestoday") {
+      const url = new URL("https://allratestoday.com/api/v1/rates");
+      url.searchParams.set("source", "GBP");
+      url.searchParams.set("target", "GHS");
+      const res = await f(url.toString(), { headers: { Authorization: `Bearer ${values.apiKey ?? ""}` }, signal: AbortSignal.timeout(TIMEOUT) });
+      const j = (await res.json().catch(() => ({}))) as unknown;
+      // The answer is one pair, or a list of pairs; read the GBP-to-GHS one either way.
+      const entry = (Array.isArray(j) ? j.find((x) => x && (x as { target?: string }).target === "GHS") ?? j[0] : j) as { rate?: unknown; time?: unknown; error?: unknown } | undefined;
+      if (res.ok && entry && typeof entry.rate === "number") {
+        const t = typeof entry.time === "string" && Number.isFinite(Date.parse(entry.time)) ? new Date(entry.time).toISOString() : null;
+        return sane(entry.rate, t);
+      }
+      const msg = entry && typeof entry.error === "string" ? entry.error : `HTTP ${res.status}`;
+      return { ok: false, error: `AllRatesToday: ${msg}` };
     }
     if (id === "openexchangerates") {
       const res = await f("https://openexchangerates.org/api/latest.json?symbols=GBP,GHS", {
@@ -60,7 +77,7 @@ function sane(rate: number, asOf: string | null): RateFetch {
 export type FxMode = "manual" | "suggest" | "auto";
 export type FxPolicy = { mode: FxMode; maxChangePct: number; alertPct: number };
 
-const DEFAULT_POLICY: FxPolicy = { mode: "suggest", maxChangePct: 5, alertPct: 3 };
+const DEFAULT_POLICY: FxPolicy = { mode: "auto", maxChangePct: 5, alertPct: 3 };
 
 export function getFxPolicy(d: Db = db()): FxPolicy {
   const raw = getSetting<Partial<FxPolicy>>("fx_policy", d) ?? {};
@@ -97,18 +114,145 @@ export type SyncResult =
   | { ok: false; error: string }
   | { ok: true; rate: number; provider: ProviderId; applied: boolean; reason: string };
 
-/** Fetch the market rate with the chosen provider and store it. Does not change what customers are quoted. */
-export async function refreshMarketRate(d: Db = db(), env: NodeJS.ProcessEnv = process.env, f: FetchLike = fetch, now = new Date()): Promise<SyncResult> {
-  const active = activeMessagingProvider("rates", d, env);
-  if (!active) return { ok: false, error: "No exchange rate provider is set up and switched on." };
-  const res = await fetchMarketRate(active.def.id, active.cfg.values, f);
-  if (!res.ok) return res;
-  const prev = getMarketRate(d);
-  if (prev && Math.abs(res.rate - prev.rate) / prev.rate > 0.5) {
-    return { ok: false, error: "The new rate differs from the last one by more than 50%, so it was ignored. Check the provider." };
+// ------------------------------------------------------------ Bank of Ghana
+
+export const BOG_URL = "https://www.bog.gov.gh/treasury-and-the-markets/daily-interbank-fx-rates/";
+
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+const cellText = (h: string) => h.replace(/<[^>]*>/g, " ").replace(/&nbsp;|&#160;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+
+/** The date printed on the page, as YYYY-MM-DD, or null. */
+function pageDate(text: string): string | null {
+  const iso = /\b(20\d{2})-(\d{2})-(\d{2})\b/.exec(text);
+  if (iso) return iso[0];
+  const long = /\b(\d{1,2})(?:st|nd|rd|th)?[ ,/-]+([A-Za-z]{3,9})[ ,/-]+(20\d{2})\b/.exec(text);
+  if (long) {
+    const m = MONTHS.indexOf(long[2].slice(0, 3).toLowerCase());
+    if (m >= 0) return `${long[3]}-${String(m + 1).padStart(2, "0")}-${long[1].padStart(2, "0")}`;
   }
-  setSetting("fx_market", { rate: res.rate, provider: active.def.id, fetchedAt: now.toISOString(), asOf: res.asOf } satisfies MarketRate, d);
-  return { ok: true, rate: res.rate, provider: active.def.id, applied: false, reason: "Market rate updated." };
+  const slash = /\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/.exec(text);
+  if (slash) return `${slash[3]}-${slash[2].padStart(2, "0")}-${slash[1].padStart(2, "0")}`;
+  return null;
+}
+
+/**
+ * Reads the British pound's mid rate from the Bank of Ghana's daily interbank page. The page lists buying, selling and mid rates per
+ * currency; the row for the pound is found by its code or name and the mid rate is taken (or the average of buying and selling).
+ */
+export function parseBogRate(html: string): RateFetch {
+  const rows = [...html.matchAll(/<tr[\s\S]*?<\/tr>/gi)].map((m) => cellText(m[0]));
+  const row = rows.find((r) => /\bGBP\b|pound sterling|british pound|\bUK pound\b|\bpound\b/i.test(r) && /\d+\.\d{2,}/.test(r));
+  if (!row) return { ok: false, error: "Bank of Ghana: the pound row was not found on the page." };
+  // keep the figures after the currency name, so a date or code in the row is not read as a rate
+  const figures = [...row.matchAll(/\b\d{1,3}(?:,\d{3})*\.\d{2,6}\b|\b\d{1,3}\.\d{2,6}\b/g)].map((m) => Number(m[0].replace(/,/g, ""))).filter((n) => Number.isFinite(n));
+  if (figures.length === 0) return { ok: false, error: "Bank of Ghana: no rate was found in the pound row." };
+  let rate: number;
+  if (figures.length >= 3) {
+    const [buy, sell, mid] = figures.slice(-3);
+    rate = mid >= Math.min(buy, sell) && mid <= Math.max(buy, sell) ? mid : (buy + sell) / 2;
+  } else if (figures.length === 2) rate = (figures[0] + figures[1]) / 2;
+  else rate = figures[0];
+  const date = pageDate(cellText(html.slice(0, 200_000)));
+  const checked = sane(rate, date);
+  return checked.ok ? checked : { ok: false, error: "Bank of Ghana: the page showed a rate that does not look right." };
+}
+
+/** Reads the Bank of Ghana's official pound rate, obeying the site's robots.txt and pacing like any other reader. */
+export async function fetchBogRate(deps: PoliteDeps = {}): Promise<RateFetch> {
+  try {
+    const url = new URL(BOG_URL);
+    const allowed = await new RobotsCache(deps).allowed(url);
+    if (!allowed.ok) return { ok: false, error: "Bank of Ghana: the website's robots.txt does not allow automated reading of the rates page." };
+    const { res } = await politeFetch(BOG_URL, deps, { maxBytes: 3_000_000, timeoutMs: 20_000 });
+    return parseBogRate(bodyText(res));
+  } catch (e) {
+    if (e instanceof BlockedError) return { ok: false, error: "Bank of Ghana: the website refused automated access." };
+    if (e instanceof HttpError) return { ok: false, error: `Bank of Ghana: the website answered HTTP ${e.status}.` };
+    if (e instanceof UnsafeUrlError) return { ok: false, error: "Bank of Ghana: the address is not allowed." };
+    return { ok: false, error: "Could not reach the Bank of Ghana website." };
+  }
+}
+
+// ----------------------------------------------------------------- sources
+
+export function getFxSources(d: Db = db()): FxSources {
+  return cleanSources(getSetting("fx_sources", d));
+}
+
+export type SourceErrors = Partial<Record<SourceId, string>>;
+export function getSourceErrors(d: Db = db()): SourceErrors {
+  const v = getSetting<SourceErrors>("fx_source_errors", d);
+  return v && typeof v === "object" ? v : {};
+}
+
+/** The widest gap between fresh sources against the limit in the pricing configuration, and whether new quotes are on hold. */
+export function getFxHealth(d: Db = db(), now: Date = new Date()): FxHealth {
+  return fxHealth(getFxSources(d), getSettings(d).pricing.fx.divergenceFreezePct, now);
+}
+
+/** Mid-market feeds that are switched on and ready, the chosen one first, then in order of trust. */
+function midFeeds(d: Db, env: NodeJS.ProcessEnv) {
+  const chosen = getChannelProviderId("rates", d);
+  const ids = [...(chosen ? [chosen] : []), ...MID_PRIORITY].filter((id, i, a) => a.indexOf(id) === i);
+  return ids.flatMap((id) => {
+    const def = providersFor("rates").find((p) => p.id === id);
+    if (!def) return [];
+    const cfg = readConfig(def, d, env);
+    return cfg.enabled && isConfigured(def, cfg, "rates") ? [{ def, cfg }] : [];
+  });
+}
+
+export type RefreshDeps = {
+  /** Replaces the network for the Bank of Ghana page. In tests, without it the page is not read. */
+  bog?: PoliteDeps;
+};
+
+/**
+ * Reads every source that is set up: each mid-market feed that is switched on, and the Bank of Ghana's official rate. Each reading is
+ * stored on its own, the market rate is the first fresh mid-market one (so a second feed covers for the first), and a failed source
+ * keeps its error for the admin without disturbing the others. Does not change what customers are quoted.
+ */
+export async function refreshMarketRate(d: Db = db(), env: NodeJS.ProcessEnv = process.env, f: FetchLike = fetch, now = new Date(), deps: RefreshDeps = {}): Promise<SyncResult> {
+  const feeds = midFeeds(d, env);
+  const readBog = env.NODE_ENV !== "test" || Boolean(deps.bog);
+  if (feeds.length === 0 && !readBog) return { ok: false, error: "No exchange rate provider is set up and switched on." };
+
+  const sources = getFxSources(d);
+  const errors: SourceErrors = {};
+  const prevMarket = getMarketRate(d);
+  let primary: { id: ProviderId; rate: number; asOf: string | null } | null = null;
+
+  for (const { def, cfg } of feeds) {
+    const res = await fetchMarketRate(def.id, cfg.values, f);
+    if (!res.ok) { errors[def.id as SourceId] = res.error; continue; }
+    const before = sources[def.id as SourceId] ?? (prevMarket && prevMarket.provider === def.id ? prevMarket : undefined);
+    if (before && Math.abs(res.rate - before.rate) / before.rate > 0.5) {
+      errors[def.id as SourceId] = "The new rate differs from the last one by more than 50%, so it was ignored. Check the provider.";
+      continue;
+    }
+    sources[def.id as SourceId] = { rate: res.rate, fetchedAt: now.toISOString(), asOf: res.asOf };
+    primary ??= { id: def.id, rate: res.rate, asOf: res.asOf };
+  }
+
+  if (readBog) {
+    const res = await fetchBogRate(deps.bog ?? {});
+    if (res.ok) sources.bank_of_ghana = { rate: res.rate, fetchedAt: now.toISOString(), asOf: res.asOf };
+    else errors.bank_of_ghana = res.error;
+  }
+
+  setSetting("fx_sources", sources, d);
+  setSetting("fx_source_errors", errors, d);
+  if (!primary) {
+    const first = Object.values(errors)[0];
+    return { ok: false, error: first ?? "No exchange rate provider is set up and switched on." };
+  }
+  setSetting("fx_market", { rate: primary.rate, provider: primary.id, fetchedAt: now.toISOString(), asOf: primary.asOf } satisfies MarketRate, d);
+  const health = fxHealth(sources, getSettings(d).pricing.fx.divergenceFreezePct, now);
+  return {
+    ok: true, rate: primary.rate, provider: primary.id, applied: false,
+    reason: health.frozen ? `Market rate updated, but the sources disagree by ${((health.spread ?? 0) * 100).toFixed(1)}%, so new quotes are on hold.` : "Market rate updated.",
+  };
 }
 
 /**
@@ -124,6 +268,8 @@ export function applyMarketRate(d: Db = db(), manual = false): { applied: boolea
   const move = Math.abs(market.rate - current.rate) / current.rate;
   if (move < 0.0005) return { applied: false, reason: "Already in line with the market." };
   if (!manual) {
+    const health = getFxHealth(d);
+    if (health.frozen) return { applied: false, reason: `The rate sources disagree by ${((health.spread ?? 0) * 100).toFixed(1)}%, so the rate was not changed. Review it.` };
     if (policy.mode !== "auto") return { applied: false, reason: "Automatic updates are off." };
     if (move * 100 > policy.maxChangePct) {
       return { applied: false, reason: `The market moved ${(move * 100).toFixed(1)}%, more than your ${policy.maxChangePct}% limit. Review it.` };

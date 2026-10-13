@@ -73,7 +73,8 @@ describe("refreshing and applying", () => {
     const d = withProvider();
     setExchangeRate(15, 3, "", d);
     await refreshMarketRate(d, env, feed(15.3) as never);
-    expect(applyMarketRate(d, false).applied).toBe(false); // default mode only suggests
+    expect(saveFxPolicy({ mode: "suggest", maxChangePct: 5, alertPct: 3 }, d).ok).toBe(true);
+    expect(applyMarketRate(d, false).applied).toBe(false); // suggest mode only suggests
     expect(saveFxPolicy({ mode: "auto", maxChangePct: 5, alertPct: 3 }, d).ok).toBe(true);
     expect(applyMarketRate(d, false).applied).toBe(true);
     expect(getSettings(d).market.mid).toBe(15.3);
@@ -96,7 +97,7 @@ describe("refreshing and applying", () => {
     const d = withProvider();
     expect(saveFxPolicy({ mode: "auto", maxChangePct: 0, alertPct: 3 }, d).ok).toBe(false);
     expect(saveFxPolicy({ mode: "nope" as never, maxChangePct: 5, alertPct: 3 }, d).ok).toBe(false);
-    expect(getFxPolicy(d).mode).toBe("suggest");
+    expect(getFxPolicy(d).mode).toBe("auto");
     const t = await testRateProvider("exchangerate_api", d, env, feed(15.5) as never);
     expect(t.ok).toBe(true);
     expect(t.message).toContain("15.5");

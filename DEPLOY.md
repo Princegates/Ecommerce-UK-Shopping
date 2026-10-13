@@ -61,7 +61,7 @@ Ghana and the UK); a region cannot be changed after the service exists, so pick 
 
 1. Open `https://<your-domain>/api/health`. It should answer `{"ok":true}`.
 2. Sign in at `/admin`, add your eBay keys under **Integrations → Catalogue APIs**, then add a **Catalogue source** of type eBay with the searches you want. The shop is empty until you do.
-3. **Admin > Pricing:** set the exchange rate, markup, service charge and minimum order. **Shipping** and **Delivery areas:** set your real rates.
+3. **Admin > Pricing:** check the exchange-rate sources on **Integrations**, then review the **Pricing engine** (service charge, shipping, insurance, duty rates, minimum order). **Delivery areas:** point each at its delivery price.
 4. **Admin > Integrations:** add a payment gateway, then the message providers. Use each card's webhook address from the page
    (`{APP_URL}/api/webhooks/stripe`, `/paystack`, `/flutterwave`) and press **Test**.
 5. Place a real small order end to end with a real payment before announcing the site.
@@ -84,6 +84,6 @@ All data is in one file. Back it up on a schedule and test a restore.
 - Updating: pull the new code and redeploy. Database changes are applied automatically on start.
 - The catalogue scheduler runs inside the server. To run it elsewhere, set `INGEST_AUTORUN=false` and call
   `GET /api/cron/ingest` with `Authorization: Bearer $CRON_SECRET`. Do the same for `/api/cron/messages` (every few minutes) and
-  `/api/cron/fx` (hourly or daily) if you use the exchange-rate feed.
+  `/api/cron/fx` only if you turn the built-in 30-minute exchange-rate sync off with `FX_AUTORUN=false`. Set `ALLRATESTODAY_API_KEY` (free key) for the mid-market rate; the Bank of Ghana rate needs no key.
 - Not yet covered: phone/email verification at sign-up, a shared rate-limit store for several instances, and a Content-Security-Policy.
   Get legal and tax advice on customs duty, VAT, consumer terms and payment licensing before taking money.

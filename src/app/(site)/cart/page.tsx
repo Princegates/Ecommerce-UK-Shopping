@@ -12,14 +12,14 @@ import { getShopper } from "@/lib/shopper";
 import { gbpToGhsMinor } from "@/lib/pricing";
 import { buildQuoteConfig } from "@/lib/quote-table";
 import { quoteKey } from "@/lib/quote-config";
-import { getSettings } from "@/lib/settings";
+import { readCartToken } from "@/lib/cart";
+import { quoteMarket } from "@/lib/rate-lock";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your cart" };
 
 export default async function CartPage() {
   const lines = await getCart();
-  const settings = getSettings();
   const shopper = await getShopper();
 
   if (lines.length === 0) {
@@ -42,6 +42,7 @@ export default async function CartPage() {
     );
   }
 
+  const qm = quoteMarket(await readCartToken());
   const cfg = buildQuoteConfig(
     lines.map((l) => ({
       id: String(l.itemId),
@@ -50,12 +51,13 @@ export default async function CartPage() {
       weightGrams: l.product.weightGrams,
       category: l.product.dutyCategory,
     })),
+    qm,
   );
   // the prices shown beside each item are for the first delivery area and method; they differ only by a few pesewas between areas
   const firstQuote = cfg.quotes[quoteKey(cfg.zones[0]?.id ?? 0, cfg.methods[0]?.code ?? "")];
 
   const itemsGbp = lines.reduce((n, l) => n + l.product.priceMinor * l.quantity, 0);
-  const itemsGoodsMinor = gbpToGhsMinor(itemsGbp, settings.fx);
+  const itemsGoodsMinor = gbpToGhsMinor(itemsGbp, qm.fx);
   const minMinor = cfg.minOrderMinor;
   const reached = itemsGoodsMinor >= minMinor;
   const pct = minMinor > 0 ? Math.min(100, Math.round((itemsGoodsMinor / minMinor) * 100)) : 100;
@@ -96,7 +98,7 @@ export default async function CartPage() {
           <ul>
             {lines.map((l) => {
               const lineGbp = l.product.priceMinor * l.quantity;
-              const lineTotal = firstQuote?.lines.find((x) => x.id === String(l.itemId))?.ghsMinor ?? gbpToGhsMinor(lineGbp, settings.fx);
+              const lineTotal = firstQuote?.lines.find((x) => x.id === String(l.itemId))?.ghsMinor ?? gbpToGhsMinor(lineGbp, qm.fx);
               const unit = Math.round(lineTotal / l.quantity);
               return (
                 <li key={l.itemId} className="grid grid-cols-[6rem_1fr] gap-4 border-b border-line py-4 last:border-0 sm:grid-cols-[9rem_1fr_auto]">

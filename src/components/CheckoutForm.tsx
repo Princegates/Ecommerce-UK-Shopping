@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import { placeOrderAction, type CheckoutState } from "@/app/actions/checkout";
 import Breakdown, { BREAKDOWN_NOTE } from "@/components/Breakdown";
-import { DeliverySelectors, pickQuote, type QuoteConfig } from "@/components/quote-client";
+import { DeliverySelectors, pickQuote, RateHold, type QuoteConfig } from "@/components/quote-client";
 import { ghs } from "@/lib/money";
 import { ghsToGbpMinor } from "@/lib/pricing";
 
@@ -38,6 +39,7 @@ export default function CheckoutForm({
   const [landmark, setLandmark] = useState(first?.landmark ?? "");
   const quote = pickQuote(cfg, zoneId, code);
   const v = state.values ?? {};
+  const router = useRouter();
 
   function pick(next: number | "new") {
     setChoice(next);
@@ -58,6 +60,7 @@ export default function CheckoutForm({
 
   return (
     <form action={action} className="mt-8 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
+      {quote && <input type="hidden" name="expectedTotal" value={quote.totalMinor} />}
       {Object.entries(hidden).map(([k, val]) => <input key={k} type="hidden" name={k} value={val} />)}
       <div className="grid content-start gap-8">
         {addresses.length > 0 && (
@@ -156,8 +159,14 @@ export default function CheckoutForm({
           {quote && <p className="text-xs text-ink-soft">Expected delivery: {quote.estimatedDelivery}.</p>}
         </div>
 
-        <div aria-live="polite">{state.error && <p className="error-text" role="alert">{state.error}</p>}</div>
-        <button className="btn btn-primary w-full !text-lg" disabled={pending || !quote}>
+        <RateHold cfg={cfg} />
+        <div aria-live="polite">
+          {state.error && <p className="error-text" role="alert">{state.error}</p>}
+          {state.error?.startsWith("The price changed") && (
+            <button type="button" className="btn btn-small mt-2" onClick={() => router.refresh()}>Refresh the prices</button>
+          )}
+        </div>
+        <button className="btn btn-primary w-full !text-lg" disabled={pending || !quote || cfg.frozen}>
           {pending ? "Placing order…" : quote ? `Place order and pay ${ghs(quote.totalMinor)}` : "Place order"}
         </button>
         <p className="hint">The next step is payment. Your order is only bought once payment is confirmed.</p>

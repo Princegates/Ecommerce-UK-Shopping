@@ -69,3 +69,17 @@ export function DeliverySelectors({
     </div>
   );
 }
+
+/** Says how long the shown price is held, or that new prices are on hold while the exchange rate is checked. */
+export function RateHold({ cfg }: { cfg: QuoteConfig }) {
+  if (cfg.frozen) {
+    return (
+      <p className="error-text" role="alert">
+        We are checking today&rsquo;s exchange rate and cannot confirm prices for a short while. Please check back soon.
+      </p>
+    );
+  }
+  if (!cfg.lockedUntil) return null;
+  const at = new Date(cfg.lockedUntil).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+  return <p className="text-xs text-ink-soft">Your price is held until {at} (Ghana time).</p>;
+}

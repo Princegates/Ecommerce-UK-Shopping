@@ -118,7 +118,7 @@ The areas customers choose at checkout, each with a name, the places included, t
 Choose one of **15 colour themes**. It applies to the whole shop at once.
 
 ### Integrations
-Keys for every outside service, stored **encrypted** and shown only masked. An environment setting on the server always wins over a saved one. Sections: **Readiness** (what is missing), **Payment gateways**, **Messaging channels**, **Catalogue APIs** (eBay), **Exchange rate feed**, and **Which updates are sent** (per order status, which channels are used). Each card shows the webhook address to register and a **Test** button. Details in [Integrations](09-integrations.md).
+Keys for every outside service, stored **encrypted** and shown only masked. An environment setting on the server always wins over a saved one. Sections: **Readiness** (what is missing), **Payment gateways**, **Messaging channels**, **Catalogue APIs** (eBay), **Exchange rate feed** (the three sources, how far apart they are and whether new quotes are on hold), and **Which updates are sent** (per order status, which channels are used). Each card shows the webhook address to register and a **Test** button. Details in [Integrations](09-integrations.md).
 
 ### Messages
 The log of every SMS, WhatsApp message and email sent to customers (recipients are partly hidden), with status. Failed messages are tried three times, then wait for you: **Retry** one or **Send queued messages now**.

@@ -21,6 +21,7 @@ APP_URL="http://localhost:$PORT" \
 CRON_SECRET="${E2E_CRON_SECRET:-cron-secret-123456}" \
 ALLOW_DEMO_PAYMENTS=true \
 INGEST_AUTORUN=false \
+FX_AUTORUN=false \
 SEED_SAMPLE_DATA=true \
 PORT="$PORT" \
 npx next start -p "$PORT" >"$WORK/server.log" 2>&1 &
@@ -39,6 +40,7 @@ ADMIN_SECRET="testsecret-testsecret-testsecret" \
 APP_URL="https://shop.example.test" \
 CRON_SECRET="${E2E_CRON_SECRET:-cron-secret-123456}" \
 INGEST_AUTORUN=false \
+FX_AUTORUN=false \
 SEED_SAMPLE_DATA=true \
 PORT="$SOCIAL_PORT" \
 npx next start -p "$SOCIAL_PORT" >"$WORK/social.log" 2>&1 &

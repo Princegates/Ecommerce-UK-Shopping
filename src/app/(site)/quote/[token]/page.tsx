@@ -10,7 +10,8 @@ import { gbp } from "@/lib/money";
 import { getOrderById } from "@/lib/orders";
 import { gbpToGhsMinor } from "@/lib/pricing";
 import { buildQuoteConfig } from "@/lib/quote-table";
-import { getSettings, getShippingMethods, getZones } from "@/lib/settings";
+import { quoteMarket } from "@/lib/rate-lock";
+import { getShippingMethods, getZones } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your quoted item", robots: { index: false, follow: false } };
@@ -55,7 +56,6 @@ export default async function QuotePage({ params }: { params: Promise<{ token: s
   }
 
   const customer = await requireCustomer(`/quote/${token}`);
-  const settings = getSettings();
   const methods = getShippingMethods();
   const zones = getZones();
   if (methods.length === 0 || zones.length === 0) return <Notice title="Checkout is unavailable"><p>Delivery options are not set up yet. Please try again soon.</p></Notice>;
@@ -64,7 +64,8 @@ export default async function QuotePage({ params }: { params: Promise<{ token: s
   const addresses = listAddresses(customer.id);
   const preferred = addresses.find((a) => a.isDefault) ?? null;
   const items = [{ id: String(line.itemId), unitPriceMinor: line.product.priceMinor, quantity: line.quantity, weightGrams: line.product.weightGrams, category: line.product.dutyCategory }];
-  const cfg = buildQuoteConfig(items);
+  const qm = quoteMarket(`link:${token}`);
+  const cfg = buildQuoteConfig(items, qm);
   const initialZone = preferred?.zoneId && zones.some((z) => z.id === preferred.zoneId) ? preferred.zoneId : (customer.defaultZoneId && zones.some((z) => z.id === customer.defaultZoneId) ? customer.defaultZoneId : zones[0].id);
 
   return (
@@ -84,7 +85,7 @@ export default async function QuotePage({ params }: { params: Promise<{ token: s
         {r.quoteExpiresAt && <p className="text-xs text-ink-soft">This price is held until {r.quoteExpiresAt.slice(0, 16)} UTC.</p>}
       </section>
       <CheckoutForm
-        summary={[{ itemId: String(line.itemId), name: line.product.name, shop: line.product.shopName, options: r.details, quantity: line.quantity, lineGhsMinor: gbpToGhsMinor(line.product.priceMinor * line.quantity, settings.fx) }]}
+        summary={[{ itemId: String(line.itemId), name: line.product.name, shop: line.product.shopName, options: r.details, quantity: line.quantity, lineGhsMinor: gbpToGhsMinor(line.product.priceMinor * line.quantity, qm.fx) }]}
         cfg={cfg}
         initialZone={initialZone}
         initialShip={methods[0].code}

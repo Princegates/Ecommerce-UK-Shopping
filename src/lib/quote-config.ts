@@ -32,6 +32,10 @@ export type QuoteConfig = {
   zones: { id: number; name: string; areas: string; eta: string }[];
   /** Customer amounts for each delivery area and shipping method, keyed `${zoneId}:${code}`. */
   quotes: Record<string, CustomerBreakdown>;
+  /** When the prices stop being held for this shopper (ISO time), or null. */
+  lockedUntil: string | null;
+  /** New quotes are on hold while the exchange-rate sources are being checked. */
+  frozen: boolean;
 };
 
 export const quoteKey = (zoneId: number, code: string) => `${zoneId}:${code}`;

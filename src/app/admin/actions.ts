@@ -120,9 +120,9 @@ export async function savePricingAction(f: FormData): Promise<void> {
     setExchangeRate(fxRate, 0, "Changed on the Pricing page");
     adminAudit(who, "rate.update", "exchange rate", `GH₵${before.market.mid} to GH₵${fxRate}`);
   }
-  if (customs !== (before.market.customs === before.market.mid ? null : before.market.customs)) {
+  if (customs !== (before.customsSource === "manual" ? before.market.customs : null)) {
     setSetting("customs_rate", customs);
-    adminAudit(who, "pricing.customs-rate", "customs rate", customs === null ? "same as the market rate" : `GH₵${customs}`);
+    adminAudit(who, "pricing.customs-rate", "customs rate", customs === null ? "back to the Bank of Ghana rate" : `GH₵${customs}`);
   }
   setSetting("support_whatsapp", str(f, "whatsapp").replace(/[^\d+]/g, "").slice(0, 20));
   setSetting("support_email", supportEmail);

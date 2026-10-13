@@ -11,7 +11,7 @@ export type ProviderId =
   | "stripe" | "paystack" | "flutterwave"
   | "arkesel" | "twilio" | "meta_whatsapp"
   | "resend" | "postmark"
-  | "exchangerate_api" | "openexchangerates"
+  | "allratestoday" | "exchangerate_api" | "openexchangerates"
   | "ebay" | "diffbot"
   | "google" | "facebook" | "apple";
 
@@ -163,6 +163,15 @@ export const INTEGRATIONS: IntegrationDef[] = [
     steps: ["Add a sender signature or domain in Postmark.", "Copy the server token and paste it with your From address.", "Save, choose Postmark under Email above, then send a test."],
   },
   {
+    id: "allratestoday",
+    name: "AllRatesToday",
+    blurb: "Live pound-to-cedi mid-market rate (from Reuters and interbank feeds). A free API key is needed; the free plan updates hourly.",
+    docsUrl: "https://allratestoday.com/api",
+    channels: ["rates"],
+    fields: [{ key: "apiKey", label: "API key", env: "ALLRATESTODAY_API_KEY", secret: true, required: ["rates"], help: "From allratestoday.com/register. Sent in a header, never in the address." }],
+    steps: ["Register for a free API key at allratestoday.com/register.", "Paste it here and save.", "Choose AllRatesToday under Exchange rate feed above, then press Test."],
+  },
+  {
     id: "exchangerate_api",
     name: "ExchangeRate-API",
     blurb: "Live pound-to-cedi market rate with a simple key. A free plan covers daily rates.",
@@ -174,7 +183,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
   {
     id: "openexchangerates",
     name: "Open Exchange Rates",
-    blurb: "Market rates published hourly on paid plans. The free plan works for daily use.",
+    blurb: "A second mid-market source. If AllRatesToday is down, this one takes over; while both answer, they check each other. The free plan works for daily use.",
     docsUrl: "https://docs.openexchangerates.org/reference/latest-json",
     channels: ["rates"],
     fields: [{ key: "appId", label: "App ID", env: "OPENEXCHANGERATES_APP_ID", secret: true, required: ["rates"], help: "From your Open Exchange Rates dashboard. Sent in a header, never in the address." }],

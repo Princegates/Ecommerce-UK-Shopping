@@ -104,7 +104,7 @@ The system should calculate pricing consistently so customers and staff are work
 
 UK product prices are stored in pounds (£). The system converts the UK price into Ghana cedis using the exchange rate configured by the business.
 
-The customer rate is the market exchange rate plus a margin set by the pricing configuration, which is larger when the rate has been moving.
+The customer rate is the live mid-market exchange rate (read from more than one source) plus a margin of 3%, with a little more when the rate has been moving, and never below the cost of converting plus 1.5%. Each customer's price is held for 30 minutes. Import duties are valued at the Bank of Ghana's official rate. If the rate sources disagree by more than 1.5%, new orders are paused until they agree again.
 
 ## 12. Service Charge
 

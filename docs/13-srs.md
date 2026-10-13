@@ -46,7 +46,7 @@ See [Appendix C](#appendix-c-glossary). Key terms: **catalogue source**, **link 
 ### 1.4 References
 - This documentation set: [Overview](01-overview.md), [Admin guide](02-admin-guide.md), [Customer guide](03-customer-guide.md), [Catalogue sources](04-catalogue-sources.md), [Deployment and operations](05-deployment-and-operations.md), [Architecture](06-architecture.md), [Data model](07-data-model.md), [Security and privacy](08-security.md), [Integrations](09-integrations.md), [Testing](10-testing.md).
 - ISO/IEC/IEEE 29148:2018 and IEEE 830-1998 (document structure).
-- Provider documentation for Stripe, Paystack, Flutterwave, Arkesel, Twilio, Meta WhatsApp Cloud API, Resend, Postmark, ExchangeRate-API, Open Exchange Rates the eBay Browse API and the Diffbot Product API (linked from the Integrations page).
+- Provider documentation for Stripe, Paystack, Flutterwave, Arkesel, Twilio, Meta WhatsApp Cloud API, Resend, Postmark, AllRatesToday, ExchangeRate-API, Open Exchange Rates, the Bank of Ghana's published interbank rates, the eBay Browse API and the Diffbot Product API (linked from the Integrations page).
 
 ### 1.5 Conventions
 - **shall** = mandatory; **should** = expected unless there is a stated reason; **may** = optional.
@@ -152,7 +152,8 @@ None. The system is a web application and uses no special hardware.
 | IR-EX-04 | **Arkesel**, **Twilio** | out | Send SMS (Arkesel: branded sender name). | Implemented |
 | IR-EX-05 | **Meta WhatsApp Cloud API**, **Twilio** | out | Send approved template messages. | Implemented |
 | IR-EX-06 | **Resend**, **Postmark** | out | Send transactional email (text and HTML). | Implemented |
-| IR-EX-07 | **ExchangeRate-API**, **Open Exchange Rates** | out | Fetch the GBP to GHS market rate. | Implemented |
+| IR-EX-07 | **AllRatesToday**, **Open Exchange Rates**, **ExchangeRate-API** | out | Fetch the GBP to GHS mid-market rate. | Implemented |
+| IR-EX-14 | **Bank of Ghana** (daily interbank rates page) | out | Read the official GBP to GHS rate, used to value import duties; read politely and only where robots.txt allows. | Implemented |
 | IR-EX-12 | **Diffbot Product API** | out | Read each listed product page by token; only prices in GBP; stop on bad token, no credits or rate limit. | Implemented |
 | IR-EX-08 | **eBay Browse API** | out | OAuth client-credentials, search UK fixed-price listings in GBP. | Implemented |
 | IR-EX-09 | **Shop websites and feeds** | out | Fetch feeds, sitemaps, Shopify `/meta.json` and `/products.json`, WooCommerce `/wp-json/wc/store/v1/products`, and product pages, subject to FR-CAT-30 to FR-CAT-33. | Implemented |
@@ -347,7 +348,12 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-ADM-06 | Staff shall be able to choose one of 15 colour themes for the whole shop. | S | Implemented | `themes.test.ts`; E2E |
 | FR-ADM-07 | Staff shall be able to enter, switch on, test and clear provider keys; keys shall be encrypted at rest, shown masked, never logged, and overridden by environment settings; a readiness summary shall list what is missing. | M | Implemented | `integrations.test.ts`; `secrets.test.ts` |
 | FR-ADM-08 | The admin shall record every administrative action and sign-in in an activity log naming the person, searchable by staff with the right. | M | Implemented | E2E (audit actors checked); inspection |
-| FR-ADM-09 | The exchange-rate feed policy shall be manual, suggest or automatic, with a maximum automatic move (default 5%) and an alert gap (default 3%); automatic moves beyond the limit shall wait for staff. | S | Implemented | `fx-api.test.ts` |
+| FR-ADM-09 | The exchange-rate feed policy shall be manual, suggest or automatic (default automatic), with a maximum automatic move (default 5%) and an alert gap (default 3%); automatic moves beyond the limit, or while the sources disagree, shall wait for staff. | S | Implemented | `fx-api.test.ts`; `fx-sources.test.ts` |
+| FR-FX-01 | The system shall read the mid-market pound-to-cedi rate from AllRatesToday, falling back to Open Exchange Rates (or ExchangeRate-API), and the official interbank rate from the Bank of Ghana, every 30 minutes, storing each reading and any error. | M | Implemented | `fx-sources.test.ts` |
+| FR-FX-02 | Import duties shall be valued at the customs rate: a figure set by staff, else the fresh Bank of Ghana rate, else the market rate. | M | Implemented | `fx-sources.test.ts` |
+| FR-FX-03 | The customer rate shall be the mid-market rate plus 3%, plus 0.5% when the 3-day move exceeds 1% and 1.0% when it exceeds 2%, and shall never fall below the conversion cost plus 1.5%. | M | Implemented | `quote-engine.test.ts` |
+| FR-FX-04 | A shopper's quote shall be priced at a rate held for 30 minutes; an order whose price moved since it was shown shall not be placed, and the shopper shall be told the new total. | M | Implemented | `rate-lock.test.ts` |
+| FR-FX-05 | If two fresh rate sources differ by more than 1.5%, new quotes and orders shall be held (quotes already held stand), the rate shall not change automatically, and staff shall be told. | M | Implemented | `fx-sources.test.ts`; `rate-lock.test.ts` |
 | FR-ADM-10 | The admin shall not require a technical user: plain language, confirmation for destructive actions (delete shop, area, account, source), and clear errors. | S | Implemented | Inspection; E2E |
 
 ### 4.12 Staff accounts and access control (FR-STF)
@@ -407,7 +413,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | Reviews and wishlist | FR-REV | `discovery.test.ts`, `account-orders.test.ts`, E2E (wishlist) |
 | Link orders | FR-LNK | `link-orders.test.ts`, `link-auto.test.ts`, `link-submit.test.ts`, E2E (link request to order, automatic quotes, found-link flow) |
 | Catalogue | FR-CAT | `ingest/net.test.ts`, `parse.test.ts`, `field-map.test.ts`, `run.test.ts`, `ebay.test.ts`, `diffbot.test.ts`, `shopify.test.ts`, `woocommerce.test.ts`, `file-import.test.ts`, `source-kinds-migration.test.ts`, `seed.test.ts`, `shop-delete.test.ts`, `shop-logo.test.ts`, `uploads.test.ts`, `secrets.test.ts`, E2E (sources, shops, uploads) |
-| Administration | FR-ADM | `admin-logic.test.ts`, `admin.test.ts`, `integrations.test.ts`, `fx-api.test.ts`, `themes.test.ts`, `csv.test.ts`, E2E (every admin page, themes, delivery areas) |
+| Administration | FR-ADM | `admin-logic.test.ts`, `admin.test.ts`, `integrations.test.ts`, `fx-api.test.ts`, `fx-sources.test.ts`, `rate-lock.test.ts`, `themes.test.ts`, `csv.test.ts`, E2E (every admin page, themes, delivery areas) |
 | Staff and access | FR-STF | `admin-users.test.ts`, `permissions.test.ts`, `auth.test.ts`, `admin-guards.test.ts`, E2E (staff account journey) |
 | System | FR-SYS | `source-kinds-migration.test.ts`, `shop-delete.test.ts`, E2E (health, cron, webhooks) |
 | Phone layouts | IR-UI-01 to 03 | E2E (shop fits a phone, admin fits a phone) |
@@ -540,7 +546,7 @@ The operator is responsible for consumer-protection terms and refund policy, VAT
 | ID | Rule |
 | --- | --- |
 | BR-01 | **Customer total** = items (service charge included) + shipping to Ghana + insurance + import duties and taxes + delivery in Ghana. Duties are prepaid by the shop. |
-| BR-02 | **Customer rate** = market rate plus the engine's margin (more in a volatile week). Items are converted at the customer rate; duties are valued at the customs rate. |
+| BR-02 | **Customer rate** = mid-market rate + 3% (+0.5% above a 1% three-day move, +1.0% above 2%), never below conversion cost + 1.5%. Held for each quote for 30 minutes. Duties are valued at the Bank of Ghana's official rate. Quoting freezes if sources differ by more than 1.5%. |
 | BR-03 | **Minimum order**: items only, in cedis; default GH₵400. Applies to link orders too. |
 | BR-04 | **Order status path**: Payment received → Buying from the UK shop → Bought from the UK shop → Received at our UK address → On its way to Ghana → Clearing customs → Out for delivery → Delivered. |
 | BR-05 | **Only a gateway-confirmed payment** with matching amount and currency makes an order *Payment received*. Staff cannot mark an order paid. |
@@ -663,6 +669,7 @@ Counted from the requirement tables above (functional, interface, non-functional
 | FR-BRW | 12 | 0 | 0 | 12 |
 | FR-CAT | 20 | 0 | 0 | 20 |
 | FR-CRT | 6 | 0 | 0 | 6 |
+| FR-FX | 5 | 0 | 0 | 5 |
 | FR-LNK | 14 | 0 | 1 | 15 |
 | FR-MSG | 8 | 0 | 0 | 8 |
 | FR-ORD | 14 | 0 | 2 | 16 |
@@ -671,7 +678,7 @@ Counted from the requirement tables above (functional, interface, non-functional
 | FR-REV | 4 | 0 | 0 | 4 |
 | FR-STF | 11 | 0 | 2 | 13 |
 | FR-SYS | 8 | 0 | 0 | 8 |
-| IR-EX | 11 | 0 | 0 | 11 |
+| IR-EX | 12 | 0 | 0 | 12 |
 | IR-UI | 8 | 1 | 0 | 9 |
 | NFR-BKP | 0 | 2 | 0 | 2 |
 | NFR-CMP | 2 | 1 | 0 | 3 |

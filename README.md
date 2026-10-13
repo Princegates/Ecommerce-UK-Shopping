@@ -54,8 +54,9 @@ that go stale. See [Catalogue sources](#catalogue-sources) below.
 
 **Customer sign-in:** besides phone or email and a password, customers can sign in with **Google, Facebook or Apple**. You register an app with each (Admin > Integrations > Customer sign-in shows the redirect address to give them); the buttons show once a provider is set up and `APP_URL` is https. A first-time person adds a phone number; accounts are matched only by the provider's id or an email the provider has verified. See [Integrations](docs/09-integrations.md).
 
-**Exchange rate:** set by you. An optional feed (ExchangeRate-API, Open Exchange Rates) can suggest or apply
-rates inside guardrails; the engine's margin always applies on top.
+**Exchange rate:** read every 30 minutes from AllRatesToday (mid-market), Open Exchange Rates (backup and cross-check) and the
+Bank of Ghana (the rate import duty is valued at). The engine adds its margin, holds each shopper's quote for 30 minutes and freezes
+new quotes if the sources are more than 1.5% apart.
 
 **Admin** (`/admin`): dashboard with sales, margin and attention list; orders and status changes; customers;
 link requests; shops and items; reviews moderation; pricing, shipping and delivery areas;
@@ -143,7 +144,7 @@ can be set as environment variables or in **Admin > Integrations**.
 | Paystack webhook | `{APP_URL}/api/webhooks/paystack` |
 | Flutterwave webhook | `{APP_URL}/api/webhooks/flutterwave` |
 | Retry queued messages | `GET {APP_URL}/api/cron/messages` every few minutes |
-| Sync market exchange rate | `GET {APP_URL}/api/cron/fx` hourly or daily |
+| Sync market exchange rate | Built in (every 30 minutes); or `FX_AUTORUN=false` and `GET {APP_URL}/api/cron/fx` |
 | Run due catalogue sources | `GET {APP_URL}/api/cron/ingest` (only if `INGEST_AUTORUN=false`) |
 
 Send `Authorization: Bearer $CRON_SECRET` to the cron endpoints. Each integration card in the admin

@@ -132,7 +132,7 @@ export function quotedLine(r: LinkRequestRow): CartLine {
 
 /** Turns an open quote into an order awaiting payment. A second click returns the order that already exists. */
 export function placeLinkOrder(
-  token: string, details: CheckoutDetails, d: Db = db(), now = Date.now(),
+  token: string, details: CheckoutDetails, d: Db = db(), now = Date.now(), opts: { expectedTotalMinor?: number } = {},
 ): { ok: true; paymentRef: string; number: string; existing: boolean } | { ok: false; error: string } {
   const r = getLinkRequestByToken(token, d);
   if (!r) return { ok: false, error: "That quote link is not valid." };
@@ -143,7 +143,7 @@ export function placeLinkOrder(
   const state = quoteState(r, now);
   if (state === "expired") return { ok: false, error: "This quote has expired because UK prices change. Please contact us for a fresh one." };
   if (state !== "open") return { ok: false, error: "This request cannot be ordered." };
-  const res = createOrder([quotedLine(r)], { ...details, customerId: details.customerId ?? r.customerId }, d);
+  const res = createOrder([quotedLine(r)], { ...details, customerId: details.customerId ?? r.customerId }, d, { lockKey: `link:${token}`, expectedTotalMinor: opts.expectedTotalMinor });
   if (!res.ok) return res;
   const order = d.prepare("SELECT id FROM orders WHERE payment_ref = ?").get(res.paymentRef) as { id: number };
   d.prepare("UPDATE link_requests SET status = 'ORDERED', order_id = ?, customer_id = COALESCE(customer_id, ?) WHERE id = ?").run(order.id, details.customerId ?? null, r.id);

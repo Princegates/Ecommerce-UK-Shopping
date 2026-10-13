@@ -26,7 +26,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
               <Text label="Market rate: GH₵ for £1" name="fxRate" inputMode="decimal" defaultValue={s.market.mid} hint={`Update this when the market moves. Customers are charged GH₵${s.fx.rate.toFixed(4)}, which adds the pricing engine's safety margin.`} />
-              <Text label="Customs rate: GH₵ for £1 (optional)" name="customsRate" inputMode="decimal" defaultValue={s.market.customs === s.market.mid ? "" : s.market.customs} hint="The rate customs use to value the goods at the port. Leave empty to use the market rate." />
+              <Text label="Customs rate: GH₵ for £1 (optional)" name="customsRate" inputMode="decimal" defaultValue={s.customsSource === "manual" ? s.market.customs : ""} hint={s.customsSource === "bank_of_ghana" ? `Leave empty to use the Bank of Ghana rate, GH₵${s.market.customs} now. Fill it in only to override it.` : "The rate customs use to value the goods at the port. Leave empty to use the Bank of Ghana rate once it has been read, or the market rate until then."} />
             </div>
           </section>
 

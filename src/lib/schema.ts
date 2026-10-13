@@ -338,6 +338,16 @@ CREATE TABLE IF NOT EXISTS fx_rate_history (
   changed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- The exchange rate held for a shopper's quote, so the price they were shown stays put while they check out.
+CREATE TABLE IF NOT EXISTS rate_locks (
+  lock_key   TEXT PRIMARY KEY,
+  mid        REAL NOT NULL,
+  customs    REAL NOT NULL,
+  move3d     REAL NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  expires_at TEXT NOT NULL
+);
+
 -- What an order really cost us, to work out margin.
 CREATE TABLE IF NOT EXISTS order_costs (
   order_id                 INTEGER PRIMARY KEY REFERENCES orders(id) ON DELETE CASCADE,

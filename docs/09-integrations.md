@@ -56,21 +56,29 @@ Other messages: **password reset** links (email first, then SMS) and **link-orde
 
 Phone numbers are normalised to international format (Ghana numbers starting `0` become `+233…`).
 
-## Exchange rate feed (optional)
+## Exchange rates: three sources
 
-Your own rate (set on **Pricing**) always decides prices. A feed can only suggest or apply a change **inside limits you set**.
+The shop reads three sources and uses all of them:
 
-| Provider | Key |
-| --- | --- |
-| **ExchangeRate-API** | API key (the key is part of the request address, so it is never logged) |
-| **Open Exchange Rates** | App ID (sent in a header) |
+| Source | Used for | Key |
+| --- | --- | --- |
+| **AllRatesToday** | The mid-market pound-to-cedi rate customers' prices are built on (first choice). Sent as `Authorization: Bearer` to `/api/v1/rates?source=GBP&target=GHS`. | `ALLRATESTODAY_API_KEY` (free key) |
+| **Open Exchange Rates** (or **ExchangeRate-API**) | Takes over as the mid-market rate if AllRatesToday is down or stale, and checks it while both answer. | `OPENEXCHANGERATES_APP_ID` |
+| **Bank of Ghana** (official interbank rate) | The **customs rate**: the rate import duties are valued at, because customs and the GRA use the official rate. Read from the Bank of Ghana's daily interbank page, obeying its robots.txt; no key. | none |
+
+How they are used (all the numbers are in the pricing engine configuration, `fx`):
+- **Customer rate** = mid-market × (1 + 3%), plus **0.5%** when the 3-day move is over 1% and **1.0%** when it is over 2%.
+- **Cost floor**: the customer rate never falls below the conversion cost plus 1.5% (so in a calm week the margin works out at a little over 3%).
+- **Quote lock**: the rate is held for each shopper's quote for **30 minutes**, so the total they were shown is the total they pay. After that a new rate is held for a new quote. If the price has moved when they press the button, the order is not placed: they are told the new total and can refresh the prices.
+- **Sanity check**: if any two **fresh** sources are more than **1.5%** apart, new quotes freeze. Customers cannot place new orders (prices already held still stand), the dashboard and Integrations page show a red notice, and the shop's rate is not changed automatically. A mid-market reading is fresh for 36 hours, a Bank of Ghana reading for 5 days (it publishes on working days only).
+- **Customs rate**: a figure an admin sets by hand on Pricing wins; otherwise the Bank of Ghana's fresh rate; otherwise the market rate.
 
 Policy (Integrations → Exchange rate feed):
-- **Manual**: the feed is ignored.
-- **Suggest** (default): the Dashboard and Integrations show the market rate and the gap; you apply it yourself. The dashboard warns when the gap passes the **alert** percentage (default 3%).
-- **Automatic**: the rate moves to the market rate **only if the move is within the limit** (default 5%); bigger moves wait for you. The engine's margin always applies on top.
+- **Manual**: the feeds are read but never applied.
+- **Suggest**: the Dashboard and Integrations show the market rate and the gap; you apply it yourself. The dashboard warns when the gap passes the **alert** percentage (default 3%).
+- **Automatic** (default): the shop's market rate moves to the mid-market rate **only if the move is within the limit** (default 5%) and the sources agree; bigger moves wait for you.
 
-Every change is recorded in the rate history and the activity log. To update on a schedule, call `GET /api/cron/fx` hourly or daily with the cron secret.
+The sources are read **every 30 minutes by the server itself**. Set `FX_AUTORUN=false` to turn that off and call `GET /api/cron/fx` from a scheduler instead. Every change is recorded in the rate history and the activity log. The Bank of Ghana reader looks for the British pound row on their page; if their page changes and it cannot find it, Integrations says so and the customs rate falls back to the market rate until you fix it or set a figure by hand.
 
 ## eBay (catalogue API)
 
