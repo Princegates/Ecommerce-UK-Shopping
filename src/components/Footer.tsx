@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSettings } from "@/lib/settings";
 import { BrandMark } from "./Brand";
+import CookieSettingsLink from "./CookieSettingsLink";
 
 const PAY = ["Mobile Money", "Visa", "Mastercard", "Pay in GH₵"];
 
@@ -56,6 +57,8 @@ export default function Footer() {
             <nav aria-label="Legal" className="flex flex-wrap gap-x-4 gap-y-1">
               <Link className="text-white/80 hover:text-white hover:underline" href="/privacy">Privacy policy</Link>
               <Link className="text-white/80 hover:text-white hover:underline" href="/terms">Terms of service</Link>
+              <Link className="text-white/80 hover:text-white hover:underline" href="/cookies">Cookie policy</Link>
+              <CookieSettingsLink className="text-white/80 hover:text-white hover:underline" />
               <Link className="text-white/80 hover:text-white hover:underline" href="/data-deletion">Delete your data</Link>
             </nav>
           </div>

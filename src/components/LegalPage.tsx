@@ -3,7 +3,7 @@ import { appUrl } from "@/lib/app-url";
 import { getSettings } from "@/lib/settings";
 
 /** When the policy texts were last changed. Update it whenever the wording of a policy changes. */
-export const LEGAL_UPDATED = "8 October 2026";
+export const LEGAL_UPDATED = "13 October 2026";
 
 /** Who the policies speak for, taken from the Site settings so nothing about the business is written into the text. */
 export function legalIdentity() {

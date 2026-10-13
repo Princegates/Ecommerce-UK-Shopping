@@ -39,7 +39,7 @@ export default function PrivacyPage() {
         <li>short-lived cookies (minutes) used while you sign in with Google, Facebook or Apple, so a sign-in can only be finished in the browser that started it;</li>
         <li>a staff sign-in cookie, for our team only.</li>
       </ul>
-      <p>We do not use advertising cookies, analytics trackers or third-party tracking on this website.</p>
+      <p>We do not use advertising cookies, analytics trackers or third-party tracking on this website. If you choose &ldquo;Accept all&rdquo; in the cookie banner, we also remember the items you viewed, in your own browser. The full list, with how long each lasts, and how to change your choice, is on our <Link className="link" href="/cookies">cookie policy</Link>.</p>
 
       <h2>4. How we use your information, and why</h2>
       <ul>

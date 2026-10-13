@@ -89,7 +89,7 @@ export default async function HomePage() {
               <p className="font-bold">Example order</p>
               <p className="mt-1 text-sm text-ink-soft">1 item at {gbp(8000)} · 900 g · {method.name} to {zone.name}</p>
               <hr />
-              <Breakdown b={sample} approxGbpMinor={ghsToGbpMinor(sample.totalMinor, settings.fx)} />
+              <Breakdown b={sample} combinedLabel="Service, shipping and delivery" approxGbpMinor={ghsToGbpMinor(sample.totalMinor, settings.fx)} />
             </div>
           )}
         </div>

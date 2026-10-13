@@ -8,7 +8,13 @@ const DEV_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "admin";
 const CRON_SECRET = process.env.E2E_CRON_SECRET ?? "cron-secret-123456";
 // CHROMIUM_PATH points at a Chrome or Chromium to use; leave it unset to use the one Playwright installed
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ["--no-sandbox"] });
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+// The cookie banner is already answered in every browser the checks use, so it never covers a button; one check below uses a fresh browser.
+const newCtx = async (opts) => {
+  const c = await browser.newContext(opts);
+  await c.addCookies([{ name: "cookie_choice", value: "essential", url: base }]);
+  return c;
+};
+const ctx = await newCtx({ viewport: { width: 1280, height: 900 } });
 const page = await ctx.newPage();
 page.setDefaultTimeout(8000);
 const errors = [];
@@ -101,7 +107,7 @@ try {
   step("order appears in the account with an updates feed entry");
 
   // 6. admin moves the order
-  const admin = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const admin = await newCtx({ viewport: { width: 1280, height: 900 } });
   const ap = await admin.newPage();
   ap.setDefaultTimeout(8000);
   await ap.goto(base + "/admin/orders");
@@ -453,7 +459,7 @@ try {
   await ap.getByLabel("First password").fill("first long password 7");
   await ap.getByRole("button", { name: "Create account" }).click();
   await ap.getByText(/Account created/).waitFor();
-  const staffCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const staffCtx = await newCtx({ viewport: { width: 1280, height: 900 } });
   const sp2 = await staffCtx.newPage();
   sp2.setDefaultTimeout(8000);
   await sp2.goto(base + "/admin/login");
@@ -503,7 +509,7 @@ try {
   step("switching a staff account off signs them out and stops them signing in");
 
   // 9i. the admin works on a phone: a Menu button instead of the wide sidebar, nothing wider than the screen, lists as cards
-  const mobileCtx = await browser.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true });
+  const mobileCtx = await newCtx({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true });
   const mp = await mobileCtx.newPage();
   await mp.goto(base + "/admin/login?developer=1");
   await mp.getByLabel("Developer password").fill(DEV_PASSWORD);
@@ -528,7 +534,7 @@ try {
 
   // 9j. the shop fits a phone: no page is wider than the screen (a customer on an iPhone saw the header and cards cut off), and form
   // fields are 16px so iPhone Safari does not zoom in when one is tapped
-  const shopPhone = await browser.newContext({ viewport: { width: 360, height: 800 }, isMobile: true, hasTouch: true });
+  const shopPhone = await newCtx({ viewport: { width: 360, height: 800 }, isMobile: true, hasTouch: true });
   const sp3 = await shopPhone.newPage();
   sp3.setDefaultTimeout(8000);
   const wideOnes = () => sp3.evaluate(() => {
@@ -561,7 +567,7 @@ try {
   // reachable after a real sign-in
   const socialBase = process.env.E2E_SOCIAL_BASE;
   const loginAs = async (root) => {
-    const c = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const c = await newCtx({ viewport: { width: 1280, height: 900 } });
     const p = await c.newPage();
     p.setDefaultTimeout(8000);
     await p.goto(root + "/admin/login?developer=1");
@@ -583,7 +589,7 @@ try {
   {
     const sa = await loginAs(base);
     await saveGoogle(base, sa);
-    const g0 = await (await browser.newContext()).newPage();
+    const g0 = await (await newCtx()).newPage();
     await g0.goto(base + "/login");
     await g0.getByRole("heading", { name: "Sign in" }).first().waitFor();
     must((await g0.getByRole("link", { name: /Continue with/ }).count()) === 0, "no social buttons while APP_URL is not https, even with keys saved");
@@ -591,7 +597,7 @@ try {
     await g0.context().close();
   }
   if (socialBase) {
-    const gctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const gctx = await newCtx({ viewport: { width: 1280, height: 900 } });
     const gp = await gctx.newPage();
     gp.setDefaultTimeout(8000);
     await gp.goto(socialBase + "/login");
@@ -634,7 +640,7 @@ try {
 
   // 9l. legal pages: privacy policy, terms and data-deletion instructions are public and linked from the footer; the contact details in them come from the admin's Site settings
   {
-    const lp = await (await browser.newContext()).newPage();
+    const lp = await (await newCtx()).newPage();
     lp.setDefaultTimeout(8000);
     await lp.goto(base + "/");
     for (const [name, path, heading] of [["Privacy policy", "/privacy", "Privacy policy"], ["Terms of service", "/terms", "Terms of service"], ["Delete your data", "/data-deletion", "Delete your data"]]) {
@@ -740,6 +746,39 @@ try {
   must((await page.getByRole("link", { name: /View on the UK shop/ }).getAttribute("href")) === "https://www.amazon.co.uk/dp/B0CHX1W1XY", "staff-attached Amazon UK link is tidied");
   step("an item described in words is found by staff, linked, quoted and priced for the customer");
   }
+
+  // 9p. cookies: the banner asks once, "Essential only" saves nothing optional, "Accept all" remembers recently viewed, and the policy page lists the cookies
+  {
+    const fresh = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+    await fresh.goto(base + PRODUCT);
+    await fresh.getByRole("region", { name: "Cookies" }).waitFor();
+    must((await fresh.getByRole("button", { name: "Essential only" }).isVisible()) && (await fresh.getByRole("button", { name: "Accept all" }).isVisible()), "both choices are offered");
+    await fresh.getByRole("button", { name: "Essential only" }).click();
+    must((await fresh.getByRole("region", { name: "Cookies" }).count()) === 0, "the banner closes after a choice");
+    must((await fresh.evaluate(() => localStorage.getItem("recently-viewed"))) === null, "nothing optional is saved after Essential only");
+    await fresh.reload();
+    must((await fresh.getByRole("region", { name: "Cookies" }).count()) === 0, "the banner stays away once answered");
+    await fresh.locator("footer").getByRole("button", { name: "Cookie settings" }).click();
+    await fresh.getByRole("region", { name: "Cookies" }).waitFor();
+    await fresh.getByRole("button", { name: "Accept all" }).click();
+    await fresh.reload();
+    must((await fresh.evaluate(() => localStorage.getItem("recently-viewed"))) !== null, "recently viewed is remembered after Accept all");
+    await fresh.locator("footer").getByRole("button", { name: "Cookie settings" }).click();
+    await fresh.getByRole("button", { name: "Essential only" }).click();
+    must((await fresh.evaluate(() => localStorage.getItem("recently-viewed"))) === null, "choosing Essential only again clears it");
+    await fresh.goto(base + "/cookies");
+    await fresh.getByRole("heading", { name: "Cookie policy" }).waitFor();
+    for (const name of ["sid", "cart", "dz", "cookie_choice"]) must((await fresh.getByRole("cell", { name, exact: true }).count()) === 1, "the policy lists the " + name + " cookie");
+    must((await fresh.locator("footer").getByRole("link", { name: "Cookie policy" }).count()) === 1, "the footer links the policy");
+    step("cookie banner: one question, both answers equal, optional memory follows the choice, policy page lists every cookie");
+  }
+
+  // 9q. the home page example order is three lines, from the live prices
+  await page.goto(base + "/");
+  const sample = page.locator(".receipt").first();
+  await sample.getByText("Service, shipping and delivery").waitFor();
+  must((await sample.locator(".row").count()) >= 3 && (await sample.getByText("Service charge").count()) === 0, "the example shows one combined line");
+  step("the home page example order shows items, one combined line and the total");
 
   // 10. wishlist + sign out
   await page.goto(base + PRODUCT);

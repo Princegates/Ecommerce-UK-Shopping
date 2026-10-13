@@ -1,4 +1,5 @@
 import CartDrawer from "@/components/shop/CartDrawer";
+import CookieBanner from "@/components/CookieBanner";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 
@@ -12,6 +13,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       </main>
       <Footer />
       <CartDrawer />
+      <CookieBanner />
     </>
   );
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ProductArt from "@/components/ProductArt";
+import { CONSENT_EVENT, optionalAllowed } from "@/lib/consent";
 import { gbp, ghs } from "@/lib/money";
 
 const KEY = "recently-viewed";
@@ -18,12 +19,23 @@ function read(): number[] {
   }
 }
 
-/** Remember this item in the browser, on this device only. */
+/** Forget everything remembered here. Called when the visitor chooses "Essential only". */
+function forget() {
+  try { localStorage.removeItem(KEY); } catch { /* storage may be blocked */ }
+}
+
+/** Remember this item in the browser, on this device only, and only if the visitor accepted optional cookies. */
 export function TrackView({ productId }: { productId: number }) {
   useEffect(() => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify([productId, ...read().filter((n) => n !== productId)].slice(0, 12)));
-    } catch { /* storage may be blocked */ }
+    const save = () => {
+      if (!optionalAllowed()) return forget();
+      try {
+        localStorage.setItem(KEY, JSON.stringify([productId, ...read().filter((n) => n !== productId)].slice(0, 12)));
+      } catch { /* storage may be blocked */ }
+    };
+    save();
+    window.addEventListener(CONSENT_EVENT, save);
+    return () => window.removeEventListener(CONSENT_EVENT, save);
   }, [productId]);
   return null;
 }
@@ -31,7 +43,15 @@ export function TrackView({ productId }: { productId: number }) {
 /** The items this visitor looked at lately, kept in their own browser. */
 export default function RecentlyViewed({ excludeId, title = "Recently viewed" }: { excludeId?: number; title?: string }) {
   const [items, setItems] = useState<Item[]>([]);
+  const [allowed, setAllowed] = useState(false);
   useEffect(() => {
+    const sync = () => setAllowed(optionalAllowed());
+    const t = setTimeout(sync, 0);
+    window.addEventListener(CONSENT_EVENT, sync);
+    return () => { clearTimeout(t); window.removeEventListener(CONSENT_EVENT, sync); };
+  }, []);
+  useEffect(() => {
+    if (!allowed) { forget(); const t = setTimeout(() => setItems([]), 0); return () => clearTimeout(t); }
     const ids = read().filter((n) => n !== excludeId);
     if (ids.length === 0) return;
     const ctl = new AbortController();
@@ -40,9 +60,9 @@ export default function RecentlyViewed({ excludeId, title = "Recently viewed" }:
       .then((v: Item[]) => setItems(Array.isArray(v) ? v : []))
       .catch(() => {});
     return () => ctl.abort();
-  }, [excludeId]);
+  }, [excludeId, allowed]);
 
-  if (items.length === 0) return null;
+  if (!allowed || items.length === 0) return null;
   return (
     <section className="mx-auto mt-4 max-w-[90rem] px-3 md:px-4" aria-labelledby="rv-h">
       <div className="rounded-2xl bg-white p-4 shadow-[0_1px_3px_rgba(15,17,17,0.12)] md:p-5">

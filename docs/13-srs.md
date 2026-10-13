@@ -380,6 +380,7 @@ Each table lists the requirement, its priority (M/S/C), its status, and how it i
 | FR-SYS-06 | The public address shall come from configuration, never from request headers. | M | Implemented | Inspection (`app-url.ts`) |
 | FR-SYS-07 | Secrets shall never appear in logs or pages. | M | Implemented | `integrations.test.ts`; inspection |
 | FR-SYS-08 | A page shall explain the importer to shop owners (`/bot`). | S | **Removed** (owner's decision; the importer's user agent links to the site's home page instead) | E2E checks the page is gone |
+| FR-SYS-09 | The shop shall publish a cookie policy (`/cookies`) listing every cookie with its purpose and lifetime, and shall ask the visitor once, in a banner, to choose "Accept all" or "Essential only" (equally easy), with a footer control to change the choice later. Only essential cookies shall be set before a choice; the optional "recently viewed" memory shall be saved only after "Accept all" and cleared on "Essential only". | M | Implemented | `consent.test.ts`; E2E |
 
 ---
 

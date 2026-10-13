@@ -227,7 +227,7 @@ Picking a role ticks its rights. Changing any tick switches the role to **Custom
 | See the activity log (audit.view) | Who changed what, and when. | ✔ |  |  |  | ✔ |  |
 
 ### Legal pages: privacy, terms and data deletion
-The shop has three public pages, linked from the footer: **`/privacy`** (privacy policy), **`/terms`** (terms of service) and **`/data-deletion`** (how to delete an account and what is kept). Facebook, Google and Apple ask for these addresses, for example `https://your-domain/privacy`. Facebook's "data deletion instructions URL" is `/data-deletion`.
+The shop has four public pages, linked from the footer: **`/privacy`** (privacy policy), **`/terms`** (terms of service), **`/cookies`** (cookie policy, with the cookie banner and a "Cookie settings" control in the footer) and **`/data-deletion`** (how to delete an account and what is kept). Facebook, Google and Apple ask for these addresses, for example `https://your-domain/privacy`. Facebook's "data deletion instructions URL" is `/data-deletion`.
 - They take your business name and contact details from **Pricing → Site**, so nothing about the business is written into the text.
 - The wording describes what the shop does today (what it collects, who it shares with, how deletion works). **It is a starting draft, not legal advice.** Have a lawyer in your market read it before you rely on it, check the governing law (it says Ghana), the refund wording, and whether you must register with the Data Protection Commission.
 - If you change what the shop collects or who it shares data with, change the wording in `src/app/(site)/privacy/page.tsx` and update the date in `src/components/LegalPage.tsx`.
