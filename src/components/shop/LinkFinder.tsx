@@ -47,8 +47,8 @@ export default function LinkFinder({ big = false, onDark = false }: { big?: bool
       <form onSubmit={find} className="grid gap-3">
       {!big && (
         <div>
-          <p className="text-base font-bold">Add any UK item by link</p>
-          <p className="text-sm text-ink-soft">Paste the product link. We find it, or take your request and quote the full cost in cedis.</p>
+          <p className="text-base font-bold">Add an Amazon UK item by link</p>
+          <p className="text-sm text-ink-soft">Paste the Amazon UK product link. We check it and quote the full cost in cedis.</p>
         </div>
       )}
       <div className={`flex gap-2 ${big ? "flex-col sm:flex-row" : ""}`}>
@@ -56,7 +56,7 @@ export default function LinkFinder({ big = false, onDark = false }: { big?: bool
         <input
           id={big ? "link-big-url" : "link-add-url"} value={url} onChange={(e) => setUrl(e.target.value)}
           className={`input min-w-0 flex-1 ${big ? "!min-h-14 !rounded-xl !border-2 !border-ink !px-4 !text-base text-ink" : "!min-h-10"}`}
-          placeholder={big ? "Paste a product link here (https://…)" : "https://www.shop.co.uk/product/…"} inputMode="url" autoComplete="off"
+          placeholder={big ? "Paste an Amazon UK link here (https://…)" : "https://www.amazon.co.uk/dp/…"} inputMode="url" autoComplete="off"
         />
         <button className={`btn btn-gold shrink-0 ${big ? "!min-h-14 !px-8 !text-base" : "!min-h-10"}`} disabled={res.kind === "loading"}>
           {res.kind === "loading" ? "Looking…" : big ? "Get my price in cedis" : "Find"}
