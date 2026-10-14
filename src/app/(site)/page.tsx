@@ -99,25 +99,6 @@ export default async function HomePage() {
         </div>
       </div>
     ),
-    (
-      <div key="three" className={`${hero} hero-c`}>
-        <span className="woven absolute inset-0 -z-10" aria-hidden="true" />
-        <span className="float-slower absolute -right-6 bottom-6 -z-10 h-52 w-52 rounded-full bg-spark/25" aria-hidden="true" />
-        <div className="grid gap-6 md:grid-cols-[1.3fr_1fr] md:items-center">
-          <div className="stagger">
-            <p className="text-sm font-bold text-spark">Not in our shops?</p>
-            <h2 className="mt-2 text-[clamp(2rem,4.6vw,3.6rem)] font-bold leading-[1.05]">Send us any UK link</h2>
-            <p className="mt-3 max-w-lg text-lg text-white/90">Paste the link. We check the price, quote the full cost in cedis, and buy it once you pay.</p>
-            <a href="#paste-link" className="btn btn-gold mt-6 !px-6 !text-base">Paste a product link</a>
-          </div>
-          <ol className="hidden gap-3 md:grid">
-            {["Paste the link", "We quote the full cost", "You pay, we buy it"].map((t, i) => (
-              <li key={t} className="flex items-center gap-3 rounded-2xl bg-white/95 p-3 font-semibold text-ink"><span className="grid h-8 w-8 place-items-center rounded-full bg-green text-white">{i + 1}</span>{t}</li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    ),
   ];
 
   const mini = (list: Product[]) => (
