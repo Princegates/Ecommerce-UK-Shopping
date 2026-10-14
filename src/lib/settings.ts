@@ -32,6 +32,9 @@ export type Settings = {
   supportEmail: string;
   /** The registered name of the business running the shop, if different from the shop name. Shown in the privacy policy and terms. */
   legalName: string;
+  /** The business's registration numbers with the data-protection regulators, for the privacy policy. Empty until the owner enters them. */
+  dpcRegNo: string;
+  icoRegNo: string;
   theme: string;
 };
 
@@ -86,6 +89,8 @@ export function getSettings(d: Db = db()): Settings {
     supportWhatsapp: z.string().catch("").parse(raw.support_whatsapp),
     supportEmail: z.string().catch("").parse(raw.support_email),
     legalName: z.string().catch("").parse(raw.legal_name),
+    dpcRegNo: z.string().catch("").parse(raw.dpc_reg_no),
+    icoRegNo: z.string().catch("").parse(raw.ico_reg_no),
     theme: typeof raw.theme === "string" && THEMES.some((x) => x.id === raw.theme) ? raw.theme : DEFAULTS.theme,
   };
 }

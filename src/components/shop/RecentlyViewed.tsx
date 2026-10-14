@@ -43,7 +43,8 @@ export function TrackView({ productId }: { productId: number }) {
 /** The items this visitor looked at lately, kept in their own browser. */
 export default function RecentlyViewed({ excludeId, title = "Recently viewed" }: { excludeId?: number; title?: string }) {
   const [items, setItems] = useState<Item[]>([]);
-  const [allowed, setAllowed] = useState(false);
+  // null until the visitor's choice has been read, so the first render never wipes what was just saved
+  const [allowed, setAllowed] = useState<boolean | null>(null);
   useEffect(() => {
     const sync = () => setAllowed(optionalAllowed());
     const t = setTimeout(sync, 0);
@@ -51,6 +52,7 @@ export default function RecentlyViewed({ excludeId, title = "Recently viewed" }:
     return () => { clearTimeout(t); window.removeEventListener(CONSENT_EVENT, sync); };
   }, []);
   useEffect(() => {
+    if (allowed === null) return;
     if (!allowed) { forget(); const t = setTimeout(() => setItems([]), 0); return () => clearTimeout(t); }
     const ids = read().filter((n) => n !== excludeId);
     if (ids.length === 0) return;

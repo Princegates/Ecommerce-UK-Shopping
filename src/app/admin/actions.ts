@@ -127,6 +127,8 @@ export async function savePricingAction(f: FormData): Promise<void> {
   setSetting("support_whatsapp", str(f, "whatsapp").replace(/[^\d+]/g, "").slice(0, 20));
   setSetting("support_email", supportEmail);
   setSetting("legal_name", legalName);
+  setSetting("dpc_reg_no", str(f, "dpcRegNo").slice(0, 40));
+  setSetting("ico_reg_no", str(f, "icoRegNo").slice(0, 40));
   done(path);
 }
 

@@ -655,34 +655,43 @@ try {
     step("social sign-in: no buttons without an https APP_URL (set E2E_SOCIAL_BASE to also run the https checks)");
   }
 
-  // 9l. legal pages: privacy policy, terms and data-deletion instructions are public and linked from the footer; the contact details in them come from the admin's Site settings
+  // 9l. legal pages: the terms, privacy policy, cookie policy, the other policies and data-deletion instructions are public and linked from the footer;
+  // the contact email and registration numbers in them come from the admin's Site settings
   {
     const lp = await (await newCtx()).newPage();
     lp.setDefaultTimeout(8000);
     await lp.goto(base + "/");
-    for (const [name, path, heading] of [["Privacy policy", "/privacy", "Privacy policy"], ["Terms of service", "/terms", "Terms of service"], ["Delete your data", "/data-deletion", "Delete your data"]]) {
+    for (const [name, path, heading] of [["Privacy policy", "/privacy", /Privacy Policy/], ["Terms of service", "/terms", /Terms and Conditions of Service/], ["All policies", "/policies", /Our policies/], ["Delete your data", "/data-deletion", /Delete your data/]]) {
       await lp.locator("footer").getByRole("link", { name }).click();
       await lp.waitForURL("**" + path);
       await lp.getByRole("heading", { level: 1, name: heading }).waitFor();
-      must((await lp.getByText(/Last updated \d+ \w+ \d{4}/).count()) === 1, path + " shows when it was last updated");
+      must((await lp.getByText(/(Last updated|Effective) \d+ \w+ \d{4}/).count()) === 1, path + " shows its date");
       await lp.goto(base + "/");
     }
+    // every policy in the pack has a page
+    for (const [slug, heading] of [["pricing-and-payment", /Pricing, Currency and Payment/], ["ordering-and-purchasing", /Ordering and Purchasing/], ["shipping-and-delivery", /Shipping and Delivery/], ["customs-duties-and-taxes", /Customs, Duties and Taxes/], ["cargo-insurance-and-claims", /Cargo Insurance and Claims/], ["prohibited-and-restricted-items", /Prohibited and Restricted Items/], ["returns-cancellations-and-refunds", /Returns, Cancellations and Refunds/], ["complaints", /Complaints and Dispute Resolution/], ["fraud-id-and-aml", /Fraud, ID Verification and AML/], ["unclaimed-parcels", /Unclaimed and Abandoned Parcels/]]) {
+      await lp.goto(base + "/policies/" + slug);
+      await lp.getByRole("heading", { level: 1, name: heading }).waitFor();
+    }
+    await lp.goto(base + "/policies/information-security");
+    must((await lp.getByText("Nothing here").count()) > 0 && (await lp.getByText(/Information Security Policy/i).count()) === 0, "internal policies are not published");
     await lp.goto(base + "/privacy");
-    must((await lp.locator("article a[href^='mailto:']").count()) === 0, "no contact email is shown until the owner sets one");
+    must((await lp.locator("article a[href='mailto:info@atombologistics.com']").count()) > 0, "the privacy policy shows the business contact email until the owner sets another");
+    must((await lp.getByText(/registration no\./).count()) === 0, "no registration number is claimed until the owner enters one");
     const pa = await loginAs(base);
     await pa.goto(base + "/admin/pricing");
     await pa.getByLabel("Contact email (for privacy and complaints)").fill("privacy@shop.example");
-    await pa.getByLabel("Registered business name (optional)").fill("Example Trading Ltd");
+    await pa.getByLabel("Data Protection Commission (Ghana) registration number").fill("DPC-12345");
     await pa.getByRole("button", { name: "Save pricing" }).click();
     await pa.waitForURL("**/admin/pricing?saved=1");
     await lp.goto(base + "/privacy");
     must((await lp.locator("article a[href='mailto:privacy@shop.example']").count()) > 0, "the privacy policy shows the contact email the owner saved");
-    must((await lp.getByText(/is run by Example Trading Ltd/).count()) === 1, "the privacy policy names the registered business");
+    must((await lp.getByText(/Data Protection Commission \(Ghana\), registration no\. DPC-12345/).count()) === 1, "the privacy policy shows the registration number the owner saved");
     await lp.goto(base + "/terms");
     must((await lp.locator("article a[href='mailto:privacy@shop.example']").count()) > 0, "the terms show the same contact email");
     await pa.context().close();
     await lp.context().close();
-    step("the privacy policy, terms and data-deletion pages are public, linked from the footer, and use the owner's contact details");
+    step("the terms, privacy policy, cookie policy and the other policies are public, linked from the footer, and use the owner's contact details");
   }
 
   // 9m. ordering from Amazon UK without any Amazon data feed: a search hand-off to Amazon, recognised Amazon links (short, shared text, US store),
@@ -779,12 +788,14 @@ try {
     await fresh.getByRole("region", { name: "Cookies" }).waitFor();
     await fresh.getByRole("button", { name: "Accept all" }).click();
     await fresh.reload();
+    // the page writes it once it has loaded, so wait for it rather than reading it the instant the page opens
+    await fresh.waitForFunction(() => localStorage.getItem("recently-viewed") !== null, null, { timeout: 8000 }).catch(() => {});
     must((await fresh.evaluate(() => localStorage.getItem("recently-viewed"))) !== null, "recently viewed is remembered after Accept all");
     await fresh.locator("footer").getByRole("button", { name: "Cookie settings" }).click();
     await fresh.getByRole("button", { name: "Essential only" }).click();
     must((await fresh.evaluate(() => localStorage.getItem("recently-viewed"))) === null, "choosing Essential only again clears it");
     await fresh.goto(base + "/cookies");
-    await fresh.getByRole("heading", { name: "Cookie policy" }).waitFor();
+    await fresh.getByRole("heading", { name: /Cookie Policy/ }).waitFor();
     for (const name of ["sid", "cart", "dz", "cookie_choice"]) must((await fresh.getByRole("cell", { name, exact: true }).count()) === 1, "the policy lists the " + name + " cookie");
     must((await fresh.locator("footer").getByRole("link", { name: "Cookie policy" }).count()) === 1, "the footer links the policy");
     step("cookie banner: one question, both answers equal, optional memory follows the choice, policy page lists every cookie");

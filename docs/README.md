@@ -30,6 +30,7 @@ This folder holds everything written about the system. Start with the guide for 
 11. [FAQ and troubleshooting](11-faq-and-troubleshooting.md): common questions and fixes.
 12. [Change history](12-change-history.md): what was built, in order.
 13. [Software Requirements Specification (SRS)](13-srs.md): the formal, numbered requirements (functional, interface, quality, data, business rules, use cases, risks) with the status of each and how it is verified.
+14. [Internal policies](14-internal-policies.md): information security, partner management and the staff code of conduct (not published on the website), and where the software does and does not yet match them.
 
 ## Facts worth knowing before you read anything
 

@@ -71,6 +71,9 @@ What was built and in what order. Every change below is a commit on the `claude/
 - **Margin**: 3% over mid-market, +0.5% / +1.0% when the three-day move passes 1% / 2%, never below conversion cost + 1.5%.
 - **Quote lock**: each shopper's quote is held for 30 minutes, and an order whose price moved is refused with the new total. **Sanity check**: sources more than 1.5% apart freeze new quotes.
 
+## Policies
+- The business's **Policy Pack** (effective 1 November 2026) is published: Terms and Conditions (England and Wales law), Privacy, Cookie, and policies on pricing, ordering, shipping, customs, cargo insurance, prohibited items, returns, complaints, fraud and ID checks and unclaimed parcels, with a hub at `/policies` and footer links. The internal policies (information security, partner management, staff code of conduct) are kept in the documentation, not on the site. Registration numbers for the data-protection regulators are entered in Pricing → Site and shown once filled in.
+
 ## Staff and access
 - **Roles and access control**: the developer's password is the **super admin**; staff accounts are created by the super admin with roles or exact rights, forced first-time password change, switch-off with immediate sign-out, and an activity log that names the person. Every admin page and action checks a right, and a test enforces this.
 

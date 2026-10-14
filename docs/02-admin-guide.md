@@ -101,7 +101,7 @@ Customer reviews, filterable by **All / Published / Hidden**. Only customers who
 
 ### Pricing
 - **Exchange rate**: the market rate (GH₵ per £1) and, optionally, the customs rate. Customers are charged the market rate plus the engine's margin.
-- **Site**: site name, the support WhatsApp number, a **contact email** and the **registered business name**. The email and business name appear in the public [privacy policy](#legal-pages-privacy-terms-and-data-deletion) and terms, so fill them in before you submit the policy links to Facebook, Google or Apple.
+- **Site**: site name, the support WhatsApp number, a **contact email** and the **registered business name**. The email appears in the public policies, and the two **registration numbers** in the privacy policy ([the policies](#legal-pages-the-policies-privacy-terms-and-data-deletion)), so fill them in before you submit the policy links to Facebook, Google or Apple.
 - **What customers pay now**: typical baskets priced with the saved settings, so you can see the effect of a change.
 - The **exchange-rate feed** policy (manual, suggest or automatic, with a maximum automatic move and an alert gap) is under Integrations.
 
@@ -228,11 +228,11 @@ Picking a role ticks its rights. Changing any tick switches the role to **Custom
 | Manage messages (messages.manage) | Retry failed messages and choose which updates are sent. | ✔ |  |  |  |  |  |
 | See the activity log (audit.view) | Who changed what, and when. | ✔ |  |  |  | ✔ |  |
 
-### Legal pages: privacy, terms and data deletion
-The shop has four public pages, linked from the footer: **`/privacy`** (privacy policy), **`/terms`** (terms of service), **`/cookies`** (cookie policy, with the cookie banner and a "Cookie settings" control in the footer) and **`/data-deletion`** (how to delete an account and what is kept). Facebook, Google and Apple ask for these addresses, for example `https://your-domain/privacy`. Facebook's "data deletion instructions URL" is `/data-deletion`.
-- They take your business name and contact details from **Pricing → Site**, so nothing about the business is written into the text.
-- The wording describes what the shop does today (what it collects, who it shares with, how deletion works). **It is a starting draft, not legal advice.** Have a lawyer in your market read it before you rely on it, check the governing law (it says Ghana), the refund wording, and whether you must register with the Data Protection Commission.
-- If you change what the shop collects or who it shares data with, change the wording in `src/app/(site)/privacy/page.tsx` and update the date in `src/components/LegalPage.tsx`.
+### Legal pages: the policies, privacy, terms and data deletion
+The shop publishes the business's **Policy Pack** (effective 1 November 2026), linked from the footer. **`/terms`** is the Terms and Conditions of Service (Policy 1), **`/privacy`** the Privacy Policy (9), **`/cookies`** the Cookie Policy (13, with the cookie banner and a "Cookie settings" control in the footer), **`/policies`** lists them all, and policies 2 to 8, 10, 11 and 12 (pricing and payment, ordering, shipping and delivery, customs, cargo insurance, prohibited and restricted items, returns, complaints, fraud and ID checks, unclaimed parcels) are at `/policies/<name>`. **`/data-deletion`** explains how to delete an account. Facebook, Google and Apple ask for these addresses, for example `https://your-domain/privacy`. Facebook's "data deletion instructions URL" is `/data-deletion`.
+- The wording is the business's own. It lives in one file, `src/lib/policies.ts`, so changing a policy means editing that file and the date in `src/components/LegalPage.tsx`. The internal policies (information security, partner management, staff code of conduct) are not published: they are in [Internal policies](14-internal-policies.md).
+- **Pricing → Site**: the **contact email** replaces the business email shown in the policies; the **Data Protection Commission (Ghana)** and **ICO (UK)** registration numbers appear in the privacy policy only once you enter them. Leave them empty until you are registered.
+- Where the policy says something the software does not yet do, the page was adjusted or the gap is listed at the end of [Internal policies](14-internal-policies.md). **The policies are not legal advice**: have a lawyer in your market confirm them.
 
 ### Managing an account
 Open it from the list to: **change name, role and rights** (this signs them out so the new rights apply at once), **switch off or on** (switching off signs them out everywhere immediately), **reset the password** (they must choose a new one; they are signed out), or **delete** (confirmation needed; their past actions stay in the activity log under their name).

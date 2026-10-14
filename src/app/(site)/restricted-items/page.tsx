@@ -16,6 +16,7 @@ export default function RestrictedItemsPage() {
       </ul>
       <p className="mt-6 text-sm text-ink-soft">
         Batteries in these devices are limited on air freight, and medical devices are regulated. If you are not sure about an item, ask us before you order.
+        The full rules are in our <Link href="/policies/prohibited-and-restricted-items" className="link">prohibited and restricted items policy</Link>.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
         <Link href="/shops" className="btn btn-primary">Browse the shops</Link>

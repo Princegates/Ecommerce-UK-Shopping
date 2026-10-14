@@ -34,6 +34,8 @@ export default function Footer() {
             <Link className={a} href="/request">Request any item</Link>
             <Link className={a} href="/#how">How it works</Link>
             <Link className={a} href="/restricted-items">Items we cannot ship</Link>
+            <Link className={a} href="/policies/shipping-and-delivery">Shipping and delivery</Link>
+            <Link className={a} href="/policies/returns-cancellations-and-refunds">Returns and refunds</Link>
             {wa && <a className={a} href={`https://wa.me/${wa}`}>Chat on WhatsApp</a>}
           </nav>
           <div className={col}>
@@ -58,6 +60,7 @@ export default function Footer() {
               <Link className="text-white/80 hover:text-white hover:underline" href="/privacy">Privacy policy</Link>
               <Link className="text-white/80 hover:text-white hover:underline" href="/terms">Terms of service</Link>
               <Link className="text-white/80 hover:text-white hover:underline" href="/cookies">Cookie policy</Link>
+              <Link className="text-white/80 hover:text-white hover:underline" href="/policies">All policies</Link>
               <CookieSettingsLink className="text-white/80 hover:text-white hover:underline" />
               <Link className="text-white/80 hover:text-white hover:underline" href="/data-deletion">Delete your data</Link>
             </nav>

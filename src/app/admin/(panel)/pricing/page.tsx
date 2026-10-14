@@ -37,6 +37,8 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
               <Text label="WhatsApp number (optional)" name="whatsapp" defaultValue={s.supportWhatsapp} hint="With country code, e.g. 233501234567" />
               <Text label="Contact email (for privacy and complaints)" name="supportEmail" type="email" defaultValue={s.supportEmail} hint="Shown in the privacy policy and terms. Fill this in before you submit the policy links to Facebook or Google." />
               <Text label="Registered business name (optional)" name="legalName" defaultValue={s.legalName} hint="The company that runs the shop, if different from the site name, for example Atombo Logistics Ltd." />
+              <Text label="Data Protection Commission (Ghana) registration number" name="dpcRegNo" defaultValue={s.dpcRegNo} hint="Shown in the privacy policy once you fill it in. Leave empty if you are not registered yet." />
+              <Text label="ICO (UK) registration number" name="icoRegNo" defaultValue={s.icoRegNo} hint="Shown in the privacy policy once you fill it in. Leave empty if you are not registered yet." />
             </div>
           </section>
 

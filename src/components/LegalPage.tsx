@@ -3,7 +3,7 @@ import { appUrl } from "@/lib/app-url";
 import { getSettings } from "@/lib/settings";
 
 /** When the policy texts were last changed. Update it whenever the wording of a policy changes. */
-export const LEGAL_UPDATED = "13 October 2026";
+export const LEGAL_UPDATED = "14 October 2026";
 
 /** Who the policies speak for, taken from the Site settings so nothing about the business is written into the text. */
 export function legalIdentity() {
@@ -26,12 +26,12 @@ export function ContactLine() {
   return <>{ways.flatMap((w, i) => (i === 0 ? [w] : [" or ", w]))}</>;
 }
 
-export default function LegalPage({ title, intro, children }: { title: string; intro?: ReactNode; children: ReactNode }) {
+export default function LegalPage({ title, intro, effective, children }: { title: string; intro?: ReactNode; effective?: string; children: ReactNode }) {
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 [&_h2]:mt-10 [&_h2]:text-2xl [&_li]:mt-1.5 [&_p]:mt-3 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:mt-3 [&_ol]:list-decimal [&_ol]:pl-6">
       <p className="label">Legal</p>
       <h1 className="text-4xl">{title}</h1>
-      <p className="mt-2 text-sm text-ink-soft">Last updated {LEGAL_UPDATED}</p>
+      <p className="mt-2 text-sm text-ink-soft">{effective ? `Effective ${effective}` : `Last updated ${LEGAL_UPDATED}`}</p>
       {intro && <p className="mt-5 text-lg">{intro}</p>}
       {children}
     </article>

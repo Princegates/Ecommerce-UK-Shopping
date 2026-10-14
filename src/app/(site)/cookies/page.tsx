@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import CookieSettingsLink from "@/components/CookieSettingsLink";
 import LegalPage, { ContactLine, legalIdentity } from "@/components/LegalPage";
+import { OtherPolicies } from "@/components/PolicyPage";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Cookie policy" };
@@ -19,7 +20,7 @@ export default function CookiesPage() {
   const { brand } = legalIdentity();
   return (
     <LegalPage
-      title="Cookie policy"
+      title="13. Cookie Policy"
       intro={<>Cookies are small files a website saves in your browser. This page lists the ones {brand} uses, what each one is for, and how to change your choice.</>}
     >
       <h2>1. Cookies the shop needs to work</h2>
@@ -49,10 +50,17 @@ export default function CookiesPage() {
         You can change your choice at any time: <CookieSettingsLink className="link font-semibold" />. You can also delete cookies in your browser&rsquo;s settings. If you do, you will be signed out and your basket may be emptied.
       </p>
 
-      <h2>5. Questions</h2>
+      <h2>5. Third parties</h2>
+      <p>Our payment providers may set their own cookies on their payment pages. Their policies apply to what they set.</p>
+
+      <h2>6. Browser controls</h2>
+      <p>You can block or delete cookies in your browser. Blocking the cookies the shop needs may stop sign-in, your basket and checkout from working.</p>
+
+      <h2>7. Changes and questions</h2>
       <p>
         See our <Link className="link" href="/privacy">privacy policy</Link> for how we handle your personal information, or contact us: <ContactLine />.
       </p>
+      <OtherPolicies current={13} />
     </LegalPage>
   );
 }
