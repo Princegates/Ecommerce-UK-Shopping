@@ -172,8 +172,8 @@ try {
   await ap.getByRole("button", { name: "Save pricing" }).click();
   await ap.getByText("Saved.").first().waitFor();
   await page.goto(base + "/");
-  must((await page.getByText(/£1 = GH₵\s?16\.4\d/).count()) > 0, "ribbon shows the new exchange rate");
-  step("admin exchange rate reaches the storefront ribbon");
+  must((await page.getByText(/£1 = GH₵/).count()) === 0, "the storefront does not show the exchange rate");
+  step("the storefront does not display the exchange rate");
 
   // 9. invalid admin input
   await ap.goto(base + "/admin/pricing-engine");

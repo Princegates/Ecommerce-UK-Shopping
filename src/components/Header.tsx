@@ -5,7 +5,6 @@ import { listDepartments, listShops } from "@/lib/catalog";
 import { getCustomer } from "@/lib/customer-session";
 import { unseenUpdateCount } from "@/lib/customers";
 import { getDeliveryContext } from "@/lib/delivery-context";
-import { effectiveRate } from "@/lib/pricing";
 import { getSettings, getZones } from "@/lib/settings";
 import { wishlistIds } from "@/lib/wishlist";
 import { BrandMark } from "./Brand";
@@ -26,7 +25,6 @@ export default async function Header() {
   const departments = listDepartments();
   const shops = listShops();
   const zones = getZones().map((z) => ({ id: z.id, name: z.name }));
-  const rate = effectiveRate(settings.fx);
   const saved = customer ? wishlistIds(customer.id).size : 0;
   const unseen = customer ? unseenUpdateCount(customer.id) : 0;
   const first = customer?.name.split(" ")[0];
@@ -138,7 +136,6 @@ export default async function Header() {
               <li className="ml-auto lg:hidden">{ctx && <DeliverTo zones={zones} current={ctx.zoneId} />}</li>
             </ul>
             <div className="shrink-0 pl-1"><LinkAdd /></div>
-            <p className="num hidden shrink-0 pl-3 text-xs text-white/80 lg:block">£1 = <span className="font-bold text-spark">GH₵{rate.toFixed(2)}</span> · pay in cedis</p>
           </div>
         </nav>
       </header>

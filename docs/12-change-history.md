@@ -71,6 +71,9 @@ What was built and in what order. Every change below is a commit on the `claude/
 - **Margin**: 3% over mid-market, +0.5% / +1.0% when the three-day move passes 1% / 2%, never below conversion cost + 1.5%.
 - **Quote lock**: each shopper's quote is held for 30 minutes, and an order whose price moved is refused with the new total. **Sanity check**: sources more than 1.5% apart freeze new quotes.
 
+## Rate display
+- The exchange rate is no longer shown to customers (header, browse page, order page, card payment note). They see prices in cedis; the pricing engine's built-in margin covers rate movement.
+
 ## Policies
 - The business's **Policy Pack** (effective 1 November 2026) is published: Terms and Conditions (England and Wales law), Privacy, Cookie, and policies on pricing, ordering, shipping, customs, cargo insurance, prohibited items, returns, complaints, fraud and ID checks and unclaimed parcels, with a hub at `/policies` and footer links. The internal policies (information security, partner management, staff code of conduct) are kept in the documentation, not on the site. Registration numbers for the data-protection regulators are entered in Pricing → Site and shown once filled in.
 

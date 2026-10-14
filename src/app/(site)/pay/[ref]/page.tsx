@@ -5,7 +5,7 @@ import { gbp, ghs } from "@/lib/money";
 import { getOrderByRef } from "@/lib/orders";
 import { activeGateways, demoPaymentsEnabled } from "@/lib/payments";
 import { pendingAttempts } from "@/lib/payments/confirm";
-import { effectiveRate, ghsToGbpMinor } from "@/lib/pricing";
+import { ghsToGbpMinor } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Payment", robots: { index: false } };
@@ -33,7 +33,6 @@ export default async function PayPage({
   const demo = demoPaymentsEnabled();
   const waiting = pendingAttempts(order.id);
   const fx = { rate: order.fxRate, markupPct: order.fxMarkupPct };
-  const rate = effectiveRate(fx);
 
   return (
     <div className="mx-auto max-w-xl px-4 py-14">
@@ -73,7 +72,7 @@ export default async function PayPage({
                       <p className="text-sm text-ink-soft">{BLURB[g.id]}</p>
                       {g.chargeCurrency === "GBP" && (
                         <p className="hint mt-1">
-                          Your order total is {ghs(order.totalMinor)}. Your card is charged <strong>{amount}</strong>, the same amount in pounds at £1 = GH₵{rate.toFixed(2)}, the rate on your order. Your bank may add its own currency fee.
+                          Your order total is {ghs(order.totalMinor)}. Your card is charged <strong>{amount}</strong>, the same amount in pounds, converted when you ordered. Your bank may add its own currency fee.
                         </p>
                       )}
                     </div>

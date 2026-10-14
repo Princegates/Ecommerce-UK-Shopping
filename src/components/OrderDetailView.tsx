@@ -147,7 +147,7 @@ export default function OrderDetailView({
             <div className="mt-3"><Breakdown b={customerOfOrder(order)} approxGbpMinor={ghsToGbpMinor(order.totalMinor, { rate: order.fxRate, markupPct: order.fxMarkupPct })} /></div>
             <hr />
             <p className="text-xs text-ink-soft">
-              Priced at £1 = GH₵{(order.fxRate * (1 + order.fxMarkupPct / 100)).toFixed(4)} when you ordered. {BREAKDOWN_NOTE}
+              {BREAKDOWN_NOTE}
             </p>
           </div>
           <section className="box p-5">
